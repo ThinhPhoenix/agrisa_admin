@@ -220,3 +220,126 @@
     gap: 8px;
   }
 }
+
+/* Account Detail Page Styles */
+.accounts-detail-card {
+  height: 100% !important;
+  min-height: 400px !important;
+}
+
+.accounts-detail-row .ant-col {
+  display: flex !important;
+}
+
+.accounts-detail-row .ant-col > .ant-card {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.accounts-detail-row .ant-card .ant-card-body {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.accounts-user-avatar-section {
+  margin-bottom: 24px !important;
+  text-align: center !important;
+}
+
+.accounts-user-avatar-large {
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.accounts-permissions-container {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.accounts-permissions-summary {
+  margin-bottom: 16px !important;
+  padding: 12px !important;
+  background: #f6ffed !important;
+  border: 1px solid #b7eb8f !important;
+  border-radius: 6px !important;
+  text-align: center !important;
+}
+
+.accounts-permissions-list {
+  flex: 1 !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  align-content: flex-start !important;
+}
+
+.accounts-activity-log {
+  flex: 1 !important;
+}
+
+.accounts-activity-item {
+  padding: 16px !important;
+  border-bottom: 1px solid #f0f0f0 !important;
+}
+
+.accounts-activity-item:last-child {
+  border-bottom: none !important;
+}
+
+.accounts-activity-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-bottom: 8px !important;
+}
+
+/* Ensure equal height for statistic cards */
+.ant-statistic-title {
+  margin-bottom: 8px !important;
+}
+
+.ant-statistic-content {
+  font-size: 24px !important;
+}
+
+/* Responsive adjustments for detail page */
+@media (max-width: 992px) {
+  .accounts-detail-card {
+    min-height: auto !important;
+  }
+
+  .accounts-detail-row .ant-col {
+    display: block !important;
+  }
+
+  .accounts-detail-row .ant-col > .ant-card {
+    flex: none !important;
+    display: block !important;
+  }
+}
+
+/* Title section layout */
+.accounts-detail-title-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.accounts-detail-title-content {
+  flex: 1;
+}
+
+.accounts-detail-header {
+  margin-bottom: 24px;
+}
+
+.accounts-detail-row {
+  margin-bottom: 24px;
+}
+
+.accounts-detail-footer {
+  margin-top: 24px;
+}
