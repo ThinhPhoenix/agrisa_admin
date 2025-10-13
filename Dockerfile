@@ -30,8 +30,8 @@ COPY --from=base /app ./
 # Env vars
 ENV BUN_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV PORT=3000
+ENV PORT=3001
 
-EXPOSE 3000
+EXPOSE 3001
 
 CMD ["bun", "run", "start"]
