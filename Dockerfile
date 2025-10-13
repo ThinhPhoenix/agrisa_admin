@@ -5,13 +5,16 @@ FROM oven/bun:1 AS base
 
 WORKDIR /app
 
-# Copy package files
-COPY agrisa_admin/package*.json agrisa_admin/bun.lock ./
+# Copy package files từ đúng location
+COPY agrisa_admin/package*.json agrisa_admin/bun.lock* ./
 
 # Install all dependencies (include devDependencies for build)
 RUN bun install
-# Copy source
-COPY agrisa_admin .
+
+# Copy toàn bộ source code
+COPY agrisa_admin/ ./
+
+# Copy .env từ root (nếu cần)
 COPY .env .env
 
 # Build Next.js app
