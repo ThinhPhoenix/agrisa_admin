@@ -1,0 +1,194 @@
+/* Permissions Page Styles */
+
+.permissions-content {
+  padding: 24px;
+  min-height: 100vh;
+}
+
+.permissions-space {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.permissions-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
+/* Header */
+.permissions-header {
+  margin-bottom: 24px;
+}
+
+.permissions-title {
+  margin-bottom: 8px !important;
+  color: #1f2937 !important;
+}
+
+.permissions-subtitle {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* Summary Cards */
+.permissions-summary-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.permissions-summary-card-compact {
+  flex: 1;
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  min-width: 0; /* Allow shrinking */
+}
+
+.permissions-summary-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.permissions-summary-icon.total {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}
+
+.permissions-summary-icon.active {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
+.permissions-summary-icon.modules {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.permissions-summary-icon.actions {
+  background-color: #fce7f3;
+  color: #db2777;
+}
+
+.permissions-summary-content {
+  flex: 1;
+}
+
+.permissions-summary-value-compact {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1;
+}
+
+.permissions-summary-label-compact {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+/* Filters */
+.permissions-filters {
+  margin-bottom: 24px;
+}
+
+.permissions-filter-form {
+  padding: 16px 0;
+}
+
+/* Table */
+.permissions-table-wrapper {
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.permissions-name {
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 2px;
+  font-size: 14px;
+}
+
+.permissions-description {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.permissions-module {
+  font-size: 13px;
+  color: #1f2937;
+}
+
+.permissions-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.permissions-action-count {
+  font-size: 12px;
+  color: #1f2937;
+  font-weight: 500;
+}
+
+.permissions-action-list {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.permissions-status-tag {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.permissions-created-at {
+  font-size: 12px;
+}
+
+.permissions-date {
+  color: #1f2937;
+  margin-bottom: 2px;
+}
+
+.permissions-time {
+  color: #6b7280;
+}
+
+.permissions-actions-cell {
+  display: flex;
+  gap: 6px;
+}
+
+.permissions-action-btn {
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.permissions-action-btn:hover {
+  transform: translateY(-1px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .permissions-content {
+    padding: 16px;
+  }
+
+  .permissions-table-wrapper {
+    padding: 16px;
+  }
+}

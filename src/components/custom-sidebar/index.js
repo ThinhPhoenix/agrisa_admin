@@ -14,12 +14,12 @@ import { useState } from "react"; // Add this import for state
 
 const items = [
   {
-    key: "account-management",
+    key: "accounts",
     label: "Quản lí tài khoản",
     icon: <Users size={16} />,
   },
   {
-    key: "permission-management",
+    key: "permissions",
     label: "Quản lí quyền hạn",
     icon: <Shield size={16} />,
   },
