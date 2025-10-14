@@ -24,8 +24,13 @@ const items = [
     icon: <Shield size={16} />,
   },
   {
-    key: "role-management",
+    key: "roles",
     label: "Quản lí vai trò",
+    icon: <Settings size={16} />,
+  },
+  {
+    key: "configuration",
+    label: "Cấu hình hệ thống",
     icon: <Settings size={16} />,
   },
 ];

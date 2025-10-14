@@ -1,0 +1,169 @@
+[
+  {
+    "id": 1,
+    "name": "Farmer",
+    "description": "Vai trò dành cho nông dân sử dụng nền tảng để quản lý trang trại và bán sản phẩm",
+    "permissions": [
+      "read:accounts",
+      "read:products",
+      "create:products",
+      "update:products",
+      "read:orders",
+      "create:orders"
+    ],
+    "status": "Hoạt động",
+    "created_at": "2024-01-15T10:00:00Z",
+    "updated_at": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": 2,
+    "name": "Insurance Partner VIP",
+    "description": "Đối tác bảo hiểm cao cấp với quyền truy cập đầy đủ vào hệ thống quản lý bảo hiểm",
+    "permissions": [
+      "read:accounts",
+      "create:accounts",
+      "update:accounts",
+      "delete:accounts",
+      "read:insurance",
+      "create:insurance",
+      "update:insurance",
+      "delete:insurance",
+      "read:reports",
+      "create:reports",
+      "read:analytics"
+    ],
+    "status": "Hoạt động",
+    "created_at": "2024-01-15T10:00:00Z",
+    "updated_at": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": 3,
+    "name": "Premium",
+    "description": "Người dùng cao cấp với quyền truy cập nâng cao và tính năng premium",
+    "permissions": [
+      "read:accounts",
+      "update:accounts",
+      "read:products",
+      "create:products",
+      "update:products",
+      "delete:products",
+      "read:orders",
+      "create:orders",
+      "update:orders",
+      "read:reports",
+      "read:analytics"
+    ],
+    "status": "Hoạt động",
+    "created_at": "2024-01-15T10:00:00Z",
+    "updated_at": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": 4,
+    "name": "Freemium",
+    "description": "Người dùng miễn phí với quyền truy cập cơ bản đến các tính năng chính",
+    "permissions": [
+      "read:accounts",
+      "read:products",
+      "read:orders",
+      "create:orders"
+    ],
+    "status": "Hoạt động",
+    "created_at": "2024-01-15T10:00:00Z",
+    "updated_at": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": 5,
+    "name": "Distributor",
+    "description": "Nhà phân phối với quyền quản lý kho hàng và đơn hàng phân phối",
+    "permissions": [
+      "read:accounts",
+      "update:accounts",
+      "read:products",
+      "create:products",
+      "update:products",
+      "read:orders",
+      "create:orders",
+      "update:orders",
+      "delete:orders",
+      "read:inventory",
+      "update:inventory"
+    ],
+    "status": "Hoạt động",
+    "created_at": "2024-01-15T10:00:00Z",
+    "updated_at": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": 6,
+    "name": "Inspector",
+    "description": "Người kiểm tra chất lượng với quyền xem và đánh giá sản phẩm",
+    "permissions": [
+      "read:products",
+      "update:products",
+      "read:quality",
+      "create:quality",
+      "update:quality",
+      "read:reports"
+    ],
+    "status": "Hoạt động",
+    "created_at": "2024-01-15T10:00:00Z",
+    "updated_at": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": 7,
+    "name": "Admin",
+    "description": "Quản trị viên hệ thống với quyền truy cập đầy đủ tất cả các module",
+    "permissions": [
+      "read:accounts",
+      "create:accounts",
+      "update:accounts",
+      "delete:accounts",
+      "read:permissions",
+      "create:permissions",
+      "update:permissions",
+      "delete:permissions",
+      "read:roles",
+      "create:roles",
+      "update:roles",
+      "delete:roles",
+      "read:products",
+      "create:products",
+      "update:products",
+      "delete:products",
+      "read:orders",
+      "create:orders",
+      "update:orders",
+      "delete:orders",
+      "read:reports",
+      "create:reports",
+      "read:analytics",
+      "read:inventory",
+      "update:inventory",
+      "read:quality",
+      "create:quality",
+      "update:quality",
+      "read:system",
+      "update:system"
+    ],
+    "status": "Hoạt động",
+    "created_at": "2024-01-15T10:00:00Z",
+    "updated_at": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": 8,
+    "name": "Support",
+    "description": "Nhân viên hỗ trợ khách hàng với quyền xem thông tin và xử lý yêu cầu",
+    "permissions": [
+      "read:accounts",
+      "update:accounts",
+      "read:orders",
+      "update:orders",
+      "read:support",
+      "create:support",
+      "update:support",
+      "read:reports"
+    ],
+    "status": "Hoạt động",
+    "created_at": "2024-01-15T10:00:00Z",
+    "updated_at": "2024-01-15T10:00:00Z"
+  }
+]
