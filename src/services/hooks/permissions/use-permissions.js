@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 export function usePermissions() {
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
-    name: "",
+    action: "",
     module: "",
     status: "",
   });
@@ -42,13 +42,13 @@ export function usePermissions() {
   // Filtered data
   const filteredData = useMemo(() => {
     return mockData.filter((item) => {
-      const matchesName =
-        !filters.name ||
-        item.name.toLowerCase().includes(filters.name.toLowerCase());
+      const matchesAction =
+        !filters.action ||
+        item.action.toLowerCase().includes(filters.action.toLowerCase());
       const matchesModule = !filters.module || item.module === filters.module;
       const matchesStatus = !filters.status || item.status === filters.status;
 
-      return matchesName && matchesModule && matchesStatus;
+      return matchesAction && matchesModule && matchesStatus;
     });
   }, [filters]);
 
@@ -59,16 +59,13 @@ export function usePermissions() {
       (item) => item.status === "Hoạt động"
     ).length;
     const modulesCount = new Set(mockData.map((item) => item.module)).size;
-    const avgActions = Math.round(
-      mockData.reduce((sum, item) => sum + item.actions.length, 0) /
-        mockData.length
-    );
+    const actionsCount = new Set(mockData.map((item) => item.action)).size;
 
     return {
       totalPermissions,
       activePermissions,
       modulesCount,
-      avgActions,
+      actionsCount,
     };
   }, []);
 
@@ -80,7 +77,7 @@ export function usePermissions() {
   // Clear filters
   const clearFilters = () => {
     setFilters({
-      name: "",
+      action: "",
       module: "",
       status: "",
     });

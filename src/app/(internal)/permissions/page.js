@@ -35,10 +35,9 @@ export default function PermissionsPage() {
 
   // Visible columns state
   const [visibleColumns, setVisibleColumns] = useState([
-    "name",
+    "action",
     "description",
     "module",
-    "actions",
     "status",
     "created_at",
   ]);
@@ -78,6 +77,23 @@ export default function PermissionsPage() {
     }
   };
 
+  // Get action color
+  const getActionColor = (action) => {
+    if (action.includes(":")) {
+      return "red"; // Scoped actions like read:admin
+    }
+    const colors = {
+      read: "blue",
+      write: "green",
+      create: "purple",
+      update: "orange",
+      delete: "red",
+      export: "cyan",
+      import: "magenta",
+    };
+    return colors[action] || "default";
+  };
+
   // Get module color
   const getModuleColor = (module) => {
     const colors = {
@@ -94,12 +110,19 @@ export default function PermissionsPage() {
   // Table columns
   const columns = [
     {
-      title: "Tên quyền",
-      dataIndex: "name",
-      key: "name",
-      width: 200,
+      title: "Action",
+      dataIndex: "action",
+      key: "action",
+      width: 150,
       render: (_, record) => (
-        <div className="permissions-name">{record.name}</div>
+        <div className="permissions-action">
+          <Tag
+            color={getActionColor(record.action)}
+            className="permissions-action-tag"
+          >
+            {record.action}
+          </Tag>
+        </div>
       ),
     },
     {
@@ -123,23 +146,6 @@ export default function PermissionsPage() {
         >
           {record.module}
         </Tag>
-      ),
-    },
-    {
-      title: "Actions",
-      dataIndex: "actions",
-      key: "actions",
-      width: 150,
-      render: (_, record) => (
-        <div className="permissions-actions">
-          <div className="permissions-action-count">
-            {record.actions.length} actions
-          </div>
-          <div className="permissions-action-list">
-            {record.actions.slice(0, 2).join(", ")}
-            {record.actions.length > 2 && "..."}
-          </div>
-        </div>
       ),
     },
     {
@@ -214,11 +220,11 @@ export default function PermissionsPage() {
   const searchFields = [
     // First row - Main filters (2 fields)
     {
-      name: "name",
-      label: "Tên quyền",
+      name: "action",
+      label: "Action",
       type: "input",
-      placeholder: "Tìm kiếm theo tên quyền...",
-      value: filters.name,
+      placeholder: "Tìm kiếm theo action...",
+      value: filters.action,
     },
     {
       name: "module",
@@ -320,10 +326,10 @@ export default function PermissionsPage() {
             </div>
             <div className="permissions-summary-content">
               <div className="permissions-summary-value-compact">
-                {summaryStats.avgActions}
+                {summaryStats.actionsCount}
               </div>
               <div className="permissions-summary-label-compact">
-                Actions TB
+                Loại actions
               </div>
             </div>
           </div>
@@ -368,9 +374,11 @@ export default function PermissionsPage() {
 
         {/* Table */}
         <div className="flex justify-start items-center gap-2 mb-2">
-          <Button type="primary" icon={<LockOutlined />}>
-            Tạo quyền
-          </Button>
+          <Link href="/permissions/create">
+            <Button type="primary" icon={<LockOutlined />}>
+              Tạo quyền
+            </Button>
+          </Link>
           <Button icon={<DownloadOutlined />}>Nhập excel</Button>
           <Button icon={<DownloadOutlined />}>Xuất excel</Button>
           <SelectedColumn

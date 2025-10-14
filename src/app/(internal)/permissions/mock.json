@@ -1,100 +1,162 @@
 [
   {
     "id": 1,
-    "name": "Xem tài khoản",
+    "action": "read",
     "description": "Quyền xem danh sách tài khoản admin",
     "module": "accounts",
-    "actions": ["read"],
     "status": "Hoạt động",
     "created_at": "2024-01-15T10:00:00Z",
     "updated_at": "2024-01-15T10:00:00Z"
   },
   {
     "id": 2,
-    "name": "Tạo tài khoản",
+    "action": "create",
     "description": "Quyền tạo tài khoản admin mới",
     "module": "accounts",
-    "actions": ["create"],
     "status": "Hoạt động",
     "created_at": "2024-01-15T10:00:00Z",
     "updated_at": "2024-01-15T10:00:00Z"
   },
   {
     "id": 3,
-    "name": "Chỉnh sửa tài khoản",
+    "action": "update",
     "description": "Quyền chỉnh sửa thông tin tài khoản admin",
     "module": "accounts",
-    "actions": ["update"],
     "status": "Hoạt động",
     "created_at": "2024-01-15T10:00:00Z",
     "updated_at": "2024-01-15T10:00:00Z"
   },
   {
     "id": 4,
-    "name": "Xóa tài khoản",
+    "action": "delete",
     "description": "Quyền xóa tài khoản admin",
     "module": "accounts",
-    "actions": ["delete"],
     "status": "Hoạt động",
     "created_at": "2024-01-15T10:00:00Z",
     "updated_at": "2024-01-15T10:00:00Z"
   },
   {
     "id": 5,
-    "name": "Xem quyền hạn",
+    "action": "read",
     "description": "Quyền xem danh sách quyền hạn",
     "module": "permissions",
-    "actions": ["read"],
     "status": "Hoạt động",
     "created_at": "2024-01-15T10:00:00Z",
     "updated_at": "2024-01-15T10:00:00Z"
   },
   {
     "id": 6,
-    "name": "Quản lý quyền hạn",
-    "description": "Quyền tạo, chỉnh sửa, xóa quyền hạn",
+    "action": "create",
+    "description": "Quyền tạo quyền hạn mới",
     "module": "permissions",
-    "actions": ["create", "update", "delete"],
     "status": "Hoạt động",
     "created_at": "2024-01-15T10:00:00Z",
     "updated_at": "2024-01-15T10:00:00Z"
   },
   {
     "id": 7,
-    "name": "Xem báo cáo",
-    "description": "Quyền xem các báo cáo hệ thống",
-    "module": "reports",
-    "actions": ["read"],
+    "action": "update",
+    "description": "Quyền chỉnh sửa quyền hạn",
+    "module": "permissions",
     "status": "Hoạt động",
     "created_at": "2024-01-15T10:00:00Z",
     "updated_at": "2024-01-15T10:00:00Z"
   },
   {
     "id": 8,
-    "name": "Xuất dữ liệu",
-    "description": "Quyền xuất dữ liệu ra file Excel",
-    "module": "exports",
-    "actions": ["export"],
+    "action": "delete",
+    "description": "Quyền xóa quyền hạn",
+    "module": "permissions",
     "status": "Hoạt động",
     "created_at": "2024-01-15T10:00:00Z",
     "updated_at": "2024-01-15T10:00:00Z"
   },
   {
     "id": 9,
-    "name": "Nhập dữ liệu",
-    "description": "Quyền nhập dữ liệu từ file Excel",
-    "module": "imports",
-    "actions": ["import"],
+    "action": "read",
+    "description": "Quyền xem các báo cáo hệ thống",
+    "module": "reports",
     "status": "Hoạt động",
     "created_at": "2024-01-15T10:00:00Z",
     "updated_at": "2024-01-15T10:00:00Z"
   },
   {
     "id": 10,
-    "name": "Quản lý hệ thống",
-    "description": "Quyền quản lý cấu hình hệ thống",
+    "action": "read:admin",
+    "description": "Quyền xem báo cáo quản trị viên",
+    "module": "reports",
+    "status": "Hoạt động",
+    "created_at": "2024-01-15T10:00:00Z",
+    "updated_at": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": 11,
+    "action": "write",
+    "description": "Quyền ghi dữ liệu",
+    "module": "exports",
+    "status": "Hoạt động",
+    "created_at": "2024-01-15T10:00:00Z",
+    "updated_at": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": 12,
+    "action": "export",
+    "description": "Quyền xuất dữ liệu ra file Excel",
+    "module": "exports",
+    "status": "Hoạt động",
+    "created_at": "2024-01-15T10:00:00Z",
+    "updated_at": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": 13,
+    "action": "write",
+    "description": "Quyền ghi dữ liệu nhập",
+    "module": "imports",
+    "status": "Hoạt động",
+    "created_at": "2024-01-15T10:00:00Z",
+    "updated_at": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": 14,
+    "action": "import",
+    "description": "Quyền nhập dữ liệu từ file Excel",
+    "module": "imports",
+    "status": "Hoạt động",
+    "created_at": "2024-01-15T10:00:00Z",
+    "updated_at": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": 15,
+    "action": "read",
+    "description": "Quyền đọc cấu hình hệ thống",
     "module": "system",
-    "actions": ["read", "update"],
+    "status": "Hoạt động",
+    "created_at": "2024-01-15T10:00:00Z",
+    "updated_at": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": 16,
+    "action": "update",
+    "description": "Quyền cập nhật cấu hình hệ thống",
+    "module": "system",
+    "status": "Hoạt động",
+    "created_at": "2024-01-15T10:00:00Z",
+    "updated_at": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": 17,
+    "action": "read:admin",
+    "description": "Quyền đọc cấu hình admin hệ thống",
+    "module": "system",
+    "status": "Hoạt động",
+    "created_at": "2024-01-15T10:00:00Z",
+    "updated_at": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": 18,
+    "action": "update:super",
+    "description": "Quyền cập nhật cấu hình super admin",
+    "module": "system",
     "status": "Hoạt động",
     "created_at": "2024-01-15T10:00:00Z",
     "updated_at": "2024-01-15T10:00:00Z"
