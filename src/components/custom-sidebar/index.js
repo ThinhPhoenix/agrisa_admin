@@ -4,6 +4,7 @@ import { Menu } from "antd";
 import {
   ArrowLeftToLine,
   ArrowRightToLine,
+  Database,
   PanelLeft,
   Settings,
   Shield,
@@ -27,6 +28,25 @@ const items = [
     key: "roles",
     label: "Quản lí vai trò",
     icon: <Settings size={16} />,
+  },
+  {
+    key: "data",
+    label: "Quản lý dữ liệu",
+    icon: <Database size={16} />,
+    children: [
+      {
+        key: "data/categories",
+        label: "Danh mục dữ liệu",
+      },
+      {
+        key: "data/tiers",
+        label: "Cấp độ dữ liệu",
+      },
+      {
+        key: "data/sources",
+        label: "Nguồn dữ liệu",
+      },
+    ],
   },
   {
     key: "configuration",

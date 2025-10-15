@@ -1,0 +1,202 @@
+/* Data Page Styles */
+
+.data-content {
+  padding: 24px;
+  min-height: 100vh;
+}
+
+.data-space {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.data-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
+/* Header */
+.data-header {
+  margin-bottom: 24px;
+}
+
+.data-title {
+  margin-bottom: 8px !important;
+  color: #1f2937 !important;
+}
+
+.data-subtitle {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* Summary Cards */
+.data-summary-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.data-summary-card-compact {
+  flex: 1;
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  min-width: 0; /* Allow shrinking */
+}
+
+.data-summary-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.data-summary-icon.total {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}
+
+.data-summary-icon.active {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
+.data-summary-icon.inactive {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.data-summary-content {
+  flex: 1;
+}
+
+.data-summary-value-compact {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1;
+}
+
+.data-summary-label-compact {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+/* Filters */
+.data-filters {
+  margin-bottom: 24px;
+}
+
+.data-filter-form {
+  padding: 16px 0;
+}
+
+/* Table */
+.data-table-wrapper {
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.data-item-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.data-item-name {
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 2px;
+  font-size: 14px;
+}
+
+.data-item-description {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 2px;
+}
+
+.data-item-type {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.data-status-tag {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.data-created-at {
+  font-size: 12px;
+}
+
+.data-date {
+  color: #1f2937;
+  margin-bottom: 2px;
+}
+
+.data-time {
+  color: #6b7280;
+}
+
+.data-benefits {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.data-benefit-count {
+  font-size: 12px;
+  color: #1f2937;
+  font-weight: 500;
+}
+
+.data-benefit-list {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.data-actions-cell {
+  display: flex;
+  gap: 6px;
+}
+
+.data-action-btn {
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.data-action-btn:hover {
+  transform: translateY(-1px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .data-content {
+    padding: 16px;
+  }
+
+  .data-table-wrapper {
+    padding: 16px;
+  }
+
+  .data-item-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
