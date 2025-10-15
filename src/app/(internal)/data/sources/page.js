@@ -6,9 +6,6 @@ import CustomTable from "@/components/custom-table";
 import { useData } from "@/services/hooks/data/use-data";
 import {
   CheckCircleOutlined,
-  DeleteOutlined,
-  DownloadOutlined,
-  EditOutlined,
   EyeOutlined,
   FilterOutlined,
   PlusOutlined,
@@ -196,20 +193,6 @@ export default function SourcesPage() {
               <EyeOutlined size={14} />
             </Button>
           </Link>
-          <Button
-            type="dashed"
-            size="small"
-            className="data-action-btn !bg-green-100 !border-green-200 !text-green-800 hover:!bg-green-200"
-          >
-            <EditOutlined size={14} />
-          </Button>
-          <Button
-            type="dashed"
-            size="small"
-            className="data-action-btn !bg-red-100 !border-red-200 !text-red-800 hover:!bg-red-200"
-          >
-            <DeleteOutlined size={14} />
-          </Button>
         </div>
       ),
     },
@@ -354,8 +337,6 @@ export default function SourcesPage() {
               Tạo nguồn
             </Button>
           </Link>
-          <Button icon={<DownloadOutlined />}>Nhập excel</Button>
-          <Button icon={<DownloadOutlined />}>Xuất excel</Button>
           <SelectedColumn
             columns={columns}
             visibleColumns={visibleColumns}
