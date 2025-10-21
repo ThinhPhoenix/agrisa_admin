@@ -1,11 +1,11 @@
 import Assets from '@/assets';
-import { DownloadOutlined, FileTextOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { DownloadOutlined, FileTextOutlined, FullscreenOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { Button, Card, Space, Typography, message } from 'antd';
 import React from 'react';
 
 const { Title, Text } = Typography;
 
-const ContractPreview = ({ tagsData, isFullscreen = false }) => {
+const ContractPreview = ({ tagsData, isFullscreen = false, onFullscreenClick }) => {
     const [scale, setScale] = React.useState(1);
     const [pages, setPages] = React.useState([]);
     const containerRef = React.useRef(null);
@@ -643,17 +643,28 @@ const ContractPreview = ({ tagsData, isFullscreen = false }) => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                     <Space size="small">
                         <FileTextOutlined />
-                        <span style={{ fontSize: '14px' }}>Xem trước Hợp đồng</span>
                     </Space>
-                    <Button
-                        type="primary"
-                        size="small"
-                        icon={<DownloadOutlined />}
-                        onClick={() => message.info('Chức năng xuất PDF sẽ được triển khai sau')}
-                        className="no-print"
-                    >
-                        Xuất
-                    </Button>
+                    <Space size="small">
+                        {onFullscreenClick && (
+                            <Button
+                                type="default"
+                                size="small"
+                                icon={<FullscreenOutlined />}
+                                onClick={onFullscreenClick}
+                            >
+                                Xem toàn màn hình
+                            </Button>
+                        )}
+                        <Button
+                            type="primary"
+                            size="small"
+                            icon={<DownloadOutlined />}
+                            onClick={() => message.info('Chức năng xuất PDF sẽ được triển khai sau')}
+                            className="no-print"
+                        >
+                            Xuất
+                        </Button>
+                    </Space>
                 </div>
             )}
             size="small"

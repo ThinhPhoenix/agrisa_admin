@@ -2,11 +2,10 @@ import CustomTable from '@/components/custom-table';
 import {
     DownloadOutlined,
     FileTextOutlined,
-    FullscreenOutlined,
     PrinterOutlined,
     TagOutlined
 } from '@ant-design/icons';
-import { Button, Card, Col, Empty, Modal, Row, Space, Tag, Typography, message } from 'antd';
+import { Button, Card, Col, Collapse, Empty, Modal, Row, Space, Tag, Typography, message } from 'antd';
 import React from 'react';
 import ContractPreview from '../ContractPreview';
 
@@ -265,46 +264,43 @@ const TagsDetail = ({ policyData, mockData }) => {
             <Row gutter={[16, 16]}>
                 {/* Tags Table */}
                 <Col xs={24} lg={12}>
-                    <Card>
-                        <Title level={4}>
-                            <TagOutlined style={{ marginRight: 8 }} />
-                            Tags & Metadata
-                            <Text type="secondary" style={{ fontSize: '14px', fontWeight: 'normal', marginLeft: '8px' }}>
-                                ({tags.length} trường)
-                            </Text>
-                        </Title>
+                    <Title level={4}>
+                        <TagOutlined style={{ marginRight: 8 }} />
+                        Tags & Metadata
+                        <Text type="secondary" style={{ fontSize: '14px', fontWeight: 'normal', marginLeft: '8px' }}>
+                            ({tags.length} trường)
+                        </Text>
+                    </Title>
 
-                        {tags.length === 0 ? (
-                            <Empty description="Không có tags nào được thêm" />
-                        ) : (
-                            <CustomTable
-                                columns={tagColumns}
-                                dataSource={tags}
-                                pagination={{
-                                    pageSize: 5,
-                                    showSizeChanger: false,
-                                    showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} tags`,
-                                }}
-                            />
-                        )}
-                    </Card>
+                    {tags.length === 0 ? (
+                        <Empty description="Không có tags nào được thêm" />
+                    ) : (
+                        <Collapse
+                            defaultActiveKey={['1']}
+                            items={[
+                                {
+                                    key: '1',
+                                    label: 'Danh sách Tags',
+                                    children: (
+                                        <CustomTable
+                                            columns={tagColumns}
+                                            dataSource={tags}
+                                            pagination={{
+                                                pageSize: 5,
+                                                showSizeChanger: false,
+                                                showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} tags`,
+                                            }}
+                                        />
+                                    ),
+                                },
+                            ]}
+                        />
+                    )}
                 </Col>
 
                 {/* Contract Preview */}
                 <Col xs={24} lg={12}>
                     <Card
-                        title={
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                                <Button
-                                    type="primary"
-                                    size="small"
-                                    icon={<FullscreenOutlined />}
-                                    onClick={() => setPreviewFullscreen(true)}
-                                >
-                                    Xem toàn màn hình
-                                </Button>
-                            </div>
-                        }
                         size="small"
                         bodyStyle={{ padding: 0 }}
                     >
@@ -312,6 +308,7 @@ const TagsDetail = ({ policyData, mockData }) => {
                             <ContractPreview
                                 tagsData={contractTemplate}
                                 isFullscreen={false}
+                                onFullscreenClick={() => setPreviewFullscreen(true)}
                             />
                         </div>
                     </Card>

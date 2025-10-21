@@ -10,8 +10,7 @@ import {
   ArrowLeftOutlined,
   CheckCircleOutlined,
   ClockCircleOutlined,
-  DeleteOutlined,
-  EditOutlined,
+  CloseCircleOutlined,
   FileTextOutlined,
 } from "@ant-design/icons";
 import {
@@ -19,8 +18,9 @@ import {
   Card,
   Col,
   Divider,
+  Input,
   message,
-  Popconfirm,
+  Modal,
   Row,
   Space,
   Tabs,
@@ -36,6 +36,8 @@ const { Title, Text } = Typography;
 const PolicyDetailPage = ({ params }) => {
   const router = useRouter();
   const [activeTab, setActiveTab] = React.useState("basic");
+  const [rejectModalVisible, setRejectModalVisible] = React.useState(false);
+  const [rejectReason, setRejectReason] = React.useState("");
 
   // Mock policy detail data - trong thực tế sẽ fetch từ API
   const policyDetail = {
@@ -174,16 +176,33 @@ const PolicyDetailPage = ({ params }) => {
     ],
   };
 
-  const handleEdit = () => {
-    message.info("Chuyển đến trang chỉnh sửa...");
-    // router.push(`/policy/${params.id}/edit`);
-  };
-
-  const handleDelete = () => {
-    message.success("Đã xóa chính sách thành công!");
+  const handleAccept = () => {
+    message.success("Đã chấp nhận chính sách thành công!");
     setTimeout(() => {
       router.push("/pending-policies");
     }, 1500);
+  };
+
+  const handleReject = () => {
+    setRejectModalVisible(true);
+  };
+
+  const handleRejectSubmit = () => {
+    if (!rejectReason.trim()) {
+      message.error("Vui lòng nhập lý do từ chối!");
+      return;
+    }
+    message.success("Đã từ chối chính sách thành công!");
+    setRejectModalVisible(false);
+    setRejectReason("");
+    setTimeout(() => {
+      router.push("/pending-policies");
+    }, 1500);
+  };
+
+  const handleRejectCancel = () => {
+    setRejectModalVisible(false);
+    setRejectReason("");
   };
 
   const handleBack = () => {
@@ -283,23 +302,18 @@ const PolicyDetailPage = ({ params }) => {
             <Space>
               <Button
                 type="primary"
-                icon={<EditOutlined />}
-                onClick={handleEdit}
+                icon={<CheckCircleOutlined />}
+                onClick={handleAccept}
               >
-                Chỉnh sửa
+                Chấp nhận
               </Button>
-              <Popconfirm
-                title="Xóa chính sách"
-                description="Bạn có chắc chắn muốn xóa chính sách này?"
-                onConfirm={handleDelete}
-                okText="Xóa"
-                cancelText="Hủy"
-                okButtonProps={{ danger: true }}
+              <Button
+                danger
+                icon={<CloseCircleOutlined />}
+                onClick={handleReject}
               >
-                <Button danger icon={<DeleteOutlined />}>
-                  Xóa
-                </Button>
-              </Popconfirm>
+                Từ chối
+              </Button>
             </Space>
           </Col>
         </Row>
@@ -357,6 +371,27 @@ const PolicyDetailPage = ({ params }) => {
           </div>
         </Col>
       </Row>
+
+      {/* Reject Modal */}
+      <Modal
+        title="Từ chối chính sách"
+        open={rejectModalVisible}
+        onOk={handleRejectSubmit}
+        onCancel={handleRejectCancel}
+        okText="Từ chối"
+        cancelText="Hủy"
+        okButtonProps={{ danger: true }}
+      >
+        <div style={{ marginBottom: 16 }}>
+          <Text strong>Lý do từ chối:</Text>
+        </div>
+        <Input.TextArea
+          rows={4}
+          placeholder="Nhập lý do từ chối chính sách..."
+          value={rejectReason}
+          onChange={(e) => setRejectReason(e.target.value)}
+        />
+      </Modal>
     </div>
   );
 };
