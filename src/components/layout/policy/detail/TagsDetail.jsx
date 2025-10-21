@@ -225,7 +225,7 @@ const TagsDetail = ({ policyData, mockData }) => {
             title: '#',
             key: 'index',
             width: 60,
-            render: (_, __, index) => index + 1,
+            render: (text, record) => record.index,
         },
         {
             title: 'Tên trường',
@@ -261,27 +261,27 @@ const TagsDetail = ({ policyData, mockData }) => {
 
     return (
         <>
-            <Row gutter={[16, 16]}>
-                {/* Tags Table */}
-                <Col xs={24} lg={12}>
-                    <Title level={4}>
-                        <TagOutlined style={{ marginRight: 8 }} />
-                        Tags & Metadata
-                        <Text type="secondary" style={{ fontSize: '14px', fontWeight: 'normal', marginLeft: '8px' }}>
-                            ({tags.length} trường)
-                        </Text>
-                    </Title>
+            <Collapse
+                defaultActiveKey={['1']}
+                items={[
+                    {
+                        key: '1',
+                        label: 'Danh sách Tags và Xem trước Hợp đồng',
+                        children: (
+                            <Row gutter={[16, 16]}>
+                                {/* Tags Table */}
+                                <Col xs={24} lg={12}>
+                                    <Title level={4}>
+                                        <TagOutlined style={{ marginRight: 8 }} />
+                                        Tags & Metadata
+                                        <Text type="secondary" style={{ fontSize: '14px', fontWeight: 'normal', marginLeft: '8px' }}>
+                                            ({tags.length} trường)
+                                        </Text>
+                                    </Title>
 
-                    {tags.length === 0 ? (
-                        <Empty description="Không có tags nào được thêm" />
-                    ) : (
-                        <Collapse
-                            defaultActiveKey={['1']}
-                            items={[
-                                {
-                                    key: '1',
-                                    label: 'Danh sách Tags',
-                                    children: (
+                                    {tags.length === 0 ? (
+                                        <Empty description="Không có tags nào được thêm" />
+                                    ) : (
                                         <CustomTable
                                             columns={tagColumns}
                                             dataSource={tags}
@@ -291,29 +291,29 @@ const TagsDetail = ({ policyData, mockData }) => {
                                                 showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} tags`,
                                             }}
                                         />
-                                    ),
-                                },
-                            ]}
-                        />
-                    )}
-                </Col>
+                                    )}
+                                </Col>
 
-                {/* Contract Preview */}
-                <Col xs={24} lg={12}>
-                    <Card
-                        size="small"
-                        bodyStyle={{ padding: 0 }}
-                    >
-                        <div style={{ height: 'calc(100vh - 200px)' }}>
-                            <ContractPreview
-                                tagsData={contractTemplate}
-                                isFullscreen={false}
-                                onFullscreenClick={() => setPreviewFullscreen(true)}
-                            />
-                        </div>
-                    </Card>
-                </Col>
-            </Row>
+                                {/* Contract Preview */}
+                                <Col xs={24} lg={12}>
+                                    <Card
+                                        size="small"
+                                        bodyStyle={{ padding: 0 }}
+                                    >
+                                        <div style={{ height: 'calc(100vh - 200px)' }}>
+                                            <ContractPreview
+                                                tagsData={contractTemplate}
+                                                isFullscreen={false}
+                                                onFullscreenClick={() => setPreviewFullscreen(true)}
+                                            />
+                                        </div>
+                                    </Card>
+                                </Col>
+                            </Row>
+                        ),
+                    },
+                ]}
+            />
 
             {/* Fullscreen Preview Modal */}
             <Modal

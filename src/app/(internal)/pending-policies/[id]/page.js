@@ -265,7 +265,7 @@ const PolicyDetailPage = ({ params }) => {
       label: (
         <Space>
           <FileTextOutlined />
-          <span>Tags & Metadata</span>
+          <span> Kiểm tra & Đánh giá</span>
         </Space>
       ),
       children: <TagsDetail policyData={policyDetail} mockData={mockData} />,
