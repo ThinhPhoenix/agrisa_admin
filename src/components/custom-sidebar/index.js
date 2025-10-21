@@ -30,6 +30,11 @@ const items = [
     icon: <Settings size={16} />,
   },
   {
+    key: "pending-policies",
+    label: "Chính sách đang chờ duyệt",
+    icon: <Settings size={16} />,
+  },
+  {
     key: "data",
     label: "Quản lý dữ liệu",
     icon: <Database size={16} />,

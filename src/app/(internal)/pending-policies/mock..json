@@ -1,0 +1,549 @@
+{
+  "cropTypes": [
+    {
+      "value": "rice",
+      "label": "Cây Lúa (Rice)",
+      "description": "Cây lúa với chu kỳ phát triển 120-150 ngày"
+    },
+    {
+      "value": "coffee",
+      "label": "Cây Cà phê (Coffee)",
+      "description": "Cây cà phê với chu kỳ phát triển 365 ngày"
+    }
+  ],
+  "dataTierCategories": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440001",
+      "value": "weather",
+      "label": "Weather",
+      "category_name": "Weather",
+      "category_description": "Dữ liệu thời tiết cơ bản từ các trạm khí tượng địa phương và khu vực",
+      "category_cost_multiplier": 1.0,
+      "categoryMultiplier": 1.0
+    },
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440002",
+      "value": "satellite",
+      "label": "Satellite",
+      "category_name": "Satellite",
+      "category_description": "Hình ảnh vệ tinh và các chỉ số phân tích từ dữ liệu viễn thám",
+      "category_cost_multiplier": 1.5,
+      "categoryMultiplier": 1.5
+    },
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440003",
+      "value": "derived",
+      "label": "Derived",
+      "category_name": "Derived",
+      "category_description": "Các chỉ số phức tạp được tính toán từ nhiều nguồn dữ liệu kết hợp",
+      "category_cost_multiplier": 2.5,
+      "categoryMultiplier": 2.5
+    },
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440004",
+      "value": "soil",
+      "label": "Soil",
+      "category_name": "Soil",
+      "category_description": "Dữ liệu về đất đai, độ ẩm đất và các chỉ số chất lượng đất",
+      "category_cost_multiplier": 1.8,
+      "categoryMultiplier": 1.8
+    },
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440005",
+      "value": "hydrological",
+      "label": "Hydrological",
+      "category_name": "Hydrological",
+      "category_description": "Dữ liệu thủy văn bao gồm mực nước, lưu lượng sông và nguy cơ lũ lụt",
+      "category_cost_multiplier": 2.0,
+      "categoryMultiplier": 2.0
+    }
+  ],
+  "dataTiers": [
+    {
+      "id": "660e8400-e29b-41d4-a716-446655440001",
+      "data_tier_category_id": "550e8400-e29b-41d4-a716-446655440001",
+      "value": "weather_tier_1",
+      "tier_level": 1,
+      "tier_name": "Weather Tier 1",
+      "label": "Weather Tier 1",
+      "description": "Dữ liệu thời tiết cơ bản với độ chính xác tiêu chuẩn",
+      "data_tier_multiplier": 1.0,
+      "tierMultiplier": 1.0
+    },
+    {
+      "id": "660e8400-e29b-41d4-a716-446655440002",
+      "data_tier_category_id": "550e8400-e29b-41d4-a716-446655440001",
+      "value": "weather_tier_2",
+      "tier_level": 2,
+      "tier_name": "Weather Tier 2",
+      "label": "Weather Tier 2",
+      "description": "Dữ liệu thời tiết cao cấp với độ chính xác cao",
+      "data_tier_multiplier": 1.2,
+      "tierMultiplier": 1.2
+    },
+    {
+      "id": "660e8400-e29b-41d4-a716-446655440003",
+      "data_tier_category_id": "550e8400-e29b-41d4-a716-446655440002",
+      "value": "satellite_tier_1",
+      "tier_level": 1,
+      "tier_name": "Satellite Tier 1",
+      "label": "Satellite Tier 1",
+      "description": "Dữ liệu vệ tinh cơ bản với độ phân giải trung bình",
+      "data_tier_multiplier": 1.0,
+      "tierMultiplier": 1.0
+    },
+    {
+      "id": "660e8400-e29b-41d4-a716-446655440004",
+      "data_tier_category_id": "550e8400-e29b-41d4-a716-446655440002",
+      "value": "satellite_tier_2",
+      "tier_level": 2,
+      "tier_name": "Satellite Tier 2",
+      "label": "Satellite Tier 2",
+      "description": "Dữ liệu vệ tinh cao cấp với độ phân giải cao",
+      "data_tier_multiplier": 1.3,
+      "tierMultiplier": 1.3
+    },
+    {
+      "id": "660e8400-e29b-41d4-a716-446655440005",
+      "data_tier_category_id": "550e8400-e29b-41d4-a716-446655440003",
+      "value": "derived_tier_1",
+      "tier_level": 1,
+      "tier_name": "Derived Tier 1",
+      "label": "Derived Tier 1",
+      "description": "Dữ liệu phân tích cơ bản từ AI",
+      "data_tier_multiplier": 1.0,
+      "tierMultiplier": 1.0
+    }
+  ],
+  "dataSources": [
+    {
+      "id": "770e8400-e29b-41d4-a716-446655440001",
+      "data_source": "weather",
+      "parameter_name": "rainfall",
+      "parameterName": "rainfall",
+      "parameter_type": "numeric",
+      "unit": "mm",
+      "display_name_vi": "Lượng mưa",
+      "label": "Lượng mưa",
+      "description_vi": "Tổng lượng mưa đo được trong khoảng thời gian",
+      "description": "Tổng lượng mưa đo được trong khoảng thời gian",
+      "min_value": 0.0,
+      "max_value": 500.0,
+      "update_frequency": "hourly",
+      "spatial_resolution": "5km",
+      "accuracy_rating": 0.92,
+      "base_cost": 62500,
+      "baseCost": 62500,
+      "data_tier_id": "660e8400-e29b-41d4-a716-446655440001",
+      "data_provider": "Vietnam Meteorological Service",
+      "api_endpoint": "https://api.weatherdata.vn/v1/rainfall",
+      "is_active": true
+    },
+    {
+      "id": "770e8400-e29b-41d4-a716-446655440002",
+      "data_source": "weather",
+      "parameter_name": "temperature",
+      "parameterName": "temperature",
+      "parameter_type": "numeric",
+      "unit": "°C",
+      "display_name_vi": "Nhiệt độ",
+      "label": "Nhiệt độ",
+      "description_vi": "Nhiệt độ không khí trung bình",
+      "description": "Nhiệt độ không khí trung bình",
+      "min_value": -10.0,
+      "max_value": 50.0,
+      "update_frequency": "hourly",
+      "spatial_resolution": "5km",
+      "accuracy_rating": 0.95,
+      "base_cost": 50000,
+      "baseCost": 50000,
+      "data_tier_id": "660e8400-e29b-41d4-a716-446655440002",
+      "data_provider": "Vietnam Meteorological Service",
+      "api_endpoint": "https://api.weatherdata.vn/v1/temperature",
+      "is_active": true
+    },
+    {
+      "id": "770e8400-e29b-41d4-a716-446655440003",
+      "data_source": "satellite",
+      "parameter_name": "ndvi",
+      "parameterName": "ndvi",
+      "parameter_type": "numeric",
+      "unit": "index",
+      "display_name_vi": "Chỉ số NDVI",
+      "label": "Chỉ số NDVI",
+      "description_vi": "Chỉ số thực vật chuẩn hóa đo sức khỏe cây trồng",
+      "description": "Chỉ số thực vật chuẩn hóa đo sức khỏe cây trồng",
+      "min_value": -1.0,
+      "max_value": 1.0,
+      "update_frequency": "daily",
+      "spatial_resolution": "10m",
+      "accuracy_rating": 0.88,
+      "base_cost": 125000,
+      "baseCost": 125000,
+      "data_tier_id": "660e8400-e29b-41d4-a716-446655440003",
+      "data_provider": "Sentinel-2 ESA",
+      "api_endpoint": "https://api.sentinel-hub.com/v1/ndvi",
+      "is_active": true
+    },
+    {
+      "id": "770e8400-e29b-41d4-a716-446655440004",
+      "data_source": "satellite",
+      "parameter_name": "evi",
+      "parameterName": "evi",
+      "parameter_type": "numeric",
+      "unit": "index",
+      "display_name_vi": "Chỉ số EVI",
+      "label": "Chỉ số EVI",
+      "description_vi": "Chỉ số thực vật nâng cao, chính xác hơn NDVI ở vùng cây dày đặc",
+      "description": "Chỉ số thực vật nâng cao, chính xác hơn NDVI ở vùng cây dày đặc",
+      "min_value": -1.0,
+      "max_value": 1.0,
+      "update_frequency": "daily",
+      "spatial_resolution": "10m",
+      "accuracy_rating": 0.9,
+      "base_cost": 162500,
+      "baseCost": 162500,
+      "data_tier_id": "660e8400-e29b-41d4-a716-446655440004",
+      "data_provider": "MODIS NASA",
+      "api_endpoint": "https://api.modis.nasa.gov/v1/evi",
+      "is_active": true
+    },
+    {
+      "id": "770e8400-e29b-41d4-a716-446655440005",
+      "data_source": "derived",
+      "parameter_name": "drought_risk_index",
+      "parameterName": "drought_risk_index",
+      "parameter_type": "numeric",
+      "unit": "score",
+      "display_name_vi": "Chỉ số nguy cơ hạn hán",
+      "label": "Chỉ số nguy cơ hạn hán",
+      "description_vi": "Chỉ số phức hợp đánh giá nguy cơ hạn hán dựa trên nhiều yếu tố",
+      "description": "Chỉ số phức hợp đánh giá nguy cơ hạn hán dựa trên nhiều yếu tố",
+      "min_value": 0.0,
+      "max_value": 100.0,
+      "update_frequency": "daily",
+      "spatial_resolution": "1km",
+      "accuracy_rating": 0.85,
+      "base_cost": 200000,
+      "baseCost": 200000,
+      "data_tier_id": "660e8400-e29b-41d4-a716-446655440005",
+      "data_provider": "Agrisa Analytics Engine",
+      "api_endpoint": "https://api.agrisa.vn/v1/drought-risk",
+      "is_active": true
+    }
+  ],
+  "aggregationFunctions": [
+    {
+      "value": "avg",
+      "label": "Trung bình (Average)",
+      "description": "Tính giá trị trung bình trong khoảng thời gian"
+    },
+    {
+      "value": "sum",
+      "label": "Tổng (Sum)",
+      "description": "Tính tổng giá trị trong khoảng thời gian"
+    },
+    {
+      "value": "min",
+      "label": "Tối thiểu (Minimum)",
+      "description": "Giá trị nhỏ nhất trong khoảng thời gian"
+    },
+    {
+      "value": "max",
+      "label": "Tối đa (Maximum)",
+      "description": "Giá trị lớn nhất trong khoảng thời gian"
+    },
+    {
+      "value": "change",
+      "label": "Thay đổi (Change)",
+      "description": "Tính toán thay đổi so với baseline"
+    }
+  ],
+  "thresholdOperators": [
+    {
+      "value": "<",
+      "label": "Nhỏ hơn (<)",
+      "description": "Giá trị nhỏ hơn ngưỡng"
+    },
+    {
+      "value": ">",
+      "label": "Lớn hơn (>)",
+      "description": "Giá trị lớn hơn ngưỡng"
+    },
+    {
+      "value": "<=",
+      "label": "Nhỏ hơn hoặc bằng (≤)",
+      "description": "Giá trị nhỏ hơn hoặc bằng ngưỡng"
+    },
+    {
+      "value": ">=",
+      "label": "Lớn hơn hoặc bằng (≥)",
+      "description": "Giá trị lớn hơn hoặc bằng ngưỡng"
+    },
+    {
+      "value": "change_gt",
+      "label": "Thay đổi lớn hơn",
+      "description": "Thay đổi lớn hơn ngưỡng so với baseline"
+    },
+    {
+      "value": "change_lt",
+      "label": "Thay đổi nhỏ hơn",
+      "description": "Thay đổi nhỏ hơn ngưỡng so với baseline"
+    }
+  ],
+  "riskLevels": [
+    {
+      "value": "low",
+      "label": "Thấp",
+      "color": "#52c41a",
+      "multiplier": 0.8
+    },
+    {
+      "value": "medium",
+      "label": "Trung bình",
+      "color": "#faad14",
+      "multiplier": 1.0
+    },
+    {
+      "value": "high",
+      "label": "Cao",
+      "color": "#f5222d",
+      "multiplier": 1.5
+    },
+    {
+      "value": "extreme",
+      "label": "Cực cao",
+      "color": "#820014",
+      "multiplier": 2.0
+    }
+  ],
+  "coverageTypes": [
+    {
+      "value": "yield_loss",
+      "label": "Mất mùa do thiên tai",
+      "description": "Bảo hiểm khi năng suất giảm do thiên tai",
+      "premium_rate": 0.03
+    },
+    {
+      "value": "weather_index",
+      "label": "Chỉ số thời tiết",
+      "description": "Bảo hiểm dựa trên chỉ số thời tiết bất lợi",
+      "premium_rate": 0.025
+    },
+    {
+      "value": "satellite_index",
+      "label": "Chỉ số vệ tinh",
+      "description": "Bảo hiểm dựa trên chỉ số từ dữ liệu vệ tinh",
+      "premium_rate": 0.035
+    },
+    {
+      "value": "comprehensive",
+      "label": "Bảo hiểm toàn diện",
+      "description": "Kết hợp nhiều loại bảo hiểm",
+      "premium_rate": 0.05
+    }
+  ],
+  "payoutMethods": [
+    {
+      "value": "automatic",
+      "label": "Tự động",
+      "description": "Chi trả tự động khi đạt điều kiện kích hoạt"
+    },
+    {
+      "value": "manual_review",
+      "label": "Xem xét thủ công",
+      "description": "Cần xem xét và phê duyệt thủ công"
+    },
+    {
+      "value": "hybrid",
+      "label": "Kết hợp",
+      "description": "Tự động với giới hạn, thủ công cho số tiền lớn"
+    }
+  ],
+  "payoutCalculationMethods": [
+    {
+      "value": "linear",
+      "label": "Tuyến tính",
+      "description": "Chi trả tỷ lệ thuận với mức độ thiệt hại"
+    },
+    {
+      "value": "stepped",
+      "label": "Theo bậc",
+      "description": "Chi trả theo các mức bậc thiệt hại"
+    },
+    {
+      "value": "fixed",
+      "label": "Cố định",
+      "description": "Chi trả số tiền cố định khi kích hoạt"
+    }
+  ],
+  "monitoringFrequencies": [
+    {
+      "value": "hourly",
+      "label": "Theo giờ",
+      "description": "Giám sát và cập nhật mỗi giờ"
+    },
+    {
+      "value": "daily",
+      "label": "Hàng ngày",
+      "description": "Giám sát và cập nhật hàng ngày"
+    },
+    {
+      "value": "weekly",
+      "label": "Hàng tuần",
+      "description": "Giám sát và cập nhật hàng tuần"
+    }
+  ],
+  "alertTypes": [
+    {
+      "value": "email",
+      "label": "Email",
+      "description": "Gửi cảnh báo qua email"
+    },
+    {
+      "value": "sms",
+      "label": "SMS",
+      "description": "Gửi cảnh báo qua tin nhắn"
+    },
+    {
+      "value": "push",
+      "label": "Thông báo đẩy",
+      "description": "Gửi thông báo đẩy trên ứng dụng"
+    },
+    {
+      "value": "webhook",
+      "label": "Webhook",
+      "description": "Gửi cảnh báo qua webhook API"
+    }
+  ],
+  "logicalOperators": [
+    {
+      "value": "AND",
+      "label": "VÀ (AND)",
+      "description": "Tất cả điều kiện phải được thỏa mãn"
+    },
+    {
+      "value": "OR",
+      "label": "HOẶC (OR)",
+      "description": "Chỉ cần một điều kiện được thỏa mãn"
+    }
+  ],
+  "tagDataTypes": [
+    {
+      "value": "string",
+      "label": "Văn bản (String)",
+      "description": "Chữ, số, ký tự - VD: Họ tên, địa chỉ"
+    },
+    {
+      "value": "integer",
+      "label": "Số nguyên (Integer)",
+      "description": "Số không có phần thập phân - VD: Tuổi, số lượng"
+    },
+    {
+      "value": "textarea",
+      "label": "Văn bản dài (Textarea)",
+      "description": "Văn bản nhiều dòng, luôn full width - VD: Ghi chú, điều khoản"
+    },
+    {
+      "value": "decimal",
+      "label": "Số thập phân (Decimal)",
+      "description": "Số có phần thập phân - VD: Tiền, phần trăm"
+    },
+    {
+      "value": "date",
+      "label": "Ngày tháng (Date)",
+      "description": "Ngày/tháng/năm - VD: Ngày sinh, ngày hết hạn"
+    },
+    {
+      "value": "time",
+      "label": "Giờ (Time)",
+      "description": "Giờ:phút - VD: Giờ hẹn, giờ bắt đầu"
+    },
+    {
+      "value": "datetime",
+      "label": "Ngày giờ (DateTime)",
+      "description": "Ngày/tháng/năm giờ:phút - VD: Thời gian ký kết"
+    },
+    {
+      "value": "boolean",
+      "label": "Có/Không (Boolean)",
+      "description": "Checkbox - VD: Độc thân, kết hôn"
+    },
+    {
+      "value": "select",
+      "label": "Lựa chọn (Select)",
+      "description": "Danh sách tùy chọn - VD: Giới tính, quốc tịch"
+    }
+  ],
+  "policies": [
+    {
+      "id": "policy_001",
+      "productName": "Bảo hiểm Lúa Mùa Đông 2025",
+      "productCode": "RICE_WINTER_2025",
+      "insuranceProviderId": "PARTNER_001",
+      "cropType": "rice",
+      "premiumBaseRate": 0.05,
+      "coverageDurationDays": 120
+    },
+    {
+      "id": "policy_002",
+      "productName": "Bảo hiểm Cà phê Mùa Thu 2025",
+      "productCode": "COFFEE_AUTUMN_2025",
+      "insuranceProviderId": "PARTNER_002",
+      "cropType": "coffee",
+      "premiumBaseRate": 0.08,
+      "coverageDurationDays": 365
+    },
+    {
+      "id": "policy_003",
+      "productName": "Bảo hiểm Lúa Mùa Hè 2025",
+      "productCode": "RICE_SUMMER_2025",
+      "insuranceProviderId": "PARTNER_001",
+      "cropType": "rice",
+      "premiumBaseRate": 0.06,
+      "coverageDurationDays": 150
+    },
+    {
+      "id": "policy_004",
+      "productName": "Bảo hiểm Cà phê Mùa Xuân 2025",
+      "productCode": "COFFEE_SPRING_2025",
+      "insuranceProviderId": "PARTNER_002",
+      "cropType": "coffee",
+      "premiumBaseRate": 0.07,
+      "coverageDurationDays": 300
+    },
+    {
+      "id": "policy_005",
+      "productName": "Bảo hiểm Lúa Mùa Thu 2025",
+      "productCode": "RICE_AUTUMN_2025",
+      "insuranceProviderId": "PARTNER_003",
+      "cropType": "rice",
+      "premiumBaseRate": 0.04,
+      "coverageDurationDays": 100
+    }
+  ],
+  "sampleData": {
+    "productName": "Bảo hiểm Lúa Mùa Đông 2025",
+    "productCode": "RICE_WINTER_2025",
+    "insuranceProviderId": "PARTNER_001",
+    "premiumBaseRate": 0.05,
+    "coverageDurationDays": 120,
+    "defaultTags": [
+      {
+        "key": "region",
+        "value": "Đồng bằng sông Cửu Long",
+        "dataType": "string"
+      },
+      {
+        "key": "season",
+        "value": "Mùa đông",
+        "dataType": "string"
+      },
+      {
+        "key": "area_hectares",
+        "value": "1000",
+        "dataType": "integer"
+      }
+    ]
+  }
+}
