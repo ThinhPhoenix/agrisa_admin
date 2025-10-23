@@ -14,36 +14,44 @@ export function useSources() {
     status: "",
   });
 
+  // Fetch sources data
+  const fetchSources = async () => {
+    try {
+      const response = await axiosInstance.get(
+        endpoints.policy.data_tier.data_source.get_all
+      );
+      let sourcesData = response.data;
+      if (Array.isArray(response.data)) {
+        sourcesData = response.data;
+      } else if (response.data && Array.isArray(response.data.data)) {
+        sourcesData = response.data.data;
+      } else if (
+        response.data &&
+        typeof response.data === "object" &&
+        response.data.data
+      ) {
+        sourcesData = Array.isArray(response.data.data)
+          ? response.data.data
+          : [];
+      } else {
+        sourcesData = [];
+      }
+      return sourcesData;
+    } catch (err) {
+      console.error("Error fetching sources:", err);
+      throw err;
+    }
+  };
+
   // Fetch data
   useEffect(() => {
-    const fetchSources = async () => {
+    const fetchSourcesData = async () => {
       try {
         setLoading(true);
-        const response = await axiosInstance.get(
-          endpoints.policy.data_tier.data_source.get_all
-        );
-
-        // Handle different response formats
-        let sourcesData = response.data;
-        if (Array.isArray(response.data)) {
-          sourcesData = response.data;
-        } else if (response.data && Array.isArray(response.data.data)) {
-          sourcesData = response.data.data;
-        } else if (
-          response.data &&
-          typeof response.data === "object" &&
-          response.data.data
-        ) {
-          // If data is wrapped in an object
-          sourcesData = Array.isArray(response.data.data)
-            ? response.data.data
-            : [];
-        } else {
-          sourcesData = [];
-        }
+        const sourcesData = await fetchSources();
 
         // Extract last updated timestamp
-        const timestamp = response.data?.meta?.timestamp || null;
+        const timestamp = sourcesData?.meta?.timestamp || null;
         setLastUpdated(timestamp);
 
         setData(sourcesData);
@@ -52,13 +60,13 @@ export function useSources() {
         setError(err);
         console.error("Error fetching sources:", err);
         message.error("Lỗi khi tải dữ liệu nguồn: " + err.message);
-        setData([]); // Set empty array on error
+        setData([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchSources();
+    fetchSourcesData();
   }, []);
 
   // Filter options
@@ -139,7 +147,99 @@ export function useSources() {
     });
   };
 
+  // Create source
+  const createSource = async (sourceData) => {
+    try {
+      const response = await axiosInstance.post(
+        endpoints.policy.data_tier.data_source.create,
+        sourceData
+      );
+      message.success("Nguồn dữ liệu đã được tạo thành công");
+      // Refetch data to update the list
+      const newSourcesData = await fetchSources();
+      setData(newSourcesData);
+      return response.data;
+    } catch (err) {
+      console.error("Error creating source:", err);
+      message.error(
+        "Lỗi khi tạo nguồn dữ liệu: " +
+          (err.response?.data?.message || err.message)
+      );
+      throw err;
+    }
+  };
+
+  // Update source
+  const updateSource = async (id, sourceData) => {
+    try {
+      const response = await axiosInstance.put(
+        endpoints.policy.data_tier.data_source.update(id),
+        sourceData
+      );
+      message.success("Nguồn dữ liệu đã được cập nhật thành công");
+      // Refetch data to update the list
+      const newSourcesData = await fetchSources();
+      setData(newSourcesData);
+      return response.data;
+    } catch (err) {
+      console.error("Error updating source:", err);
+      message.error(
+        "Lỗi khi cập nhật nguồn dữ liệu: " +
+          (err.response?.data?.message || err.message)
+      );
+      throw err;
+    }
+  };
+
+  // Delete source
+  const deleteSource = async (id) => {
+    try {
+      await axiosInstance.delete(
+        endpoints.policy.data_tier.data_source.delete(id)
+      );
+      message.success("Nguồn dữ liệu đã được xóa thành công");
+      // Refetch data to update the list
+      const newSourcesData = await fetchSources();
+      setData(newSourcesData);
+    } catch (err) {
+      console.error("Error deleting source:", err);
+      message.error(
+        "Lỗi khi xóa nguồn dữ liệu: " +
+          (err.response?.data?.message || err.message)
+      );
+      throw err;
+    }
+  };
+
+  // Get single source
+  const getSource = async (id) => {
+    try {
+      const response = await axiosInstance.get(
+        endpoints.policy.data_tier.data_source.get_one(id)
+      );
+      let sourceData = response.data;
+      if (
+        response.data &&
+        typeof response.data === "object" &&
+        response.data.data
+      ) {
+        sourceData = Array.isArray(response.data.data)
+          ? response.data.data[0]
+          : response.data.data;
+      }
+      return sourceData;
+    } catch (err) {
+      console.error("Error fetching source:", err);
+      message.error(
+        "Lỗi khi tải nguồn dữ liệu: " +
+          (err.response?.data?.message || err.message)
+      );
+      throw err;
+    }
+  };
+
   return {
+    data,
     filteredData,
     filterOptions,
     summaryStats,
@@ -149,5 +249,9 @@ export function useSources() {
     loading,
     error,
     lastUpdated,
+    createSource,
+    updateSource,
+    deleteSource,
+    getSource,
   };
 }

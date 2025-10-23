@@ -6,18 +6,30 @@ import CustomTable from "@/components/custom-table";
 import { useSources } from "@/services/hooks/data/use-sources";
 import {
   CheckCircleOutlined,
+  DeleteOutlined,
+  EditOutlined,
   EyeOutlined,
   FilterOutlined,
   PlusOutlined,
   SearchOutlined,
   TagOutlined,
 } from "@ant-design/icons";
-import { Button, Collapse, Layout, Space, Spin, Tag, Typography } from "antd";
+import {
+  Button,
+  Collapse,
+  Layout,
+  Modal,
+  Space,
+  Spin,
+  Tag,
+  Typography,
+} from "antd";
 import Link from "next/link";
 import { useState } from "react";
 import "../data.css";
 
 const { Title, Text } = Typography;
+const { confirm } = Modal;
 
 export default function SourcesPage() {
   const {
@@ -28,6 +40,7 @@ export default function SourcesPage() {
     updateFilters,
     clearFilters,
     loading,
+    deleteSource,
   } = useSources();
 
   // Visible columns state
@@ -41,6 +54,24 @@ export default function SourcesPage() {
     "is_active",
     "created_at",
   ]);
+
+  // Handle delete
+  const handleDelete = (record) => {
+    confirm({
+      title: "Xác nhận xóa",
+      content: `Bạn có chắc chắn muốn xóa nguồn dữ liệu "${record.display_name_vi}"?`,
+      okText: "Xóa",
+      okType: "danger",
+      cancelText: "Hủy",
+      onOk: async () => {
+        try {
+          await deleteSource(record.id);
+        } catch (err) {
+          // Error is handled in the hook
+        }
+      },
+    });
+  };
 
   // Loading state check
   if (loading) {
@@ -193,6 +224,24 @@ export default function SourcesPage() {
               <EyeOutlined size={14} />
             </Button>
           </Link>
+          <Link href={`/data/sources/edit/${record.id}`}>
+            <Button
+              type="dashed"
+              size="small"
+              className="data-action-btn !bg-yellow-100 !border-yellow-200 !text-yellow-800 hover:!bg-yellow-200"
+            >
+              <EditOutlined size={14} />
+            </Button>
+          </Link>
+          <Button
+            type="dashed"
+            size="small"
+            danger
+            className="data-action-btn"
+            onClick={() => handleDelete(record)}
+          >
+            <DeleteOutlined size={14} />
+          </Button>
         </div>
       ),
     },

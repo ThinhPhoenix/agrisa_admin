@@ -227,6 +227,7 @@ export function useTiers() {
   };
 
   return {
+    data,
     filteredData,
     filterOptions,
     summaryStats,
@@ -240,5 +241,6 @@ export function useTiers() {
     updateTier,
     deleteTier,
     getTier,
+    fetchTiers,
   };
 }

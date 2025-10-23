@@ -35,6 +35,10 @@ export const endpoints = {
       },
       data_source: {
         get_all: "/policy/protected/api/v2/data-sources/",
+        get_one: (id) => `/policy/protected/api/v2/data-sources/${id}`,
+        create: "/policy/protected/api/v2/data-sources/",
+        update: (id) => `/policy/protected/api/v2/data-sources/${id}`,
+        delete: (id) => `/policy/protected/api/v2/data-sources/${id}`,
       },
     },
   },
