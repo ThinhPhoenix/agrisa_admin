@@ -119,6 +119,45 @@ export function useCategories() {
     });
   };
 
+  // Create category
+  const createCategory = async (categoryData) => {
+    try {
+      const response = await axiosInstance.post(
+        endpoints.policy.data_tier.category.create,
+        categoryData
+      );
+      message.success("Danh mục đã được tạo thành công");
+      // Optionally refetch data to update the list
+      const fetchResponse = await axiosInstance.get(
+        endpoints.policy.data_tier.category.get_all
+      );
+      let newCategoriesData = fetchResponse.data;
+      if (Array.isArray(fetchResponse.data)) {
+        newCategoriesData = fetchResponse.data;
+      } else if (fetchResponse.data && Array.isArray(fetchResponse.data.data)) {
+        newCategoriesData = fetchResponse.data.data;
+      } else if (
+        fetchResponse.data &&
+        typeof fetchResponse.data === "object" &&
+        fetchResponse.data.data
+      ) {
+        newCategoriesData = Array.isArray(fetchResponse.data.data)
+          ? fetchResponse.data.data
+          : [];
+      } else {
+        newCategoriesData = [];
+      }
+      setData(newCategoriesData);
+      return response.data;
+    } catch (err) {
+      console.error("Error creating category:", err);
+      message.error(
+        "Lỗi khi tạo danh mục: " + (err.response?.data?.message || err.message)
+      );
+      throw err;
+    }
+  };
+
   return {
     filteredData,
     filterOptions,
@@ -129,5 +168,6 @@ export function useCategories() {
     loading,
     error,
     lastUpdated,
+    createCategory,
   };
 }

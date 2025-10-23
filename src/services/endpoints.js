@@ -17,6 +17,7 @@ export const endpoints = {
     data_tier: {
       category: {
         get_all: "/policy/protected/api/v2/data-tier-categories/",
+        create: "/policy/protected/api/v2/data-tier-categories/",
       },
       tier: {
         get_all: "/policy/protected/api/v2/data-tiers/",
