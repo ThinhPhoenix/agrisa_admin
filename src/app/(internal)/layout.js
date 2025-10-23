@@ -1,10 +1,19 @@
 "use client";
 import CustomHeader from "@/components/custom-header";
 import CustomSidebar from "@/components/custom-sidebar";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function InternalLayoutFlexbox({ children }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/sign-in");
+    }
+  }, [router]);
 
   return (
     <div className="flex h-screen overflow-hidden">
