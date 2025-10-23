@@ -6,7 +6,7 @@ import { useTiers } from "@/services/hooks/data/use-tiers";
 import { Button, Layout, Spin, Typography } from "antd";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import "../../data.css";
+import "../../../data.css";
 
 const { Title, Text } = Typography;
 
