@@ -27,7 +27,7 @@ const SigninPage = () => {
     // } else {
     //   message.error(result.message);
     // }
-    router.push("/dummy");
+    router.push("/accounts");
   };
 
   const fields = [

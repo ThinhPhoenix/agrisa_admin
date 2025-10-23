@@ -32,6 +32,13 @@
   font-size: 14px;
 }
 
+.data-last-updated {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
 /* Summary Cards */
 .data-summary-row {
   display: flex;

@@ -3,19 +3,26 @@
 import SelectedColumn from "@/components/column-selector";
 import { CustomForm } from "@/components/custom-form";
 import CustomTable from "@/components/custom-table";
-import { useData } from "@/services/hooks/data/use-data";
+import { useCategories } from "@/services/hooks/data/use-categories";
 import {
   CheckCircleOutlined,
   DeleteOutlined,
   DownloadOutlined,
   EditOutlined,
-  EyeOutlined,
   FilterOutlined,
   PlusOutlined,
   SearchOutlined,
   TagOutlined,
 } from "@ant-design/icons";
-import { Button, Collapse, Layout, Space, Spin, Typography } from "antd";
+import {
+  Button,
+  Collapse,
+  Layout,
+  message,
+  Space,
+  Spin,
+  Typography,
+} from "antd";
 import Link from "next/link";
 import { useState } from "react";
 import "../data.css";
@@ -31,7 +38,9 @@ export default function CategoriesPage() {
     updateFilters,
     clearFilters,
     loading,
-  } = useData("dataTierCategories");
+    error,
+    lastUpdated,
+  } = useCategories();
 
   // Visible columns state
   const [visibleColumns, setVisibleColumns] = useState([
@@ -47,6 +56,19 @@ export default function CategoriesPage() {
       <Layout.Content className="data-content">
         <div className="data-loading">
           <Spin size="large" tip="Đang tải dữ liệu..." />
+        </div>
+      </Layout.Content>
+    );
+  }
+
+  // Error state check
+  if (error) {
+    return (
+      <Layout.Content className="data-content">
+        <div className="data-error">
+          <Typography.Text type="danger">
+            Lỗi khi tải dữ liệu: {error.message}
+          </Typography.Text>
         </div>
       </Layout.Content>
     );
@@ -127,19 +149,13 @@ export default function CategoriesPage() {
       width: 180,
       render: (_, record) => (
         <div className="data-actions-cell">
-          <Link href={`/data/categories/${record.id}`}>
-            <Button
-              type="dashed"
-              size="small"
-              className="data-action-btn !bg-blue-100 !border-blue-200 !text-blue-800 hover:!bg-blue-200"
-            >
-              <EyeOutlined size={14} />
-            </Button>
-          </Link>
           <Button
             type="dashed"
             size="small"
             className="data-action-btn !bg-green-100 !border-green-200 !text-green-800 hover:!bg-green-200"
+            onClick={() =>
+              message.success("Chức năng chỉnh sửa đang được phát triển")
+            }
           >
             <EditOutlined size={14} />
           </Button>
@@ -147,6 +163,7 @@ export default function CategoriesPage() {
             type="dashed"
             size="small"
             className="data-action-btn !bg-red-100 !border-red-200 !text-red-800 hover:!bg-red-200"
+            onClick={() => message.error("Chức năng xóa đang được phát triển")}
           >
             <DeleteOutlined size={14} />
           </Button>
@@ -196,6 +213,12 @@ export default function CategoriesPage() {
             <Text className="data-subtitle">
               Quản lý các danh mục sản phẩm và phân loại
             </Text>
+            {lastUpdated && (
+              <Text className="data-last-updated" type="secondary">
+                Cập nhật lần cuối:{" "}
+                {new Date(lastUpdated).toLocaleString("vi-VN")}
+              </Text>
+            )}
           </div>
         </div>
 
@@ -219,13 +242,7 @@ export default function CategoriesPage() {
             </div>
             <div className="data-summary-content">
               <div className="data-summary-value-compact">
-                {(
-                  filteredData.reduce(
-                    (sum, item) => sum + item.category_cost_multiplier,
-                    0
-                  ) / filteredData.length
-                ).toFixed(1)}
-                x
+                {summaryStats.averageMultiplier}x
               </div>
               <div className="data-summary-label-compact">Hệ số TB</div>
             </div>
@@ -268,8 +285,22 @@ export default function CategoriesPage() {
               Tạo danh mục
             </Button>
           </Link>
-          <Button icon={<DownloadOutlined />}>Nhập excel</Button>
-          <Button icon={<DownloadOutlined />}>Xuất excel</Button>
+          <Button
+            icon={<DownloadOutlined />}
+            onClick={() =>
+              message.info("Chức năng nhập excel đang được phát triển")
+            }
+          >
+            Nhập excel
+          </Button>
+          <Button
+            icon={<DownloadOutlined />}
+            onClick={() =>
+              message.info("Chức năng xuất excel đang được phát triển")
+            }
+          >
+            Xuất excel
+          </Button>
           <SelectedColumn
             columns={columns}
             visibleColumns={visibleColumns}
