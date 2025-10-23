@@ -46,7 +46,6 @@ export function useCategories() {
 
         setData(categoriesData);
         setError(null);
-        message.success("Dữ liệu danh mục đã được tải thành công");
       } catch (err) {
         setError(err);
         console.error("Error fetching categories:", err);

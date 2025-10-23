@@ -19,10 +19,14 @@ export const endpoints = {
         get_all: "/policy/protected/api/v2/data-tier-categories/",
       },
       tier: {
+        get_all: "/policy/protected/api/v2/data-tiers/",
         get_by_category: (category_id) =>
           `/policy/protected/api/v2/data-tiers/category/${category_id}`,
         get_data_sources: (tier_id) =>
           `/policy/protected/api/v2/data-sources/tier/${tier_id}`,
+      },
+      data_source: {
+        get_all: "/policy/protected/api/v2/data-sources/",
       },
     },
   },

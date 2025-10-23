@@ -3,7 +3,7 @@
 import SelectedColumn from "@/components/column-selector";
 import { CustomForm } from "@/components/custom-form";
 import CustomTable from "@/components/custom-table";
-import { useData } from "@/services/hooks/data/use-data";
+import { useSources } from "@/services/hooks/data/use-sources";
 import {
   CheckCircleOutlined,
   EyeOutlined,
@@ -28,7 +28,7 @@ export default function SourcesPage() {
     updateFilters,
     clearFilters,
     loading,
-  } = useData("dataSources");
+  } = useSources();
 
   // Visible columns state
   const [visibleColumns, setVisibleColumns] = useState([
@@ -290,11 +290,7 @@ export default function SourcesPage() {
             </div>
             <div className="data-summary-content">
               <div className="data-summary-value-compact">
-                $
-                {(
-                  filteredData.reduce((sum, item) => sum + item.base_cost, 0) /
-                  filteredData.length
-                ).toFixed(1)}
+                ${summaryStats.averageCost}
               </div>
               <div className="data-summary-label-compact">Giá TB</div>
             </div>

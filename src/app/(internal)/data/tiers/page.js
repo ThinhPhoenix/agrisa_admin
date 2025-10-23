@@ -4,7 +4,7 @@ import mockData from "@/app/(internal)/data/mock.json";
 import SelectedColumn from "@/components/column-selector";
 import { CustomForm } from "@/components/custom-form";
 import CustomTable from "@/components/custom-table";
-import { useData } from "@/services/hooks/data/use-data";
+import { useTiers } from "@/services/hooks/data/use-tiers";
 import {
   CheckCircleOutlined,
   DeleteOutlined,
@@ -32,7 +32,7 @@ export default function TiersPage() {
     updateFilters,
     clearFilters,
     loading,
-  } = useData("dataTiers");
+  } = useTiers();
 
   // Visible columns state
   const [visibleColumns, setVisibleColumns] = useState([
@@ -267,7 +267,7 @@ export default function TiersPage() {
             </div>
             <div className="data-summary-content">
               <div className="data-summary-value-compact">
-                {Math.max(...filteredData.map((item) => item.tier_level))}
+                {summaryStats.highestLevel}
               </div>
               <div className="data-summary-label-compact">Cấp cao nhất</div>
             </div>
@@ -279,13 +279,7 @@ export default function TiersPage() {
             </div>
             <div className="data-summary-content">
               <div className="data-summary-value-compact">
-                {(
-                  filteredData.reduce(
-                    (sum, item) => sum + item.data_tier_multiplier,
-                    0
-                  ) / filteredData.length
-                ).toFixed(1)}
-                x
+                {summaryStats.averageMultiplier}x
               </div>
               <div className="data-summary-label-compact">Hệ số TB</div>
             </div>
