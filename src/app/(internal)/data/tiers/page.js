@@ -16,7 +16,16 @@ import {
   SearchOutlined,
   TagOutlined,
 } from "@ant-design/icons";
-import { Button, Collapse, Layout, Space, Spin, Tag, Typography } from "antd";
+import {
+  Button,
+  Collapse,
+  Layout,
+  Modal,
+  Space,
+  Spin,
+  Tag,
+  Typography,
+} from "antd";
 import Link from "next/link";
 import { useState } from "react";
 import "../data.css";
@@ -32,6 +41,7 @@ export default function TiersPage() {
     updateFilters,
     clearFilters,
     loading,
+    deleteTier,
   } = useTiers();
 
   // Visible columns state
@@ -42,6 +52,10 @@ export default function TiersPage() {
     "data_tier_category_id",
     "created_at",
   ]);
+
+  // Delete confirmation state
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [deletingTier, setDeletingTier] = useState(null);
 
   // Loading state check
   if (loading) {
@@ -62,6 +76,31 @@ export default function TiersPage() {
   // Handle clear filters
   const handleClearFilters = () => {
     clearFilters();
+  };
+
+  // Handle delete tier
+  const handleDeleteTier = (tier) => {
+    setDeletingTier(tier);
+    setDeleteModalVisible(true);
+  };
+
+  // Confirm delete
+  const confirmDelete = async () => {
+    if (deletingTier) {
+      try {
+        await deleteTier(deletingTier.id);
+        setDeleteModalVisible(false);
+        setDeletingTier(null);
+      } catch (err) {
+        // Error is handled in the hook
+      }
+    }
+  };
+
+  // Cancel delete
+  const cancelDelete = () => {
+    setDeleteModalVisible(false);
+    setDeletingTier(null);
   };
 
   // Get status color
@@ -176,17 +215,20 @@ export default function TiersPage() {
               <EyeOutlined size={14} />
             </Button>
           </Link>
-          <Button
-            type="dashed"
-            size="small"
-            className="data-action-btn !bg-green-100 !border-green-200 !text-green-800 hover:!bg-green-200"
-          >
-            <EditOutlined size={14} />
-          </Button>
+          <Link href={`/data/tiers/edit/${record.id}`}>
+            <Button
+              type="dashed"
+              size="small"
+              className="data-action-btn !bg-green-100 !border-green-200 !text-green-800 hover:!bg-green-200"
+            >
+              <EditOutlined size={14} />
+            </Button>
+          </Link>
           <Button
             type="dashed"
             size="small"
             className="data-action-btn !bg-red-100 !border-red-200 !text-red-800 hover:!bg-red-200"
+            onClick={() => handleDeleteTier(record)}
           >
             <DeleteOutlined size={14} />
           </Button>
@@ -346,6 +388,25 @@ export default function TiersPage() {
               `${range[0]}-${range[1]} của ${total} cấp độ`,
           }}
         />
+
+        {/* Delete Confirmation Modal */}
+        <Modal
+          title="Xác nhận xóa cấp độ"
+          open={deleteModalVisible}
+          onOk={confirmDelete}
+          onCancel={cancelDelete}
+          okText="Xóa"
+          cancelText="Hủy"
+          okButtonProps={{ danger: true }}
+        >
+          <p>
+            Bạn có chắc chắn muốn xóa cấp độ{" "}
+            <strong>{deletingTier?.tier_name}</strong> không?
+          </p>
+          <p className="text-red-600 text-sm">
+            Hành động này không thể hoàn tác.
+          </p>
+        </Modal>
       </div>
     </Layout.Content>
   );

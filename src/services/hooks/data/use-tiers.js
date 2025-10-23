@@ -1,4 +1,5 @@
 import axiosInstance from "@/libs/axios-instance";
+import { fetchCategories } from "@/services/data/categories-service";
 import { endpoints } from "@/services/endpoints";
 import { message } from "antd";
 import { useEffect, useMemo, useState } from "react";
@@ -14,6 +15,33 @@ export function useTiers() {
     category: "",
   });
 
+  // Fetch tiers data
+  const fetchTiers = async () => {
+    try {
+      const response = await axiosInstance.get(
+        endpoints.policy.data_tier.tier.get_all
+      );
+      let tiersData = response.data;
+      if (Array.isArray(response.data)) {
+        tiersData = response.data;
+      } else if (response.data && Array.isArray(response.data.data)) {
+        tiersData = response.data.data;
+      } else if (
+        response.data &&
+        typeof response.data === "object" &&
+        response.data.data
+      ) {
+        tiersData = Array.isArray(response.data.data) ? response.data.data : [];
+      } else {
+        tiersData = [];
+      }
+      return tiersData;
+    } catch (err) {
+      console.error("Error fetching tiers:", err);
+      throw err;
+    }
+  };
+
   // Fetch data
   useEffect(() => {
     const fetchData = async () => {
@@ -21,59 +49,13 @@ export function useTiers() {
         setLoading(true);
 
         // Fetch tiers
-        const tiersResponse = await axiosInstance.get(
-          endpoints.policy.data_tier.tier.get_all
-        );
+        const tiersData = await fetchTiers();
 
         // Fetch categories
-        const categoriesResponse = await axiosInstance.get(
-          endpoints.policy.data_tier.category.get_all
-        );
-
-        // Handle tiers response
-        let tiersData = tiersResponse.data;
-        if (Array.isArray(tiersResponse.data)) {
-          tiersData = tiersResponse.data;
-        } else if (
-          tiersResponse.data &&
-          Array.isArray(tiersResponse.data.data)
-        ) {
-          tiersData = tiersResponse.data.data;
-        } else if (
-          tiersResponse.data &&
-          typeof tiersResponse.data === "object" &&
-          tiersResponse.data.data
-        ) {
-          tiersData = Array.isArray(tiersResponse.data.data)
-            ? tiersResponse.data.data
-            : [];
-        } else {
-          tiersData = [];
-        }
-
-        // Handle categories response
-        let categoriesData = categoriesResponse.data;
-        if (Array.isArray(categoriesResponse.data)) {
-          categoriesData = categoriesResponse.data;
-        } else if (
-          categoriesResponse.data &&
-          Array.isArray(categoriesResponse.data.data)
-        ) {
-          categoriesData = categoriesResponse.data.data;
-        } else if (
-          categoriesResponse.data &&
-          typeof categoriesResponse.data === "object" &&
-          categoriesResponse.data.data
-        ) {
-          categoriesData = Array.isArray(categoriesResponse.data.data)
-            ? categoriesResponse.data.data
-            : [];
-        } else {
-          categoriesData = [];
-        }
+        const categoriesData = await fetchCategories();
 
         // Extract last updated timestamp
-        const timestamp = tiersResponse.data?.meta?.timestamp || null;
+        const timestamp = tiersData?.meta?.timestamp || null;
         setLastUpdated(timestamp);
 
         setData(tiersData);
@@ -165,6 +147,90 @@ export function useTiers() {
     });
   };
 
+  // Create tier
+  const createTier = async (tierData) => {
+    try {
+      const response = await axiosInstance.post(
+        endpoints.policy.data_tier.tier.create,
+        tierData
+      );
+      message.success("Cấp độ đã được tạo thành công");
+      // Refetch data to update the list
+      const newTiersData = await fetchTiers();
+      setData(newTiersData);
+      return response.data;
+    } catch (err) {
+      console.error("Error creating tier:", err);
+      message.error(
+        "Lỗi khi tạo cấp độ: " + (err.response?.data?.message || err.message)
+      );
+      throw err;
+    }
+  };
+
+  // Update tier
+  const updateTier = async (id, tierData) => {
+    try {
+      const response = await axiosInstance.put(
+        endpoints.policy.data_tier.tier.update(id),
+        tierData
+      );
+      message.success("Cấp độ đã được cập nhật thành công");
+      // Refetch data to update the list
+      const newTiersData = await fetchTiers();
+      setData(newTiersData);
+      return response.data;
+    } catch (err) {
+      console.error("Error updating tier:", err);
+      message.error(
+        "Lỗi khi cập nhật cấp độ: " +
+          (err.response?.data?.message || err.message)
+      );
+      throw err;
+    }
+  };
+
+  // Delete tier
+  const deleteTier = async (id) => {
+    try {
+      await axiosInstance.delete(endpoints.policy.data_tier.tier.delete(id));
+      message.success("Cấp độ đã được xóa thành công");
+      // Refetch data to update the list
+      const newTiersData = await fetchTiers();
+      setData(newTiersData);
+    } catch (err) {
+      console.error("Error deleting tier:", err);
+      message.error(
+        "Lỗi khi xóa cấp độ: " + (err.response?.data?.message || err.message)
+      );
+      throw err;
+    }
+  };
+
+  // Get single tier
+  const getTier = async (id) => {
+    try {
+      const response = await axiosInstance.get(
+        endpoints.policy.data_tier.tier.get_one(id)
+      );
+      let tierData = response.data;
+      if (
+        response.data &&
+        typeof response.data === "object" &&
+        response.data.data
+      ) {
+        tierData = response.data.data;
+      }
+      return tierData;
+    } catch (err) {
+      console.error("Error fetching tier:", err);
+      message.error(
+        "Lỗi khi tải cấp độ: " + (err.response?.data?.message || err.message)
+      );
+      throw err;
+    }
+  };
+
   return {
     filteredData,
     filterOptions,
@@ -175,5 +241,9 @@ export function useTiers() {
     loading,
     error,
     lastUpdated,
+    createTier,
+    updateTier,
+    deleteTier,
+    getTier,
   };
 }

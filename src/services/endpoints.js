@@ -28,6 +28,10 @@ export const endpoints = {
           `/policy/protected/api/v2/data-tiers/category/${category_id}`,
         get_data_sources: (tier_id) =>
           `/policy/protected/api/v2/data-sources/tier/${tier_id}`,
+        create: "/policy/protected/api/v2/data-tiers/",
+        get_one: (id) => `/policy/protected/api/v2/data-tiers/${id}`,
+        update: (id) => `/policy/protected/api/v2/data-tiers/${id}`,
+        delete: (id) => `/policy/protected/api/v2/data-tiers/${id}`,
       },
       data_source: {
         get_all: "/policy/protected/api/v2/data-sources/",

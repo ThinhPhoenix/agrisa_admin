@@ -1,4 +1,5 @@
 import axiosInstance from "@/libs/axios-instance";
+import { fetchCategories } from "@/services/data/categories-service";
 import { endpoints } from "@/services/endpoints";
 import { message } from "antd";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -14,34 +15,13 @@ export function useCategories() {
 
   // Fetch data
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchCategoriesData = async () => {
       try {
         setLoading(true);
-        const response = await axiosInstance.get(
-          endpoints.policy.data_tier.category.get_all
-        );
-
-        // Handle different response formats
-        let categoriesData = response.data;
-        if (Array.isArray(response.data)) {
-          categoriesData = response.data;
-        } else if (response.data && Array.isArray(response.data.data)) {
-          categoriesData = response.data.data;
-        } else if (
-          response.data &&
-          typeof response.data === "object" &&
-          response.data.data
-        ) {
-          // If data is wrapped in an object
-          categoriesData = Array.isArray(response.data.data)
-            ? response.data.data
-            : [];
-        } else {
-          categoriesData = [];
-        }
+        const categoriesData = await fetchCategories();
 
         // Extract last updated timestamp
-        const timestamp = response.data?.meta?.timestamp || null;
+        const timestamp = categoriesData?.meta?.timestamp || null;
         setLastUpdated(timestamp);
 
         setData(categoriesData);
@@ -56,7 +36,7 @@ export function useCategories() {
       }
     };
 
-    fetchCategories();
+    fetchCategoriesData();
   }, []);
 
   // Filter options (empty for categories)
@@ -128,25 +108,7 @@ export function useCategories() {
       );
       message.success("Danh mục đã được tạo thành công");
       // Optionally refetch data to update the list
-      const fetchResponse = await axiosInstance.get(
-        endpoints.policy.data_tier.category.get_all
-      );
-      let newCategoriesData = fetchResponse.data;
-      if (Array.isArray(fetchResponse.data)) {
-        newCategoriesData = fetchResponse.data;
-      } else if (fetchResponse.data && Array.isArray(fetchResponse.data.data)) {
-        newCategoriesData = fetchResponse.data.data;
-      } else if (
-        fetchResponse.data &&
-        typeof fetchResponse.data === "object" &&
-        fetchResponse.data.data
-      ) {
-        newCategoriesData = Array.isArray(fetchResponse.data.data)
-          ? fetchResponse.data.data
-          : [];
-      } else {
-        newCategoriesData = [];
-      }
+      const newCategoriesData = await fetchCategories();
       setData(newCategoriesData);
       return response.data;
     } catch (err) {
@@ -167,25 +129,7 @@ export function useCategories() {
       );
       message.success("Danh mục đã được cập nhật thành công");
       // Refetch data to update the list
-      const fetchResponse = await axiosInstance.get(
-        endpoints.policy.data_tier.category.get_all
-      );
-      let newCategoriesData = fetchResponse.data;
-      if (Array.isArray(fetchResponse.data)) {
-        newCategoriesData = fetchResponse.data;
-      } else if (fetchResponse.data && Array.isArray(fetchResponse.data.data)) {
-        newCategoriesData = fetchResponse.data.data;
-      } else if (
-        fetchResponse.data &&
-        typeof fetchResponse.data === "object" &&
-        fetchResponse.data.data
-      ) {
-        newCategoriesData = Array.isArray(fetchResponse.data.data)
-          ? fetchResponse.data.data
-          : [];
-      } else {
-        newCategoriesData = [];
-      }
+      const newCategoriesData = await fetchCategories();
       setData(newCategoriesData);
       return response.data;
     } catch (err) {
@@ -206,25 +150,7 @@ export function useCategories() {
       );
       message.success("Danh mục đã được xóa thành công");
       // Refetch data to update the list
-      const fetchResponse = await axiosInstance.get(
-        endpoints.policy.data_tier.category.get_all
-      );
-      let newCategoriesData = fetchResponse.data;
-      if (Array.isArray(fetchResponse.data)) {
-        newCategoriesData = fetchResponse.data;
-      } else if (fetchResponse.data && Array.isArray(fetchResponse.data.data)) {
-        newCategoriesData = fetchResponse.data.data;
-      } else if (
-        fetchResponse.data &&
-        typeof fetchResponse.data === "object" &&
-        fetchResponse.data.data
-      ) {
-        newCategoriesData = Array.isArray(fetchResponse.data.data)
-          ? fetchResponse.data.data
-          : [];
-      } else {
-        newCategoriesData = [];
-      }
+      const newCategoriesData = await fetchCategories();
       setData(newCategoriesData);
     } catch (err) {
       console.error("Error deleting category:", err);
