@@ -1,12 +1,12 @@
 import axiosInstance from "@/libs/axios-instance";
-import { fetchCategories } from "@/services/data/categories-service";
 import { endpoints } from "@/services/endpoints";
+import { useCategories } from "@/services/hooks/data/use-categories";
 import { message } from "antd";
 import { useEffect, useMemo, useState } from "react";
 
 export function useTiers() {
+  const { data: categories } = useCategories();
   const [data, setData] = useState([]);
-  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
@@ -51,22 +51,17 @@ export function useTiers() {
         // Fetch tiers
         const tiersData = await fetchTiers();
 
-        // Fetch categories
-        const categoriesData = await fetchCategories();
-
         // Extract last updated timestamp
         const timestamp = tiersData?.meta?.timestamp || null;
         setLastUpdated(timestamp);
 
         setData(tiersData);
-        setCategories(categoriesData);
         setError(null);
       } catch (err) {
         setError(err);
         console.error("Error fetching tiers:", err);
         message.error("Lỗi khi tải dữ liệu cấp độ: " + err.message);
         setData([]);
-        setCategories([]);
       } finally {
         setLoading(false);
       }
