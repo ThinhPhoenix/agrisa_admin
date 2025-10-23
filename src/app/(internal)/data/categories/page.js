@@ -19,6 +19,7 @@ import {
   Collapse,
   Layout,
   message,
+  Modal,
   Space,
   Spin,
   Typography,
@@ -40,6 +41,7 @@ export default function CategoriesPage() {
     loading,
     error,
     lastUpdated,
+    deleteCategory,
   } = useCategories();
 
   // Visible columns state
@@ -49,6 +51,10 @@ export default function CategoriesPage() {
     "category_cost_multiplier",
     "created_at",
   ]);
+
+  // Delete confirmation state
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [deletingCategory, setDeletingCategory] = useState(null);
 
   // Loading state check
   if (loading) {
@@ -82,6 +88,31 @@ export default function CategoriesPage() {
   // Handle clear filters
   const handleClearFilters = () => {
     clearFilters();
+  };
+
+  // Handle delete category
+  const handleDeleteCategory = (category) => {
+    setDeletingCategory(category);
+    setDeleteModalVisible(true);
+  };
+
+  // Confirm delete
+  const confirmDelete = async () => {
+    if (deletingCategory) {
+      try {
+        await deleteCategory(deletingCategory.id);
+        setDeleteModalVisible(false);
+        setDeletingCategory(null);
+      } catch (err) {
+        // Error is handled in the hook
+      }
+    }
+  };
+
+  // Cancel delete
+  const cancelDelete = () => {
+    setDeleteModalVisible(false);
+    setDeletingCategory(null);
   };
 
   // Get status color
@@ -149,21 +180,20 @@ export default function CategoriesPage() {
       width: 180,
       render: (_, record) => (
         <div className="data-actions-cell">
-          <Button
-            type="dashed"
-            size="small"
-            className="data-action-btn !bg-green-100 !border-green-200 !text-green-800 hover:!bg-green-200"
-            onClick={() =>
-              message.success("Chức năng chỉnh sửa đang được phát triển")
-            }
-          >
-            <EditOutlined size={14} />
-          </Button>
+          <Link href={`/data/categories/edit/${record.id}`}>
+            <Button
+              type="dashed"
+              size="small"
+              className="data-action-btn !bg-green-100 !border-green-200 !text-green-800 hover:!bg-green-200"
+            >
+              <EditOutlined size={14} />
+            </Button>
+          </Link>
           <Button
             type="dashed"
             size="small"
             className="data-action-btn !bg-red-100 !border-red-200 !text-red-800 hover:!bg-red-200"
-            onClick={() => message.error("Chức năng xóa đang được phát triển")}
+            onClick={() => handleDeleteCategory(record)}
           >
             <DeleteOutlined size={14} />
           </Button>
@@ -323,6 +353,25 @@ export default function CategoriesPage() {
               `${range[0]}-${range[1]} của ${total} danh mục`,
           }}
         />
+
+        {/* Delete Confirmation Modal */}
+        <Modal
+          title="Xác nhận xóa danh mục"
+          open={deleteModalVisible}
+          onOk={confirmDelete}
+          onCancel={cancelDelete}
+          okText="Xóa"
+          cancelText="Hủy"
+          okButtonProps={{ danger: true }}
+        >
+          <p>
+            Bạn có chắc chắn muốn xóa danh mục{" "}
+            <strong>{deletingCategory?.category_name}</strong> không?
+          </p>
+          <p className="text-red-600 text-sm">
+            Hành động này không thể hoàn tác.
+          </p>
+        </Modal>
       </div>
     </Layout.Content>
   );

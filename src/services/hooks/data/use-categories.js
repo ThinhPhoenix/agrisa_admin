@@ -1,7 +1,7 @@
 import axiosInstance from "@/libs/axios-instance";
 import { endpoints } from "@/services/endpoints";
 import { message } from "antd";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 export function useCategories() {
   const [data, setData] = useState([]);
@@ -158,6 +158,107 @@ export function useCategories() {
     }
   };
 
+  // Update category
+  const updateCategory = async (id, categoryData) => {
+    try {
+      const response = await axiosInstance.put(
+        endpoints.policy.data_tier.category.update(id),
+        categoryData
+      );
+      message.success("Danh mục đã được cập nhật thành công");
+      // Refetch data to update the list
+      const fetchResponse = await axiosInstance.get(
+        endpoints.policy.data_tier.category.get_all
+      );
+      let newCategoriesData = fetchResponse.data;
+      if (Array.isArray(fetchResponse.data)) {
+        newCategoriesData = fetchResponse.data;
+      } else if (fetchResponse.data && Array.isArray(fetchResponse.data.data)) {
+        newCategoriesData = fetchResponse.data.data;
+      } else if (
+        fetchResponse.data &&
+        typeof fetchResponse.data === "object" &&
+        fetchResponse.data.data
+      ) {
+        newCategoriesData = Array.isArray(fetchResponse.data.data)
+          ? fetchResponse.data.data
+          : [];
+      } else {
+        newCategoriesData = [];
+      }
+      setData(newCategoriesData);
+      return response.data;
+    } catch (err) {
+      console.error("Error updating category:", err);
+      message.error(
+        "Lỗi khi cập nhật danh mục: " +
+          (err.response?.data?.message || err.message)
+      );
+      throw err;
+    }
+  };
+
+  // Delete category
+  const deleteCategory = async (id) => {
+    try {
+      await axiosInstance.delete(
+        endpoints.policy.data_tier.category.delete(id)
+      );
+      message.success("Danh mục đã được xóa thành công");
+      // Refetch data to update the list
+      const fetchResponse = await axiosInstance.get(
+        endpoints.policy.data_tier.category.get_all
+      );
+      let newCategoriesData = fetchResponse.data;
+      if (Array.isArray(fetchResponse.data)) {
+        newCategoriesData = fetchResponse.data;
+      } else if (fetchResponse.data && Array.isArray(fetchResponse.data.data)) {
+        newCategoriesData = fetchResponse.data.data;
+      } else if (
+        fetchResponse.data &&
+        typeof fetchResponse.data === "object" &&
+        fetchResponse.data.data
+      ) {
+        newCategoriesData = Array.isArray(fetchResponse.data.data)
+          ? fetchResponse.data.data
+          : [];
+      } else {
+        newCategoriesData = [];
+      }
+      setData(newCategoriesData);
+    } catch (err) {
+      console.error("Error deleting category:", err);
+      message.error(
+        "Lỗi khi xóa danh mục: " + (err.response?.data?.message || err.message)
+      );
+      throw err;
+    }
+  };
+
+  // Get single category
+  const getCategory = useCallback(async (id) => {
+    try {
+      const response = await axiosInstance.get(
+        endpoints.policy.data_tier.category.get_one(id)
+      );
+      let categoryData = response.data;
+      if (
+        response.data &&
+        typeof response.data === "object" &&
+        response.data.data
+      ) {
+        categoryData = response.data.data;
+      }
+      return categoryData;
+    } catch (err) {
+      console.error("Error fetching category:", err);
+      message.error(
+        "Lỗi khi tải danh mục: " + (err.response?.data?.message || err.message)
+      );
+      throw err;
+    }
+  }, []);
+
   return {
     filteredData,
     filterOptions,
@@ -169,5 +270,8 @@ export function useCategories() {
     error,
     lastUpdated,
     createCategory,
+    updateCategory,
+    deleteCategory,
+    getCategory,
   };
 }
