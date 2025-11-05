@@ -3,162 +3,307 @@
 import SelectedColumn from "@/components/column-selector";
 import { CustomForm } from "@/components/custom-form";
 import CustomTable from "@/components/custom-table";
+import { usePendingPolicies } from "@/services/hooks/policy/use-pending-policies";
 import {
   CheckCircleOutlined,
-  DownloadOutlined,
+  ClockCircleOutlined,
+  CloseCircleOutlined,
   EyeOutlined,
   FileTextOutlined,
   FilterOutlined,
-  PercentageOutlined,
   SearchOutlined,
-  TeamOutlined,
+  WarningOutlined,
 } from "@ant-design/icons";
-import { Button, Collapse, Layout, Space, Tag, Typography } from "antd";
+import { Button, Collapse, Layout, Space, Spin, Tag, Typography } from "antd";
 import Link from "next/link";
 import { useState } from "react";
-import mockData from "./mock..json";
 import "./policy.css";
 
 const { Title, Text } = Typography;
 
-// Filter options
-const filterOptions = {
-  providers: [
-    { label: "PARTNER_001", value: "PARTNER_001" },
-    { label: "PARTNER_002", value: "PARTNER_002" },
-    { label: "PARTNER_003", value: "PARTNER_003" },
-  ],
-  cropTypes: mockData.cropTypes.map((type) => ({
-    label: type.label,
-    value: type.value,
-  })),
-  premiumRanges: [
-    { label: "Dưới 5%", value: "0-0.05" },
-    { label: "5% - 7%", value: "0.05-0.07" },
-    { label: "Trên 7%", value: "0.07-1" },
-  ],
-  durationRanges: [
-    { label: "Dưới 120 ngày", value: "0-120" },
-    { label: "120 - 300 ngày", value: "120-300" },
-    { label: "Trên 300 ngày", value: "300-999" },
-  ],
-};
+export default function PendingPoliciesPage() {
+  const {
+    filteredData,
+    filterOptions,
+    summaryStats,
+    filters,
+    updateFilters,
+    applyApiFilters,
+    clearFilters,
+    loading,
+  } = usePendingPolicies();
 
-export default function PolicyPage() {
   // Visible columns state
   const [visibleColumns, setVisibleColumns] = useState([
-    "productName",
-    "productCode",
-    "insuranceProviderId",
-    "cropType",
-    "premiumBaseRate",
-    "coverageDurationDays",
+    "product_info",
+    "provider",
+    "crop_type",
+    "validation_status",
+    "validation_summary",
+    "created_at",
   ]);
 
-  // Calculate summary stats
-  const summaryStats = {
-    totalPolicies: mockData.policies.length,
-    activePolicies: mockData.policies.length, // Assuming all are active
-    uniqueProviders: new Set(
-      mockData.policies.map((p) => p.insuranceProviderId)
-    ).size,
-    avgPremiumRate: (
-      (mockData.policies.reduce((sum, p) => sum + p.premiumBaseRate, 0) /
-        mockData.policies.length) *
-      100
-    ).toFixed(1),
-  };
-
-  // Get crop type label
-  const getCropTypeLabel = (cropTypeValue) => {
-    const cropType = mockData.cropTypes.find(
-      (type) => type.value === cropTypeValue
+  // Loading state check
+  if (loading) {
+    return (
+      <Layout.Content className="policy-content">
+        <div className="policy-loading">
+          <Spin size="large" tip="Đang tải dữ liệu..." />
+        </div>
+      </Layout.Content>
     );
-    return cropType ? cropType.label : cropTypeValue;
-  };
-
-  // Filter state
-  const [filters, setFilters] = useState({
-    productName: "",
-    productCode: "",
-    insuranceProviderId: "",
-    cropType: "",
-    premiumRange: "",
-    durationRange: "",
-  });
-
-  // Filtered data
-  const [filteredData, setFilteredData] = useState(mockData.policies);
+  }
 
   // Handle form submit
   const handleFormSubmit = (formData) => {
-    setFilters(formData);
-    applyFilters(formData);
+    // Separate API filters from client-side filters
+    const apiFilters = {};
+    const clientFilters = {};
+
+    if (formData.archive_status !== undefined) {
+      apiFilters.archive_status = formData.archive_status;
+    }
+    if (formData.provider_id !== undefined) {
+      apiFilters.provider_id = formData.provider_id;
+    }
+    if (formData.validation_status !== undefined) {
+      clientFilters.validation_status = formData.validation_status;
+    }
+    if (formData.product_name !== undefined) {
+      clientFilters.product_name = formData.product_name;
+    }
+
+    // Apply API filters (triggers refetch)
+    if (Object.keys(apiFilters).length > 0) {
+      applyApiFilters(apiFilters);
+    }
+
+    // Apply client filters
+    if (Object.keys(clientFilters).length > 0) {
+      updateFilters(clientFilters);
+    }
   };
 
   // Handle clear filters
   const handleClearFilters = () => {
-    const clearedFilters = {
-      productName: "",
-      productCode: "",
-      insuranceProviderId: "",
-      cropType: "",
-      premiumRange: "",
-      durationRange: "",
-    };
-    setFilters(clearedFilters);
-    setFilteredData(mockData.policies);
+    clearFilters();
   };
 
-  // Search fields - organized in 2 rows with 4 fields each
-  const searchFields = [
-    // First row - Main search fields (4 fields)
+  // Get validation status config
+  const getValidationStatusConfig = (status) => {
+    const configs = {
+      pending: { color: "orange", icon: <ClockCircleOutlined />, text: "Chờ duyệt" },
+      passed_ai: { color: "cyan", icon: <CheckCircleOutlined />, text: "AI duyệt" },
+      passed: { color: "green", icon: <CheckCircleOutlined />, text: "Đã duyệt" },
+      failed: { color: "red", icon: <CloseCircleOutlined />, text: "Thất bại" },
+      warning: { color: "gold", icon: <WarningOutlined />, text: "Cảnh báo" },
+    };
+    return configs[status] || configs.pending;
+  };
+
+  // Get crop type display
+  const getCropTypeDisplay = (cropType) => {
+    const types = {
+      rice: "Lúa",
+      corn: "Ngô",
+      coffee: "Cà phê",
+      pepper: "Hồ tiêu",
+    };
+    return types[cropType] || cropType;
+  };
+
+  // Table columns
+  const columns = [
     {
-      name: "productName",
+      title: "Thông tin sản phẩm",
+      dataIndex: "product_info",
+      key: "product_info",
+      width: 250,
+      render: (_, record) => {
+        const basePolicy = record.base_policy || {};
+        return (
+          <div className="policy-item-info">
+            <div className="policy-item-details">
+              <div className="policy-item-name">{basePolicy.product_name}</div>
+              <div className="policy-item-description">
+                {basePolicy.product_code}
+              </div>
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      title: "Nhà bảo hiểm",
+      dataIndex: "provider",
+      key: "provider",
+      width: 180,
+      render: (_, record) => {
+        const basePolicy = record.base_policy || {};
+        return (
+          <div className="policy-item-name">
+            {basePolicy.insurance_provider_id}
+          </div>
+        );
+      },
+    },
+    {
+      title: "Loại cây trồng",
+      dataIndex: "crop_type",
+      key: "crop_type",
+      width: 120,
+      render: (_, record) => {
+        const basePolicy = record.base_policy || {};
+        return (
+          <Tag color="blue" className="policy-status-tag">
+            {getCropTypeDisplay(basePolicy.crop_type)}
+          </Tag>
+        );
+      },
+    },
+    {
+      title: "Trạng thái validation",
+      dataIndex: "validation_status",
+      key: "validation_status",
+      width: 150,
+      render: (_, record) => {
+        const basePolicy = record.base_policy || {};
+        const status = basePolicy.document_validation_status || "pending";
+        const config = getValidationStatusConfig(status);
+        return (
+          <Tag
+            color={config.color}
+            icon={config.icon}
+            className="policy-status-tag"
+          >
+            {config.text}
+          </Tag>
+        );
+      },
+    },
+    {
+      title: "Kết quả validation",
+      dataIndex: "validation_summary",
+      key: "validation_summary",
+      width: 200,
+      render: (_, record) => {
+        const validations = record.validations || [];
+        if (validations.length === 0) {
+          return <Text type="secondary">Chưa có dữ liệu</Text>;
+        }
+
+        const latestValidation = validations[0];
+        const { total_checks, passed_checks, failed_checks, warning_count } =
+          latestValidation;
+
+        return (
+          <div className="validation-summary">
+            <div className="validation-summary-row">
+              <Text className="validation-summary-item">
+                <CheckCircleOutlined className="text-green-600" />
+                <span>
+                  {passed_checks}/{total_checks}
+                </span>
+              </Text>
+              {failed_checks > 0 && (
+                <Text className="validation-summary-item" type="danger">
+                  <CloseCircleOutlined />
+                  <span>{failed_checks}</span>
+                </Text>
+              )}
+              {warning_count > 0 && (
+                <Text className="validation-summary-item" type="warning">
+                  <WarningOutlined />
+                  <span>{warning_count}</span>
+                </Text>
+              )}
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      title: "Ngày tạo",
+      dataIndex: "created_at",
+      key: "created_at",
+      width: 160,
+      render: (_, record) => {
+        const basePolicy = record.base_policy || {};
+        const createdAt = basePolicy.created_at;
+        if (!createdAt || createdAt === "0001-01-01T00:00:00Z") {
+          return <Text type="secondary">N/A</Text>;
+        }
+        return (
+          <div className="policy-created-at">
+            <div className="policy-date">
+              {new Date(createdAt).toLocaleDateString("vi-VN")}
+            </div>
+            <div className="policy-time">
+              {new Date(createdAt).toLocaleTimeString("vi-VN", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      title: "Hành động",
+      key: "action",
+      fixed: "right",
+      width: 120,
+      render: (_, record) => {
+        const basePolicy = record.base_policy || {};
+        return (
+          <div className="policy-actions-cell">
+            <Link href={`/pending-policies/${basePolicy.id}`}>
+              <Button
+                type="dashed"
+                size="small"
+                className="policy-action-btn !bg-blue-100 !border-blue-200 !text-blue-800 hover:!bg-blue-200"
+              >
+                <EyeOutlined size={14} />
+              </Button>
+            </Link>
+          </div>
+        );
+      },
+    },
+  ];
+
+  // Search fields
+  const searchFields = [
+    {
+      name: "product_name",
       label: "Tên sản phẩm",
       type: "input",
-      placeholder: "Tìm kiếm theo tên sản phẩm...",
-      value: filters.productName,
+      placeholder: "Tìm kiếm theo tên hoặc mã...",
+      value: filters.product_name,
     },
     {
-      name: "productCode",
-      label: "Mã sản phẩm",
-      type: "input",
-      placeholder: "Tìm kiếm theo mã sản phẩm...",
-      value: filters.productCode,
-    },
-    {
-      name: "cropType",
-      label: "Loại cây trồng",
+      name: "provider_id",
+      label: "Nhà bảo hiểm",
       type: "combobox",
-      placeholder: "Chọn loại cây trồng",
-      options: filterOptions.cropTypes,
-      value: filters.cropType,
-    },
-    {
-      name: "insuranceProviderId",
-      label: "Đối tác bảo hiểm",
-      type: "combobox",
-      placeholder: "Chọn đối tác bảo hiểm",
+      placeholder: "Chọn nhà bảo hiểm",
       options: filterOptions.providers,
-      value: filters.insuranceProviderId,
-    },
-    // Second row - Range filters and actions (4 fields)
-    {
-      name: "premiumRange",
-      label: "Tỷ lệ phí BH",
-      type: "combobox",
-      placeholder: "Chọn khoảng tỷ lệ phí",
-      options: filterOptions.premiumRanges,
-      value: filters.premiumRange,
+      value: filters.provider_id,
     },
     {
-      name: "durationRange",
-      label: "Thời hạn bảo hiểm",
+      name: "validation_status",
+      label: "Trạng thái validation",
       type: "combobox",
-      placeholder: "Chọn khoảng thời hạn",
-      options: filterOptions.durationRanges,
-      value: filters.durationRange,
+      placeholder: "Chọn trạng thái",
+      options: filterOptions.validationStatuses,
+      value: filters.validation_status,
+    },
+    {
+      name: "archive_status",
+      label: "Trạng thái lưu trữ",
+      type: "combobox",
+      placeholder: "Chọn trạng thái",
+      options: filterOptions.archiveStatuses,
+      value: filters.archive_status,
     },
     {
       name: "searchButton",
@@ -180,124 +325,6 @@ export default function PolicyPage() {
     },
   ];
 
-  // Apply filters
-  const applyFilters = (filterValues) => {
-    let filtered = [...mockData.policies];
-
-    if (filterValues.productName) {
-      filtered = filtered.filter((policy) =>
-        policy.productName
-          .toLowerCase()
-          .includes(filterValues.productName.toLowerCase())
-      );
-    }
-
-    if (filterValues.productCode) {
-      filtered = filtered.filter((policy) =>
-        policy.productCode
-          .toLowerCase()
-          .includes(filterValues.productCode.toLowerCase())
-      );
-    }
-
-    if (filterValues.insuranceProviderId) {
-      filtered = filtered.filter(
-        (policy) =>
-          policy.insuranceProviderId === filterValues.insuranceProviderId
-      );
-    }
-
-    if (filterValues.cropType) {
-      filtered = filtered.filter(
-        (policy) => policy.cropType === filterValues.cropType
-      );
-    }
-
-    if (filterValues.premiumRange) {
-      const [min, max] = filterValues.premiumRange.split("-").map(Number);
-      filtered = filtered.filter(
-        (policy) =>
-          policy.premiumBaseRate >= min && policy.premiumBaseRate < max
-      );
-    }
-
-    if (filterValues.durationRange) {
-      const [min, max] = filterValues.durationRange.split("-").map(Number);
-      filtered = filtered.filter(
-        (policy) =>
-          policy.coverageDurationDays >= min &&
-          policy.coverageDurationDays < max
-      );
-    }
-
-    setFilteredData(filtered);
-  };
-
-  // Table columns
-  const columns = [
-    {
-      title: "Tên Sản phẩm",
-      dataIndex: "productName",
-      key: "productName",
-      width: 250,
-      render: (text) => <Text strong>{text}</Text>,
-    },
-    {
-      title: "Mã Sản phẩm",
-      dataIndex: "productCode",
-      key: "productCode",
-      width: 200,
-      render: (text) => <Text code>{text}</Text>,
-    },
-    {
-      title: "Đối tác Bảo hiểm",
-      dataIndex: "insuranceProviderId",
-      key: "insuranceProviderId",
-      width: 180,
-      render: (text) => <Tag color="blue">{text}</Tag>,
-    },
-    {
-      title: "Loại Cây trồng",
-      dataIndex: "cropType",
-      key: "cropType",
-      width: 180,
-      render: (text) => <Tag color="green">{getCropTypeLabel(text)}</Tag>,
-    },
-    {
-      title: "Tỷ lệ Phí BH Cơ sở (%)",
-      dataIndex: "premiumBaseRate",
-      key: "premiumBaseRate",
-      width: 200,
-      render: (rate) => <Text>{(rate * 100).toFixed(2)}%</Text>,
-    },
-    {
-      title: "Thời hạn Bảo hiểm (Ngày)",
-      dataIndex: "coverageDurationDays",
-      key: "coverageDurationDays",
-      width: 200,
-      render: (days) => <Text>{days} ngày</Text>,
-    },
-    {
-      title: "Hành động",
-      key: "action",
-      fixed: "right",
-      width: 150,
-      render: (_, record) => (
-        <div className="policy-actions-cell">
-          <Link href={`/pending-policies/${record.id}`}>
-            <Button
-              type="dashed"
-              size="small"
-              className="policy-action-btn !bg-blue-100 !border-blue-200 !text-blue-800 hover:!bg-blue-200"
-            >
-              <EyeOutlined size={14} />
-            </Button>
-          </Link>
-        </div>
-      ),
-    },
-  ];
-
   return (
     <Layout.Content className="policy-content">
       <div className="policy-space">
@@ -305,10 +332,10 @@ export default function PolicyPage() {
         <div className="policy-header">
           <div>
             <Title level={2} className="policy-title">
-              Chính sách Bảo hiểm Chờ Xử lý
+              Quản lý Policy chờ duyệt
             </Title>
-            <Text type="secondary" className="policy-subtitle">
-              Duyệt các chính sách bảo hiểm từ đối tác
+            <Text className="policy-subtitle">
+              Danh sách base policy draft đang chờ validation
             </Text>
           </div>
         </div>
@@ -323,9 +350,19 @@ export default function PolicyPage() {
               <div className="policy-summary-value-compact">
                 {summaryStats.totalPolicies}
               </div>
-              <div className="policy-summary-label-compact">
-                Tổng số chính sách chờ duyệt
+              <div className="policy-summary-label-compact">Tổng policy</div>
+            </div>
+          </div>
+
+          <div className="policy-summary-card-compact">
+            <div className="policy-summary-icon pending">
+              <ClockCircleOutlined />
+            </div>
+            <div className="policy-summary-content">
+              <div className="policy-summary-value-compact">
+                {summaryStats.pendingValidation}
               </div>
+              <div className="policy-summary-label-compact">Chờ duyệt</div>
             </div>
           </div>
 
@@ -335,35 +372,21 @@ export default function PolicyPage() {
             </div>
             <div className="policy-summary-content">
               <div className="policy-summary-value-compact">
-                {summaryStats.activePolicies}
+                {summaryStats.passedValidation}
               </div>
-              <div className="policy-summary-label-compact">Chờ duyệt</div>
+              <div className="policy-summary-label-compact">Đã duyệt</div>
             </div>
           </div>
 
           <div className="policy-summary-card-compact">
-            <div className="policy-summary-icon providers">
-              <TeamOutlined />
+            <div className="policy-summary-icon inactive">
+              <CloseCircleOutlined />
             </div>
             <div className="policy-summary-content">
               <div className="policy-summary-value-compact">
-                {summaryStats.uniqueProviders}
+                {summaryStats.failedValidation}
               </div>
-              <div className="policy-summary-label-compact">
-                Đối tác bảo hiểm
-              </div>
-            </div>
-          </div>
-
-          <div className="policy-summary-card-compact">
-            <div className="policy-summary-icon premium">
-              <PercentageOutlined />
-            </div>
-            <div className="policy-summary-content">
-              <div className="policy-summary-value-compact">
-                {summaryStats.avgPremiumRate}%
-              </div>
-              <div className="policy-summary-label-compact">Phí BH TB</div>
+              <div className="policy-summary-label-compact">Thất bại</div>
             </div>
           </div>
         </div>
@@ -383,17 +406,9 @@ export default function PolicyPage() {
                 children: (
                   <div className="policy-filter-form">
                     <div className="space-y-4">
-                      {/* First row - Main search fields */}
                       <CustomForm
-                        fields={searchFields.slice(0, 4)}
-                        gridColumns="1fr 1fr 1fr 1fr"
-                        gap="16px"
-                        onSubmit={handleFormSubmit}
-                      />
-                      {/* Second row - Range filters and actions */}
-                      <CustomForm
-                        fields={searchFields.slice(4)}
-                        gridColumns="1fr 1fr 1fr 1fr"
+                        fields={searchFields}
+                        gridColumns="1fr 1fr 1fr 1fr 1fr 1fr"
                         gap="16px"
                         onSubmit={handleFormSubmit}
                       />
@@ -406,33 +421,29 @@ export default function PolicyPage() {
         </div>
 
         {/* Table */}
-        <div>
-          <div className="flex justify-start items-center gap-2 mb-2">
-            <Button icon={<DownloadOutlined />}>Nhập excel</Button>
-            <Button icon={<DownloadOutlined />}>Xuất excel</Button>
-            <SelectedColumn
-              columns={columns}
-              visibleColumns={visibleColumns}
-              setVisibleColumns={setVisibleColumns}
-            />
-          </div>
-
-          <CustomTable
+        <div className="flex justify-start items-center gap-2 mb-2">
+          <SelectedColumn
             columns={columns}
-            dataSource={mockData.policies}
             visibleColumns={visibleColumns}
-            rowKey="id"
-            scroll={{ x: 1200 }}
-            pagination={{
-              total: mockData.policies.length,
-              pageSize: 10,
-              showSizeChanger: true,
-              showQuickJumper: true,
-              showTotal: (total, range) =>
-                `${range[0]}-${range[1]} của ${total} chính sách`,
-            }}
+            setVisibleColumns={setVisibleColumns}
           />
         </div>
+
+        <CustomTable
+          columns={columns}
+          dataSource={filteredData}
+          visibleColumns={visibleColumns}
+          rowKey={(record) => record.base_policy?.id || Math.random()}
+          scroll={{ x: 1400 }}
+          pagination={{
+            total: filteredData.length,
+            pageSize: 10,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total, range) =>
+              `${range[0]}-${range[1]} của ${total} policy`,
+          }}
+        />
       </div>
     </Layout.Content>
   );

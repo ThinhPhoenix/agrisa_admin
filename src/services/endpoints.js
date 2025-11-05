@@ -41,5 +41,9 @@ export const endpoints = {
         delete: (id) => `/policy/protected/api/v2/data-sources/${id}`,
       },
     },
+    base_policy: {
+      get_draft_filter: "/policy/protected/api/v2/base-policies/draft/filter",
+      validate: "/policy/protected/api/v2/base-policies/validate",
+    },
   },
 };

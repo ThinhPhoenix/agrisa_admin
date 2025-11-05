@@ -7,6 +7,13 @@
   @apply space-y-6;
 }
 
+.policy-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
 .policy-header {
   @apply flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6;
 }
@@ -62,6 +69,76 @@
 
 .policy-summary-icon.premium {
   @apply bg-yellow-100 text-yellow-600;
+}
+
+.policy-summary-icon.pending {
+  @apply bg-orange-100 text-orange-600;
+}
+
+.policy-summary-icon.inactive {
+  @apply bg-red-100 text-red-600;
+}
+
+/* Table Item Styles */
+.policy-item-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.policy-item-details {
+  flex: 1;
+}
+
+.policy-item-name {
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 2px;
+  font-size: 14px;
+}
+
+.policy-item-description {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.policy-status-tag {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.policy-created-at {
+  font-size: 12px;
+}
+
+.policy-date {
+  color: #1f2937;
+  margin-bottom: 2px;
+}
+
+.policy-time {
+  color: #6b7280;
+}
+
+/* Validation Summary */
+.validation-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.validation-summary-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.validation-summary-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
 }
 
 .policy-actions-cell {
