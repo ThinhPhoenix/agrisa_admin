@@ -1,13 +1,20 @@
 "use client";
 
+import AIValidationTab from "@/components/layout/policy/detail/AIValidationTab";
+import BasicInfoTab from "@/components/layout/policy/detail/BasicInfoTab";
+import ConfigurationInfoTab from "@/components/layout/policy/detail/ConfigurationInfoTab";
+import TagsInfoTab from "@/components/layout/policy/detail/TagsInfoTab";
 import ValidationFormModal from "@/components/layout/policy/detail/ValidationFormModal";
 import { usePendingPolicies } from "@/services/hooks/policy/use-pending-policies";
 import {
   CheckCircleOutlined,
   ClockCircleOutlined,
   CloseCircleOutlined,
-  ExclamationCircleOutlined,
   FilePdfOutlined,
+  InfoCircleOutlined,
+  RobotOutlined,
+  SettingOutlined,
+  TagOutlined,
   WarningOutlined,
 } from "@ant-design/icons";
 import {
@@ -15,15 +22,11 @@ import {
   Badge,
   Button,
   Card,
-  Col,
-  Collapse,
-  Descriptions,
   Layout,
   Modal,
-  Row,
   Spin,
+  Tabs,
   Tag,
-  Timeline,
   Typography,
 } from "antd";
 import { useParams, useRouter } from "next/navigation";
@@ -236,10 +239,9 @@ export default function PolicyDetailPage() {
           onCancel={() => setValidationModalOpen(false)}
           onSubmit={handleValidationSubmit}
           basePolicyId={basePolicy.id}
-          latestValidation={
-            validationModalMode === "accept_ai" ? latestValidation : null
-          }
+          latestValidation={latestValidation}
           validatedBy="admin@example.com"
+          mode={validationModalMode}
         />
 
         {/* Validation Actions */}
@@ -321,396 +323,110 @@ export default function PolicyDetailPage() {
           />
         )}
 
-        <Row gutter={[16, 16]}>
-          <Col span={24}>
-            {/* Base Policy Information */}
-            <Card title="Thông tin cơ bản" bordered={false}>
-              <Descriptions column={2} bordered>
-                <Descriptions.Item label="Tên sản phẩm">
-                  {basePolicy.product_name}
-                </Descriptions.Item>
-                <Descriptions.Item label="Mã sản phẩm">
-                  {basePolicy.product_code}
-                </Descriptions.Item>
-                <Descriptions.Item label="Nhà bảo hiểm">
-                  {basePolicy.insurance_provider_id}
-                </Descriptions.Item>
-                <Descriptions.Item label="Loại cây trồng">
-                  <Tag color="blue">
-                    {getCropTypeDisplay(basePolicy.crop_type)}
-                  </Tag>
-                </Descriptions.Item>
-                <Descriptions.Item label="Trạng thái">
-                  <Tag
-                    color={basePolicy.status === "draft" ? "orange" : "green"}
+        {/* Tabs for detailed information */}
+        <Tabs
+          defaultActiveKey="basic"
+          size="large"
+          items={[
+            {
+              key: "basic",
+              label: (
+                <span>
+                  <InfoCircleOutlined /> Thông tin cơ bản
+                </span>
+              ),
+              children: (
+                <BasicInfoTab
+                  basePolicy={basePolicy}
+                  formatCurrency={formatCurrency}
+                  formatDate={formatDate}
+                  getCropTypeDisplay={getCropTypeDisplay}
+                />
+              ),
+            },
+            {
+              key: "configuration",
+              label: (
+                <span>
+                  <SettingOutlined /> Cấu hình Trigger
+                </span>
+              ),
+              children: (
+                <ConfigurationInfoTab
+                  trigger={trigger}
+                  conditions={conditions}
+                />
+              ),
+            },
+            {
+              key: "tags",
+              label: (
+                <span>
+                  <TagOutlined /> Thẻ & Metadata
+                </span>
+              ),
+              children: <TagsInfoTab basePolicy={basePolicy} />,
+            },
+            {
+              key: "validation",
+              label: (
+                <span>
+                  <RobotOutlined /> Xác thực AI
+                  {validations.length > 0 && (
+                    <Badge
+                      count={validations.length}
+                      style={{ marginLeft: 8 }}
+                    />
+                  )}
+                </span>
+              ),
+              children: (
+                <AIValidationTab
+                  validations={validations}
+                  getSeverityBadge={getSeverityBadge}
+                  getValidationStatusConfig={getValidationStatusConfig}
+                />
+              ),
+            },
+            {
+              key: "document",
+              label: (
+                <span>
+                  <FilePdfOutlined /> Tài liệu
+                </span>
+              ),
+              children: (
+                <Card title="Tài liệu chính sách" bordered={false}>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                    }}
                   >
-                    {basePolicy.status === "draft"
-                      ? "Bản nháp"
-                      : basePolicy.status === "active"
-                      ? "Hoạt động"
-                      : "Đã lưu trữ"}
-                  </Tag>
-                </Descriptions.Item>
-                <Descriptions.Item label="Thời hạn bảo hiểm">
-                  {basePolicy.coverage_duration_days} ngày
-                </Descriptions.Item>
-                <Descriptions.Item label="Mô tả" span={2}>
-                  {basePolicy.product_description}
-                </Descriptions.Item>
-              </Descriptions>
-            </Card>
-          </Col>
-
-          <Col span={12}>
-            {/* Financial Information */}
-            <Card title="Thông tin tài chính" bordered={false}>
-              <Descriptions column={1} bordered>
-                <Descriptions.Item label="Phí bảo hiểm cố định">
-                  {formatCurrency(basePolicy.fix_premium_amount)}
-                </Descriptions.Item>
-                <Descriptions.Item label="Tỷ lệ phí cơ sở">
-                  {(basePolicy.premium_base_rate * 100).toFixed(2)}%
-                </Descriptions.Item>
-                <Descriptions.Item label="Bồi thường cố định">
-                  {formatCurrency(basePolicy.fix_payout_amount)}
-                </Descriptions.Item>
-                <Descriptions.Item label="Tỷ lệ bồi thường">
-                  {(basePolicy.payout_base_rate * 100).toFixed(2)}%
-                </Descriptions.Item>
-                <Descriptions.Item label="Giới hạn bồi thường tối đa">
-                  {formatCurrency(basePolicy.payout_cap)}
-                </Descriptions.Item>
-              </Descriptions>
-            </Card>
-          </Col>
-
-          <Col span={12}>
-            {/* Enrollment Period */}
-            <Card title="Thời gian đăng ký & hiệu lực" bordered={false}>
-              <Descriptions column={1} bordered>
-                <Descriptions.Item label="Bắt đầu đăng ký">
-                  {formatDate(basePolicy.enrollment_start_day)}
-                </Descriptions.Item>
-                <Descriptions.Item label="Kết thúc đăng ký">
-                  {formatDate(basePolicy.enrollment_end_day)}
-                </Descriptions.Item>
-                <Descriptions.Item label="Bảo hiểm có hiệu lực từ">
-                  {formatDate(basePolicy.insurance_valid_from_day)}
-                </Descriptions.Item>
-                <Descriptions.Item label="Bảo hiểm có hiệu lực đến">
-                  {formatDate(basePolicy.insurance_valid_to_day)}
-                </Descriptions.Item>
-              </Descriptions>
-            </Card>
-          </Col>
-
-          {/* Trigger Information */}
-          {trigger && trigger.id && (
-            <Col span={24}>
-              <Card title="Thông tin kích hoạt" bordered={false}>
-                <Descriptions column={2} bordered>
-                  <Descriptions.Item label="Giai đoạn sinh trưởng">
-                    {trigger.growth_stage}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Toán tử logic">
-                    <Tag>{trigger.logical_operator}</Tag>
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Khoảng thời gian giám sát">
-                    {trigger.monitor_interval}{" "}
-                    {trigger.monitor_frequency_unit === "day"
-                      ? "ngày"
-                      : trigger.monitor_frequency_unit}
-                  </Descriptions.Item>
-                </Descriptions>
-              </Card>
-            </Col>
-          )}
-
-          {/* Conditions */}
-          {conditions.length > 0 && (
-            <Col span={24}>
-              <Card
-                title={`Điều kiện kích hoạt (${conditions.length})`}
-                bordered={false}
-              >
-                <Collapse
-                  items={conditions.map((condition, index) => ({
-                    key: condition.id,
-                    label: `Điều kiện ${index + 1}: ${
-                      condition.threshold_operator
-                    } ${condition.threshold_value}`,
-                    children: (
-                      <Descriptions column={2} bordered size="small">
-                        <Descriptions.Item label="Data Source ID">
-                          {condition.data_source_id}
-                        </Descriptions.Item>
-                        <Descriptions.Item label="Threshold">
-                          {condition.threshold_operator}{" "}
-                          {condition.threshold_value}
-                        </Descriptions.Item>
-                        <Descriptions.Item label="Aggregation">
-                          {condition.aggregation_function} over{" "}
-                          {condition.aggregation_window_days} days
-                        </Descriptions.Item>
-                        <Descriptions.Item label="Early Warning">
-                          {condition.early_warning_threshold}
-                        </Descriptions.Item>
-                        <Descriptions.Item label="Base Cost">
-                          {condition.base_cost?.toLocaleString("vi-VN")} VND
-                        </Descriptions.Item>
-                        <Descriptions.Item label="Calculated Cost">
-                          {condition.calculated_cost?.toLocaleString("vi-VN")}{" "}
-                          VND
-                        </Descriptions.Item>
-                      </Descriptions>
-                    ),
-                  }))}
-                />
-              </Card>
-            </Col>
-          )}
-
-          {/* Validation History */}
-          {validations.length > 0 && (
-            <Col span={24}>
-              <Card
-                title={`Lịch sử xác thực (${validations.length})`}
-                bordered={false}
-              >
-                <Timeline
-                  items={validations.map((validation) => {
-                    const vStatusConfig = getValidationStatusConfig(
-                      validation.validation_status
-                    );
-                    return {
-                      color: vStatusConfig.color,
-                      dot: vStatusConfig.icon,
-                      children: (
-                        <div>
-                          <div
-                            style={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              marginBottom: "8px",
-                            }}
-                          >
-                            <Text strong>
-                              {vStatusConfig.text} - {validation.validated_by}
-                            </Text>
-                            <Text type="secondary">
-                              {new Date(validation.created_at).toLocaleString(
-                                "vi-VN"
-                              )}
-                            </Text>
-                          </div>
-
-                          <div
-                            style={{
-                              display: "flex",
-                              gap: "16px",
-                              marginBottom: "12px",
-                            }}
-                          >
-                            <Text>
-                              <CheckCircleOutlined className="text-green-600" />{" "}
-                              Đạt: {validation.passed_checks}/
-                              {validation.total_checks}
-                            </Text>
-                            {validation.failed_checks > 0 && (
-                              <Text type="danger">
-                                <CloseCircleOutlined /> Lỗi:{" "}
-                                {validation.failed_checks}
-                              </Text>
-                            )}
-                            {validation.warning_count > 0 && (
-                              <Text type="warning">
-                                <WarningOutlined /> Cảnh báo:{" "}
-                                {validation.warning_count}
-                              </Text>
-                            )}
-                          </div>
-
-                          {/* Mismatches */}
-                          {validation.mismatches &&
-                            Object.keys(validation.mismatches).length > 0 && (
-                              <div style={{ marginTop: "12px" }}>
-                                <Text strong>
-                                  <ExclamationCircleOutlined /> Sai khác:
-                                </Text>
-                                <div style={{ marginTop: "8px" }}>
-                                  {Object.entries(validation.mismatches).map(
-                                    ([key, value]) => (
-                                      <Card
-                                        key={key}
-                                        size="small"
-                                        style={{
-                                          marginBottom: "8px",
-                                          borderLeft: `3px solid ${
-                                            value.severity === "critical"
-                                              ? "#ff4d4f"
-                                              : value.severity === "important"
-                                              ? "#faad14"
-                                              : "#1890ff"
-                                          }`,
-                                        }}
-                                      >
-                                        <div
-                                          style={{
-                                            display: "flex",
-                                            justifyContent: "space-between",
-                                            marginBottom: "4px",
-                                          }}
-                                        >
-                                          <Text strong>{key}</Text>
-                                          {getSeverityBadge(value.severity)}
-                                        </div>
-                                        <Paragraph
-                                          type="secondary"
-                                          style={{ marginBottom: "8px" }}
-                                        >
-                                          {value.impact}
-                                        </Paragraph>
-                                        <Row gutter={16}>
-                                          <Col span={12}>
-                                            <Text type="secondary">
-                                              Giá trị JSON:
-                                            </Text>
-                                            <br />
-                                            <Text code>
-                                              {JSON.stringify(value.json_value)}
-                                            </Text>
-                                          </Col>
-                                          <Col span={12}>
-                                            <Text type="secondary">
-                                              Giá trị PDF:
-                                            </Text>
-                                            <br />
-                                            <Text code>
-                                              {JSON.stringify(value.pdf_value)}
-                                            </Text>
-                                          </Col>
-                                        </Row>
-                                      </Card>
-                                    )
-                                  )}
-                                </div>
-                              </div>
-                            )}
-
-                          {/* Warnings */}
-                          {validation.warnings &&
-                            Object.keys(validation.warnings).length > 0 && (
-                              <div style={{ marginTop: "12px" }}>
-                                <Text strong type="warning">
-                                  <WarningOutlined /> Cảnh báo:
-                                </Text>
-                                <div style={{ marginTop: "8px" }}>
-                                  {Object.entries(validation.warnings).map(
-                                    ([key, value]) => (
-                                      <Alert
-                                        key={key}
-                                        message={key}
-                                        description={value.recommendation}
-                                        type="warning"
-                                        showIcon
-                                        style={{ marginBottom: "8px" }}
-                                      />
-                                    )
-                                  )}
-                                </div>
-                              </div>
-                            )}
-
-                          {/* Recommendations */}
-                          {validation.recommendations &&
-                            Object.keys(validation.recommendations).length >
-                              0 && (
-                              <div style={{ marginTop: "12px" }}>
-                                <Text strong type="info">
-                                  <CheckCircleOutlined /> Đề xuất:
-                                </Text>
-                                <div style={{ marginTop: "8px" }}>
-                                  {Object.entries(
-                                    validation.recommendations
-                                  ).map(([key, value]) => (
-                                    <Alert
-                                      key={key}
-                                      message={`${key} (Priority: ${value.priority})`}
-                                      description={
-                                        <div>
-                                          <Paragraph>
-                                            {value.suggestion}
-                                          </Paragraph>
-                                          {value.affected_fields && (
-                                            <div>
-                                              <Text type="secondary">
-                                                Các trường bị ảnh hưởng:
-                                              </Text>
-                                              <br />
-                                              {value.affected_fields.map(
-                                                (field) => (
-                                                  <Tag key={field}>{field}</Tag>
-                                                )
-                                              )}
-                                            </div>
-                                          )}
-                                        </div>
-                                      }
-                                      type="info"
-                                      showIcon
-                                      style={{ marginBottom: "8px" }}
-                                    />
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-
-                          {validation.validation_notes && (
-                            <div style={{ marginTop: "12px" }}>
-                              <Text type="secondary">Ghi chú: </Text>
-                              <Text>{validation.validation_notes}</Text>
-                            </div>
-                          )}
-                        </div>
-                      ),
-                    };
-                  })}
-                />
-              </Card>
-            </Col>
-          )}
-
-          {/* Document */}
-          <Col span={24}>
-            <Card title="Tài liệu chính sách" bordered={false}>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                }}
-              >
-                <FilePdfOutlined
-                  style={{ fontSize: "24px", color: "#ff4d4f" }}
-                />
-                <div style={{ flex: 1 }}>
-                  <Text strong>Tài liệu PDF chính sách</Text>
-                  <br />
-                  <Text type="secondary">
-                    {basePolicy.template_document_url}
-                  </Text>
-                </div>
-                <Button
-                  type="primary"
-                  icon={<FilePdfOutlined />}
-                  onClick={handleDownloadPDF}
-                >
-                  Xem PDF
-                </Button>
-              </div>
-            </Card>
-          </Col>
-        </Row>
+                    <FilePdfOutlined
+                      style={{ fontSize: "24px", color: "#ff4d4f" }}
+                    />
+                    <div style={{ flex: 1 }}>
+                      <Text strong>Tài liệu PDF chính sách</Text>
+                      <br />
+                      <Text type="secondary">
+                        {basePolicy.template_document_url}
+                      </Text>
+                    </div>
+                    <Button
+                      type="primary"
+                      icon={<FilePdfOutlined />}
+                      onClick={handleDownloadPDF}
+                    >
+                      Xem PDF
+                    </Button>
+                  </div>
+                </Card>
+              ),
+            },
+          ]}
+        />
       </div>
     </Layout.Content>
   );
