@@ -6,6 +6,8 @@ import {
   getSignInError,
   getSignInSuccess,
   getSignInValidation,
+  parseBackendError,
+  mapBackendSuccessMessage,
 } from "@/libs/message";
 import signInRequestSchema from "@/schemas/sign-in-request-schema";
 import signUpRequestSchema from "@/schemas/sign-up-request-schema";
@@ -13,8 +15,8 @@ import { endpoints } from "@/services/endpoints";
 import { useAuthStore } from "@/stores/auth-store";
 import { useCallback, useState } from "react";
 
-const handleError = (error) => {
-  return error.response?.data?.message || getErrorMessage("GENERIC_ERROR");
+const handleError = (error, context = "general") => {
+  return parseBackendError(error, context);
 };
 
 export const useSignIn = () => {
@@ -89,7 +91,7 @@ export const useSignIn = () => {
       } catch (error) {
         console.error("❌ API Error:", error);
         console.error("❌ Error response:", error.response?.data);
-        const errorMessage = handleError(error);
+        const errorMessage = handleError(error, "signin");
         setError(errorMessage);
         setStoreError(errorMessage);
         return { success: false, message: errorMessage };
@@ -139,7 +141,7 @@ export const useSignUp = () => {
           throw new Error(response.data.message || "Registration failed");
         }
       } catch (error) {
-        const errorMessage = handleError(error);
+        const errorMessage = handleError(error, "register");
         setError(errorMessage);
         setStoreError(errorMessage);
         return { success: false, message: errorMessage };

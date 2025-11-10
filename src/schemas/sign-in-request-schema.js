@@ -1,7 +1,6 @@
 const { default: z } = require("zod");
 const {
   getSignInValidation,
-  getValidationMessage,
 } = require("../libs/message");
 
 const signInRequestSchema = z.object({
@@ -13,11 +12,11 @@ const signInRequestSchema = z.object({
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       const phoneRegex = /^(\+84|84|0)[3|5|7|8|9][0-9]{8}$/;
       return emailRegex.test(val) || phoneRegex.test(val);
-    }, getValidationMessage("EMAIL_INVALID")),
+    }, getSignInValidation("EMAIL_INVALID")),
   password: z
     .string()
     .min(1, getSignInValidation("PASSWORD_REQUIRED"))
-    .min(6, getSignInValidation("PASSWORD_TOO_SHORT")),
+    .min(8, getSignInValidation("PASSWORD_TOO_SHORT")),
 });
 
 module.exports = signInRequestSchema;
