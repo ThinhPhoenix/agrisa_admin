@@ -1,10 +1,14 @@
 "use client";
 import Assets from "@/assets";
+import { sidebarMenuItems } from "@/libs/menu-config";
 import { Menu } from "antd";
 import {
   ArrowLeftToLine,
   ArrowRightToLine,
+  CreditCard,
   Database,
+  FileText,
+  History,
   PanelLeft,
   Settings,
   Shield,
@@ -13,52 +17,31 @@ import {
 import { useRouter } from "next/navigation";
 import { useState } from "react"; // Add this import for state
 
-const items = [
-  {
-    key: "accounts",
-    label: "Quản lí tài khoản",
-    icon: <Users size={16} />,
-  },
-  {
-    key: "permissions",
-    label: "Quản lí quyền hạn",
-    icon: <Shield size={16} />,
-  },
-  {
-    key: "roles",
-    label: "Quản lí vai trò",
-    icon: <Settings size={16} />,
-  },
-  {
-    key: "pending-policies",
-    label: "Chính sách đang chờ duyệt",
-    icon: <Settings size={16} />,
-  },
-  {
-    key: "data",
-    label: "Quản lý dữ liệu",
-    icon: <Database size={16} />,
-    children: [
-      {
-        key: "data/categories",
-        label: "Danh mục dữ liệu",
-      },
-      {
-        key: "data/tiers",
-        label: "Cấp độ dữ liệu",
-      },
-      {
-        key: "data/sources",
-        label: "Nguồn dữ liệu",
-      },
-    ],
-  },
-  {
-    key: "configuration",
-    label: "Cấu hình hệ thống",
-    icon: <Settings size={16} />,
-  },
-];
+// Build menu items from config and attach icons
+const items = sidebarMenuItems.map((item) => ({
+  ...item,
+  icon: getIconForKey(item.key),
+}));
+
+// Function to get icon based on key
+function getIconForKey(key) {
+  const iconMap = {
+    applications: <FileText size={16} />,
+    "transaction-history": <History size={16} />,
+    payment: <CreditCard size={16} />,
+    insurance: <Shield size={16} />,
+    beneficiary: <Users size={16} />,
+    policy: <FileText size={16} />,
+    configuration: <Settings size={16} />,
+    accounts: <Users size={16} />,
+    permissions: <Shield size={16} />,
+    roles: <Settings size={16} />,
+    "pending-policies": <Settings size={16} />,
+    data: <Database size={16} />,
+  };
+
+  return iconMap[key] || <FileText size={16} />;
+}
 
 const CustomSidebar = ({ collapsed, setCollapsed }) => {
   const router = useRouter();
@@ -66,6 +49,7 @@ const CustomSidebar = ({ collapsed, setCollapsed }) => {
   const [hoverIcon, setHoverIcon] = useState("panel");
   const onClick = (e) => {
     console.log("click ", e);
+    // Navigate using absolute path so route is not relative to current page
     router.push(`/${e.key}`);
   };
 
@@ -124,7 +108,7 @@ const CustomSidebar = ({ collapsed, setCollapsed }) => {
       >
         <Menu
           onClick={onClick}
-          defaultSelectedKeys={["account-management"]}
+          defaultSelectedKeys={["accounts"]}
           mode="inline"
           items={items}
           inlineCollapsed={collapsed}
