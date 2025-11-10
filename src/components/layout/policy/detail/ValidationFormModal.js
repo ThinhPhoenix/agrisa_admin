@@ -1,5 +1,6 @@
 "use client";
 
+import { CustomForm } from "@/components/custom-form";
 import {
   BarChartOutlined,
   BulbOutlined,
@@ -28,7 +29,6 @@ import {
   Typography,
 } from "antd";
 import { useEffect, useRef, useState } from "react";
-import { CustomForm } from "@/components/custom-form";
 
 const { Text } = Typography;
 const { Option } = Select;
@@ -48,86 +48,144 @@ export default function ValidationFormModal({
 
   // Pre-fill form with AI validation data if available
   useEffect(() => {
-    if (open && latestValidation) {
-      // Convert mismatches object to array
-      const mismatchesArray = latestValidation.mismatches
-        ? Object.entries(latestValidation.mismatches).map(([key, value]) => ({
-            field: key,
-            expected: value.pdf_value,
-            actual: value.json_value,
-            severity: value.severity || "low",
-          }))
-        : [];
+    // Wait for modal to open and form to be ready
+    if (!open) return;
 
-      // Convert warnings object to array
-      const warningsArray = latestValidation.warnings
-        ? Object.entries(latestValidation.warnings).map(([key, value]) => ({
-            field: key,
-            message: value.pdf_context || value.details || "",
-            recommendation: value.recommendation || "",
-          }))
-        : [];
+    // Use setTimeout to ensure formRef is ready after modal opens
+    const timer = setTimeout(() => {
+      if (latestValidation) {
+        console.log(
+          "🔍 Pre-filling form with AI validation data:",
+          latestValidation
+        );
 
-      // Convert recommendations object to array
-      const recommendationsArray = latestValidation.recommendations
-        ? Object.entries(latestValidation.recommendations).map(
-            ([key, value]) => ({
-              category: key,
-              suggestion: value.suggestion || "",
-            })
-          )
-        : [];
+        // Convert mismatches object to array for form display
+        const mismatchesArray = latestValidation.mismatches
+          ? Object.entries(latestValidation.mismatches).map(([key, value]) => ({
+              field: key,
+              expected:
+                typeof value.pdf_value !== "undefined"
+                  ? String(value.pdf_value)
+                  : String(value.expected || ""),
+              actual:
+                typeof value.json_value !== "undefined"
+                  ? String(value.json_value)
+                  : String(value.actual || ""),
+              severity: value.severity || "low",
+            }))
+          : [];
 
-      // Determine validation status based on mode
-      let validationStatus = latestValidation.validation_status;
-      let validationNotes = latestValidation.validation_notes || "";
+        console.log("📝 Mismatches array:", mismatchesArray);
 
-      if (mode === "accept_ai") {
-        // When accepting AI result, set status to "passed" (manual confirmation)
-        validationStatus = "passed";
-        validationNotes = validationNotes
-          ? `${validationNotes}\n\nAdmin đã chấp nhận kết quả AI và xác nhận thủ công.`
-          : "Admin đã chấp nhận kết quả AI và xác nhận thủ công. Kết quả AI được coi là chính xác.";
+        // Convert warnings object to array for form display
+        const warningsArray = latestValidation.warnings
+          ? Object.entries(latestValidation.warnings).map(([key, value]) => ({
+              field: key,
+              message:
+                value.message ||
+                value.pdf_context ||
+                value.details ||
+                value.impact ||
+                "",
+              recommendation: value.recommendation || "",
+            }))
+          : [];
+
+        console.log("⚠️ Warnings array:", warningsArray);
+
+        // Convert recommendations object to array for form display
+        const recommendationsArray = latestValidation.recommendations
+          ? Object.entries(latestValidation.recommendations).map(
+              ([key, value]) => ({
+                category: key,
+                suggestion:
+                  value.suggestion ||
+                  (value.affected_fields
+                    ? `Priority: ${value.priority || "N/A"} | Fields: ${
+                        Array.isArray(value.affected_fields)
+                          ? value.affected_fields.join(", ")
+                          : value.affected_fields
+                      }`
+                    : ""),
+              })
+            )
+          : [];
+
+        console.log("💡 Recommendations array:", recommendationsArray);
+
+        // Determine validation status based on mode
+        let validationStatus = latestValidation.validation_status;
+        let validationNotes = latestValidation.validation_notes || "";
+
+        if (mode === "accept_ai") {
+          // When accepting AI result, set status to "passed" (manual confirmation)
+          // This triggers auto-commit as per spec
+          validationStatus = "passed";
+          validationNotes = validationNotes
+            ? `${validationNotes}\n\nAdmin đã chấp nhận kết quả AI và xác nhận thủ công.`
+            : "Admin đã chấp nhận kết quả AI và xác nhận thủ công. Kết quả AI được coi là chính xác.";
+        } else if (mode === "override") {
+          // Override mode - admin manually sets to passed despite errors
+          validationStatus = "passed";
+          validationNotes = validationNotes
+            ? `${validationNotes}\n\nAdmin ghi đè thủ công: chấp nhận policy mặc dù có lỗi.`
+            : "Admin ghi đè thủ công: chấp nhận policy mặc dù có lỗi.";
+        } else if (mode === "review" || mode === "fix") {
+          // Review/fix mode - set to warning or failed
+          validationStatus =
+            latestValidation.failed_checks > 0 ? "failed" : "warning";
+        }
+
+        const initialValues = {
+          validation_status: validationStatus,
+          validated_by: validatedBy,
+          total_checks: latestValidation.total_checks || 0,
+          passed_checks: latestValidation.passed_checks || 0,
+          failed_checks: latestValidation.failed_checks || 0,
+          warning_count: latestValidation.warning_count || 0,
+          mismatches: mismatchesArray,
+          warnings: warningsArray,
+          recommendations: recommendationsArray,
+          extraction_confidence:
+            latestValidation.extracted_parameters?.extraction_confidence ||
+            0.95,
+          parameters_found:
+            latestValidation.extracted_parameters?.parameters_found || 0,
+          validation_notes: validationNotes,
+        };
+
+        console.log("✅ Setting form values:", initialValues);
+
+        if (formRef.current) {
+          formRef.current.setFieldsValue(initialValues);
+          setFormValues(initialValues);
+        }
+      } else {
+        console.log("📋 No AI validation data, using defaults");
+        // Set defaults for new validation
+        const defaultValues = {
+          validation_status: "pending",
+          validated_by: validatedBy,
+          total_checks: 0,
+          passed_checks: 0,
+          failed_checks: 0,
+          warning_count: 0,
+          mismatches: [],
+          warnings: [],
+          recommendations: [],
+          extraction_confidence: 0.95,
+          parameters_found: 0,
+          validation_notes: "",
+        };
+
+        if (formRef.current) {
+          formRef.current.setFieldsValue(defaultValues);
+          setFormValues(defaultValues);
+        }
       }
+    }, 100); // Small delay to ensure form is mounted
 
-      const initialValues = {
-        validation_status: validationStatus,
-        validated_by: validatedBy,
-        total_checks: latestValidation.total_checks || 0,
-        passed_checks: latestValidation.passed_checks || 0,
-        failed_checks: latestValidation.failed_checks || 0,
-        warning_count: latestValidation.warning_count || 0,
-        mismatches: mismatchesArray,
-        warnings: warningsArray,
-        recommendations: recommendationsArray,
-        extraction_confidence:
-          latestValidation.extracted_parameters?.extraction_confidence || 0.95,
-        parameters_found:
-          latestValidation.extracted_parameters?.parameters_found || 0,
-        validation_notes: validationNotes,
-      };
-
-      formRef.current?.setFieldsValue(initialValues);
-      setFormValues(initialValues);
-    } else if (open) {
-      // Set defaults for new validation
-      const defaultValues = {
-        validated_by: validatedBy,
-        total_checks: 0,
-        passed_checks: 0,
-        failed_checks: 0,
-        warning_count: 0,
-        mismatches: [],
-        warnings: [],
-        recommendations: [],
-        extraction_confidence: 0.95,
-        parameters_found: 0,
-        validation_notes: "",
-      };
-
-      formRef.current?.setFieldsValue(defaultValues);
-      setFormValues(defaultValues);
-    }
+    return () => clearTimeout(timer);
   }, [open, latestValidation, validatedBy, mode]);
 
   const handleSubmit = async () => {
@@ -135,8 +193,8 @@ export default function ValidationFormModal({
       const values = await formRef.current?.validateFields();
       setSubmitting(true);
 
-      // Convert arrays to objects (map) as expected by backend API
-      // Only include if array has items
+      // Convert arrays to objects (map) as expected by backend API spec
+      // Backend expects: map[string]any (object), not array
       const mismatchesArray = values.mismatches || [];
       const mismatchesObject = {};
       mismatchesArray.forEach((item) => {
@@ -170,7 +228,7 @@ export default function ValidationFormModal({
         }
       });
 
-      // Build payload - only include non-empty objects
+      // Build payload according to ValidatePolicyRequest spec
       const payload = {
         base_policy_id: basePolicyId,
         validation_status: values.validation_status,
@@ -182,15 +240,29 @@ export default function ValidationFormModal({
         validation_notes: values.validation_notes || "",
       };
 
-      // Only add these fields if they have content
-      if (Object.keys(mismatchesObject).length > 0) {
-        payload.mismatches = mismatchesObject;
+      // Only add mismatches/warnings/recommendations for modes that need them
+      const shouldIncludeDetails =
+        mode === "review" || mode === "override" || mode === "manual";
+
+      if (shouldIncludeDetails) {
+        // Add optional JSONB fields only if they have content
+        if (Object.keys(mismatchesObject).length > 0) {
+          payload.mismatches = mismatchesObject;
+        }
+        if (Object.keys(warningsObject).length > 0) {
+          payload.warnings = warningsObject;
+        }
+        if (Object.keys(recommendationsObject).length > 0) {
+          payload.recommendations = recommendationsObject;
+        }
       }
-      if (Object.keys(warningsObject).length > 0) {
-        payload.warnings = warningsObject;
-      }
-      if (Object.keys(recommendationsObject).length > 0) {
-        payload.recommendations = recommendationsObject;
+
+      // Add extracted_parameters if provided
+      if (values.extraction_confidence || values.parameters_found) {
+        payload.extracted_parameters = {
+          extraction_confidence: values.extraction_confidence || 0,
+          parameters_found: values.parameters_found || 0,
+        };
       }
 
       console.log("🚀 Validation payload being sent:", payload);
@@ -346,9 +418,7 @@ export default function ValidationFormModal({
       name: "warning_count",
       label: (
         <span style={{ fontWeight: 500 }}>
-          <WarningOutlined
-            style={{ marginRight: "4px", color: "#faad14" }}
-          />
+          <WarningOutlined style={{ marginRight: "4px", color: "#faad14" }} />
           Cảnh báo
         </span>
       ),
@@ -408,14 +478,50 @@ export default function ValidationFormModal({
       ? Math.round((formValues.passed_checks / formValues.total_checks) * 100)
       : 0;
 
+  // Get modal title based on mode
+  const getModalTitle = () => {
+    switch (mode) {
+      case "accept_ai":
+        return (
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <CheckCircleOutlined style={{ color: "#52c41a" }} />
+            <span>Chấp nhận kết quả AI</span>
+          </div>
+        );
+      case "override":
+        return (
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <WarningOutlined style={{ color: "#faad14" }} />
+            <span>Ghi đè xác thực</span>
+          </div>
+        );
+      case "review":
+        return (
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <InfoCircleOutlined style={{ color: "#1890ff" }} />
+            <span>Review thủ công</span>
+          </div>
+        );
+      case "fix":
+        return (
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <CloseCircleOutlined style={{ color: "#ff4d4f" }} />
+            <span>Yêu cầu sửa lỗi</span>
+          </div>
+        );
+      default:
+        return (
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <CheckCircleOutlined />
+            <span>Xác thực thủ công</span>
+          </div>
+        );
+    }
+  };
+
   return (
     <Modal
-      title={
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <CheckCircleOutlined />
-          <span>Xác thực thủ công</span>
-        </div>
-      }
+      title={getModalTitle()}
       open={open}
       onCancel={handleCancel}
       onOk={handleSubmit}
@@ -435,12 +541,31 @@ export default function ValidationFormModal({
       >
         <div style={{ textAlign: "center" }}>
           <Text type="secondary" style={{ fontSize: "12px" }}>
-            AI Validation Data
+            Nguồn dữ liệu xác thực
           </Text>
           <br />
-          <Tag color="blue" style={{ marginTop: "4px" }}>
-            {latestValidation ? "Đã tải" : "Không có"}
+          <Tag
+            color={latestValidation ? "blue" : "default"}
+            style={{ marginTop: "4px" }}
+          >
+            {latestValidation
+              ? `${latestValidation.validated_by || "AI-System"} - ${
+                  latestValidation.total_checks || 0
+                } checks`
+              : "Không có dữ liệu AI"}
           </Tag>
+          {latestValidation && (
+            <>
+              <br />
+              <Text
+                type="secondary"
+                style={{ fontSize: "11px", marginTop: "4px", display: "block" }}
+              >
+                Dữ liệu từ AI đã được điền sẵn vào form. Bạn có thể điều chỉnh
+                trước khi submit.
+              </Text>
+            </>
+          )}
         </div>
       </Card>
 
@@ -483,333 +608,346 @@ export default function ValidationFormModal({
         </div>
       </Card>
 
-      {/* Mismatches Section */}
-      <Card
-        title={
-          <span style={{ fontWeight: 600 }}>
-            <CloseCircleOutlined
-              style={{ marginRight: "8px", color: "#ff4d4f" }}
-            />
-            Sai khác (Mismatches)
-          </span>
-        }
-        size="small"
-        style={{ marginBottom: "16px" }}
-      >
-        <Form form={formRef.current?.getForm()} component={false}>
-          <Form.List name="mismatches">
-            {(fields, { add, remove }) => (
-              <>
-                {fields.map(({ key, name, ...restField }) => (
-                  <Card
-                    key={key}
-                    size="small"
-                    style={{
-                      marginBottom: "8px",
-                      borderLeft: `4px solid ${
-                        formRef.current
-                          ?.getForm()
-                          ?.getFieldValue(["mismatches", name, "severity"]) ===
-                        "critical"
-                          ? "#ff4d4f"
-                          : formRef.current
-                              ?.getForm()
-                              ?.getFieldValue([
-                                "mismatches",
-                                name,
-                                "severity",
-                              ]) === "high"
-                          ? "#faad14"
-                          : formRef.current
-                              ?.getForm()
-                              ?.getFieldValue([
-                                "mismatches",
-                                name,
-                                "severity",
-                              ]) === "medium"
-                          ? "#fa8c16"
-                          : "#52c41a"
-                      }`,
-                    }}
-                    bodyStyle={{ padding: "12px" }}
-                  >
-                    <Row gutter={12} align="middle">
-                      <Col span={6}>
-                        <Form.Item
-                          {...restField}
-                          name={[name, "field"]}
-                          rules={[{ required: true, message: "Bắt buộc" }]}
-                          style={{ marginBottom: 0 }}
-                        >
-                          <Input placeholder="Tên trường" />
-                        </Form.Item>
-                      </Col>
-                      <Col span={6}>
-                        <Tooltip
-                          title={formRef.current
-                            ?.getForm()
-                            ?.getFieldValue(["mismatches", name, "expected"])}
-                        >
-                          <Form.Item
-                            {...restField}
-                            name={[name, "expected"]}
-                            rules={[{ required: true, message: "Bắt buộc" }]}
-                            style={{ marginBottom: 0 }}
-                          >
-                            <Input placeholder="Giá trị mong đợi" />
-                          </Form.Item>
-                        </Tooltip>
-                      </Col>
-                      <Col span={6}>
-                        <Tooltip
-                          title={formRef.current
-                            ?.getForm()
-                            ?.getFieldValue(["mismatches", name, "actual"])}
-                        >
-                          <Form.Item
-                            {...restField}
-                            name={[name, "actual"]}
-                            rules={[{ required: true, message: "Bắt buộc" }]}
-                            style={{ marginBottom: 0 }}
-                          >
-                            <Input placeholder="Giá trị thực tế" />
-                          </Form.Item>
-                        </Tooltip>
-                      </Col>
-                      <Col span={4}>
-                        <Form.Item
-                          {...restField}
-                          name={[name, "severity"]}
-                          rules={[{ required: true, message: "Bắt buộc" }]}
-                          style={{ marginBottom: 0 }}
-                        >
-                          <Select placeholder="Mức độ">
-                            <Option value="low">
-                              <Badge status="success" text="Thấp" />
-                            </Option>
-                            <Option value="medium">
-                              <Badge status="warning" text="Trung bình" />
-                            </Option>
-                            <Option value="high">
-                              <Badge status="error" text="Cao" />
-                            </Option>
-                            <Option value="critical">
-                              <Badge status="error" text="Nghiêm trọng" />
-                            </Option>
-                          </Select>
-                        </Form.Item>
-                      </Col>
-                      <Col span={2}>
-                        <Button
-                          type="text"
-                          danger
-                          icon={<MinusCircleOutlined />}
-                          onClick={() => remove(name)}
-                          size="small"
-                        />
-                      </Col>
-                    </Row>
-                  </Card>
-                ))}
-                <Form.Item>
-                  <Button
-                    type="dashed"
-                    onClick={() => add()}
-                    block
-                    icon={<PlusOutlined />}
-                    style={{ marginTop: "8px" }}
-                  >
-                    Thêm sai khác
-                  </Button>
-                </Form.Item>
-              </>
-            )}
-          </Form.List>
-        </Form>
-      </Card>
-
-      {/* Warnings Section */}
-      <Card
-        title={
-          <span style={{ fontWeight: 600 }}>
-            <WarningOutlined
-              style={{ marginRight: "8px", color: "#faad14" }}
-            />
-            Cảnh báo (Warnings)
-          </span>
-        }
-        size="small"
-        style={{ marginBottom: "16px" }}
-      >
-        <Form form={formRef.current?.getForm()} component={false}>
-          <Form.List name="warnings">
-            {(fields, { add, remove }) => (
-              <>
-                {fields.map(({ key, name, ...restField }) => (
-                  <Card
-                    key={key}
-                    size="small"
-                    style={{
-                      marginBottom: "8px",
-                      borderLeft: "4px solid #faad14",
-                    }}
-                    bodyStyle={{ padding: "12px" }}
-                  >
-                    <Row gutter={12} align="middle">
-                      <Col span={8}>
-                        <Form.Item
-                          {...restField}
-                          name={[name, "field"]}
-                          rules={[{ required: true, message: "Bắt buộc" }]}
-                          style={{ marginBottom: 0 }}
-                        >
-                          <Input placeholder="Tên trường" />
-                        </Form.Item>
-                      </Col>
-                      <Col span={8}>
-                        <Tooltip
-                          title={formRef.current
-                            ?.getForm()
-                            ?.getFieldValue(["warnings", name, "message"])}
-                        >
-                          <Form.Item
-                            {...restField}
-                            name={[name, "message"]}
-                            rules={[{ required: true, message: "Bắt buộc" }]}
-                            style={{ marginBottom: 0 }}
-                          >
-                            <Input placeholder="Nội dung cảnh báo" />
-                          </Form.Item>
-                        </Tooltip>
-                      </Col>
-                      <Col span={6}>
-                        <Tooltip
-                          title={formRef.current
-                            ?.getForm()
-                            ?.getFieldValue(["warnings", name, "recommendation"])}
-                        >
-                          <Form.Item
-                            {...restField}
-                            name={[name, "recommendation"]}
-                            style={{ marginBottom: 0 }}
-                          >
-                            <Input placeholder="Đề xuất" />
-                          </Form.Item>
-                        </Tooltip>
-                      </Col>
-                      <Col span={2}>
-                        <Button
-                          type="text"
-                          danger
-                          icon={<MinusCircleOutlined />}
-                          onClick={() => remove(name)}
-                          size="small"
-                        />
-                      </Col>
-                    </Row>
-                  </Card>
-                ))}
-                <Form.Item>
-                  <Button
-                    type="dashed"
-                    onClick={() => add()}
-                    block
-                    icon={<PlusOutlined />}
-                    style={{ marginTop: "8px" }}
-                  >
-                    Thêm cảnh báo
-                  </Button>
-                </Form.Item>
-              </>
-            )}
-          </Form.List>
-        </Form>
-      </Card>
-
-      {/* Recommendations Section */}
-      <Card
-        title={
-          <span style={{ fontWeight: 600 }}>
-            <BulbOutlined style={{ marginRight: "8px", color: "#1890ff" }} />
-            Đề xuất (Recommendations)
-          </span>
-        }
-        size="small"
-        style={{ marginBottom: "16px" }}
-      >
-        <Form form={formRef.current?.getForm()} component={false}>
-          <Form.List name="recommendations">
-            {(fields, { add, remove }) => (
-              <>
-                {fields.map(({ key, name, ...restField }) => (
-                  <Card
-                    key={key}
-                    size="small"
-                    style={{
-                      marginBottom: "8px",
-                      borderLeft: "4px solid #1890ff",
-                    }}
-                    bodyStyle={{ padding: "12px" }}
-                  >
-                    <Row gutter={12} align="middle">
-                      <Col span={8}>
-                        <Form.Item
-                          {...restField}
-                          name={[name, "category"]}
-                          rules={[{ required: true, message: "Bắt buộc" }]}
-                          style={{ marginBottom: 0 }}
-                        >
-                          <Input placeholder="Danh mục" />
-                        </Form.Item>
-                      </Col>
-                      <Col span={14}>
-                        <Tooltip
-                          title={formRef.current
+      {/* Mismatches Section - Only show for review/override modes */}
+      {(mode === "review" || mode === "override" || mode === "manual") && (
+        <Card
+          title={
+            <span style={{ fontWeight: 600 }}>
+              <CloseCircleOutlined
+                style={{ marginRight: "8px", color: "#ff4d4f" }}
+              />
+              Sai khác (Mismatches)
+            </span>
+          }
+          size="small"
+          style={{ marginBottom: "16px" }}
+        >
+          <Form form={formRef.current?.getForm()} component={false}>
+            <Form.List name="mismatches">
+              {(fields, { add, remove }) => (
+                <>
+                  {fields.map(({ key, name, ...restField }) => (
+                    <Card
+                      key={key}
+                      size="small"
+                      style={{
+                        marginBottom: "8px",
+                        borderLeft: `4px solid ${
+                          formRef.current
                             ?.getForm()
                             ?.getFieldValue([
-                              "recommendations",
+                              "mismatches",
                               name,
-                              "suggestion",
-                            ])}
-                        >
+                              "severity",
+                            ]) === "critical"
+                            ? "#ff4d4f"
+                            : formRef.current
+                                ?.getForm()
+                                ?.getFieldValue([
+                                  "mismatches",
+                                  name,
+                                  "severity",
+                                ]) === "high"
+                            ? "#faad14"
+                            : formRef.current
+                                ?.getForm()
+                                ?.getFieldValue([
+                                  "mismatches",
+                                  name,
+                                  "severity",
+                                ]) === "medium"
+                            ? "#fa8c16"
+                            : "#52c41a"
+                        }`,
+                      }}
+                      bodyStyle={{ padding: "12px" }}
+                    >
+                      <Row gutter={12} align="middle">
+                        <Col span={6}>
                           <Form.Item
                             {...restField}
-                            name={[name, "suggestion"]}
+                            name={[name, "field"]}
                             rules={[{ required: true, message: "Bắt buộc" }]}
                             style={{ marginBottom: 0 }}
                           >
-                            <Input placeholder="Nội dung đề xuất" />
+                            <Input placeholder="Tên trường" />
                           </Form.Item>
-                        </Tooltip>
-                      </Col>
-                      <Col span={2}>
-                        <Button
-                          type="text"
-                          danger
-                          icon={<MinusCircleOutlined />}
-                          onClick={() => remove(name)}
-                          size="small"
-                        />
-                      </Col>
-                    </Row>
-                  </Card>
-                ))}
-                <Form.Item>
-                  <Button
-                    type="dashed"
-                    onClick={() => add()}
-                    block
-                    icon={<PlusOutlined />}
-                    style={{ marginTop: "8px" }}
-                  >
-                    Thêm đề xuất
-                  </Button>
-                </Form.Item>
-              </>
-            )}
-          </Form.List>
-        </Form>
-      </Card>
+                        </Col>
+                        <Col span={6}>
+                          <Tooltip
+                            title={formRef.current
+                              ?.getForm()
+                              ?.getFieldValue(["mismatches", name, "expected"])}
+                          >
+                            <Form.Item
+                              {...restField}
+                              name={[name, "expected"]}
+                              rules={[{ required: true, message: "Bắt buộc" }]}
+                              style={{ marginBottom: 0 }}
+                            >
+                              <Input placeholder="Giá trị mong đợi" />
+                            </Form.Item>
+                          </Tooltip>
+                        </Col>
+                        <Col span={6}>
+                          <Tooltip
+                            title={formRef.current
+                              ?.getForm()
+                              ?.getFieldValue(["mismatches", name, "actual"])}
+                          >
+                            <Form.Item
+                              {...restField}
+                              name={[name, "actual"]}
+                              rules={[{ required: true, message: "Bắt buộc" }]}
+                              style={{ marginBottom: 0 }}
+                            >
+                              <Input placeholder="Giá trị thực tế" />
+                            </Form.Item>
+                          </Tooltip>
+                        </Col>
+                        <Col span={4}>
+                          <Form.Item
+                            {...restField}
+                            name={[name, "severity"]}
+                            rules={[{ required: true, message: "Bắt buộc" }]}
+                            style={{ marginBottom: 0 }}
+                          >
+                            <Select placeholder="Mức độ">
+                              <Option value="low">
+                                <Badge status="success" text="Thấp" />
+                              </Option>
+                              <Option value="medium">
+                                <Badge status="warning" text="Trung bình" />
+                              </Option>
+                              <Option value="high">
+                                <Badge status="error" text="Cao" />
+                              </Option>
+                              <Option value="critical">
+                                <Badge status="error" text="Nghiêm trọng" />
+                              </Option>
+                            </Select>
+                          </Form.Item>
+                        </Col>
+                        <Col span={2}>
+                          <Button
+                            type="text"
+                            danger
+                            icon={<MinusCircleOutlined />}
+                            onClick={() => remove(name)}
+                            size="small"
+                          />
+                        </Col>
+                      </Row>
+                    </Card>
+                  ))}
+                  <Form.Item>
+                    <Button
+                      type="dashed"
+                      onClick={() => add()}
+                      block
+                      icon={<PlusOutlined />}
+                      style={{ marginTop: "8px" }}
+                    >
+                      Thêm sai khác
+                    </Button>
+                  </Form.Item>
+                </>
+              )}
+            </Form.List>
+          </Form>
+        </Card>
+      )}
+
+      {/* Warnings Section - Only show for review/override modes */}
+      {(mode === "review" || mode === "override" || mode === "manual") && (
+        <Card
+          title={
+            <span style={{ fontWeight: 600 }}>
+              <WarningOutlined
+                style={{ marginRight: "8px", color: "#faad14" }}
+              />
+              Cảnh báo (Warnings)
+            </span>
+          }
+          size="small"
+          style={{ marginBottom: "16px" }}
+        >
+          <Form form={formRef.current?.getForm()} component={false}>
+            <Form.List name="warnings">
+              {(fields, { add, remove }) => (
+                <>
+                  {fields.map(({ key, name, ...restField }) => (
+                    <Card
+                      key={key}
+                      size="small"
+                      style={{
+                        marginBottom: "8px",
+                        borderLeft: "4px solid #faad14",
+                      }}
+                      bodyStyle={{ padding: "12px" }}
+                    >
+                      <Row gutter={12} align="middle">
+                        <Col span={8}>
+                          <Form.Item
+                            {...restField}
+                            name={[name, "field"]}
+                            rules={[{ required: true, message: "Bắt buộc" }]}
+                            style={{ marginBottom: 0 }}
+                          >
+                            <Input placeholder="Tên trường" />
+                          </Form.Item>
+                        </Col>
+                        <Col span={8}>
+                          <Tooltip
+                            title={formRef.current
+                              ?.getForm()
+                              ?.getFieldValue(["warnings", name, "message"])}
+                          >
+                            <Form.Item
+                              {...restField}
+                              name={[name, "message"]}
+                              rules={[{ required: true, message: "Bắt buộc" }]}
+                              style={{ marginBottom: 0 }}
+                            >
+                              <Input placeholder="Nội dung cảnh báo" />
+                            </Form.Item>
+                          </Tooltip>
+                        </Col>
+                        <Col span={6}>
+                          <Tooltip
+                            title={formRef.current
+                              ?.getForm()
+                              ?.getFieldValue([
+                                "warnings",
+                                name,
+                                "recommendation",
+                              ])}
+                          >
+                            <Form.Item
+                              {...restField}
+                              name={[name, "recommendation"]}
+                              style={{ marginBottom: 0 }}
+                            >
+                              <Input placeholder="Đề xuất" />
+                            </Form.Item>
+                          </Tooltip>
+                        </Col>
+                        <Col span={2}>
+                          <Button
+                            type="text"
+                            danger
+                            icon={<MinusCircleOutlined />}
+                            onClick={() => remove(name)}
+                            size="small"
+                          />
+                        </Col>
+                      </Row>
+                    </Card>
+                  ))}
+                  <Form.Item>
+                    <Button
+                      type="dashed"
+                      onClick={() => add()}
+                      block
+                      icon={<PlusOutlined />}
+                      style={{ marginTop: "8px" }}
+                    >
+                      Thêm cảnh báo
+                    </Button>
+                  </Form.Item>
+                </>
+              )}
+            </Form.List>
+          </Form>
+        </Card>
+      )}
+
+      {/* Recommendations Section - Only show for review/override modes */}
+      {(mode === "review" || mode === "override" || mode === "manual") && (
+        <Card
+          title={
+            <span style={{ fontWeight: 600 }}>
+              <BulbOutlined style={{ marginRight: "8px", color: "#1890ff" }} />
+              Đề xuất (Recommendations)
+            </span>
+          }
+          size="small"
+          style={{ marginBottom: "16px" }}
+        >
+          <Form form={formRef.current?.getForm()} component={false}>
+            <Form.List name="recommendations">
+              {(fields, { add, remove }) => (
+                <>
+                  {fields.map(({ key, name, ...restField }) => (
+                    <Card
+                      key={key}
+                      size="small"
+                      style={{
+                        marginBottom: "8px",
+                        borderLeft: "4px solid #1890ff",
+                      }}
+                      bodyStyle={{ padding: "12px" }}
+                    >
+                      <Row gutter={12} align="middle">
+                        <Col span={8}>
+                          <Form.Item
+                            {...restField}
+                            name={[name, "category"]}
+                            rules={[{ required: true, message: "Bắt buộc" }]}
+                            style={{ marginBottom: 0 }}
+                          >
+                            <Input placeholder="Danh mục" />
+                          </Form.Item>
+                        </Col>
+                        <Col span={14}>
+                          <Tooltip
+                            title={formRef.current
+                              ?.getForm()
+                              ?.getFieldValue([
+                                "recommendations",
+                                name,
+                                "suggestion",
+                              ])}
+                          >
+                            <Form.Item
+                              {...restField}
+                              name={[name, "suggestion"]}
+                              rules={[{ required: true, message: "Bắt buộc" }]}
+                              style={{ marginBottom: 0 }}
+                            >
+                              <Input placeholder="Nội dung đề xuất" />
+                            </Form.Item>
+                          </Tooltip>
+                        </Col>
+                        <Col span={2}>
+                          <Button
+                            type="text"
+                            danger
+                            icon={<MinusCircleOutlined />}
+                            onClick={() => remove(name)}
+                            size="small"
+                          />
+                        </Col>
+                      </Row>
+                    </Card>
+                  ))}
+                  <Form.Item>
+                    <Button
+                      type="dashed"
+                      onClick={() => add()}
+                      block
+                      icon={<PlusOutlined />}
+                      style={{ marginTop: "8px" }}
+                    >
+                      Thêm đề xuất
+                    </Button>
+                  </Form.Item>
+                </>
+              )}
+            </Form.List>
+          </Form>
+        </Card>
+      )}
     </Modal>
   );
 }

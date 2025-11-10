@@ -10,7 +10,6 @@ import {
   DeleteOutlined,
   DownloadOutlined,
   EditOutlined,
-  EyeOutlined,
   FilterOutlined,
   PlusOutlined,
   SearchOutlined,
@@ -206,7 +205,7 @@ export default function TiersPage() {
       width: 180,
       render: (_, record) => (
         <div className="data-actions-cell">
-          <Link href={`/data/tiers/${record.id}`}>
+          {/* <Link href={`/data/tiers/${record.id}`}>
             <Button
               type="dashed"
               size="small"
@@ -214,7 +213,7 @@ export default function TiersPage() {
             >
               <EyeOutlined size={14} />
             </Button>
-          </Link>
+          </Link> */}
           <Link href={`/data/tiers/edit/${record.id}`}>
             <Button
               type="dashed"

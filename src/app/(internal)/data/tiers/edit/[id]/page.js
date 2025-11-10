@@ -21,7 +21,7 @@ export default function EditTierPage() {
   const [tierData, setTierData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch tier data
+  // Fetch tier data (only once when id changes)
   useEffect(() => {
     const fetchTier = async () => {
       try {
@@ -38,7 +38,8 @@ export default function EditTierPage() {
     if (id) {
       fetchTier();
     }
-  }, [id, getTier]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]); // Only depend on id, getTier is now stable with useCallback
 
   // Handle form submit
   const handleFormSubmit = async (formData) => {

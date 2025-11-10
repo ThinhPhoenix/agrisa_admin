@@ -2,7 +2,7 @@ import axiosInstance from "@/libs/axios-instance";
 import { endpoints } from "@/services/endpoints";
 import { useCategories } from "@/services/hooks/data/use-categories";
 import { message } from "antd";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 export function useTiers() {
   const { data: categories } = useCategories();
@@ -142,8 +142,8 @@ export function useTiers() {
     });
   };
 
-  // Create tier
-  const createTier = async (tierData) => {
+  // Create tier (wrapped in useCallback)
+  const createTier = useCallback(async (tierData) => {
     try {
       const response = await axiosInstance.post(
         endpoints.policy.data_tier.tier.create,
@@ -161,10 +161,10 @@ export function useTiers() {
       );
       throw err;
     }
-  };
+  }, []);
 
-  // Update tier
-  const updateTier = async (id, tierData) => {
+  // Update tier (wrapped in useCallback)
+  const updateTier = useCallback(async (id, tierData) => {
     try {
       const response = await axiosInstance.put(
         endpoints.policy.data_tier.tier.update(id),
@@ -183,10 +183,10 @@ export function useTiers() {
       );
       throw err;
     }
-  };
+  }, []);
 
-  // Delete tier
-  const deleteTier = async (id) => {
+  // Delete tier (wrapped in useCallback)
+  const deleteTier = useCallback(async (id) => {
     try {
       await axiosInstance.delete(endpoints.policy.data_tier.tier.delete(id));
       message.success("Cấp độ đã được xóa thành công");
@@ -200,10 +200,10 @@ export function useTiers() {
       );
       throw err;
     }
-  };
+  }, []);
 
-  // Get single tier
-  const getTier = async (id) => {
+  // Get single tier (wrapped in useCallback to prevent infinite loops)
+  const getTier = useCallback(async (id) => {
     try {
       const response = await axiosInstance.get(
         endpoints.policy.data_tier.tier.get_one(id)
@@ -224,7 +224,7 @@ export function useTiers() {
       );
       throw err;
     }
-  };
+  }, []); // Empty dependency array since it only uses axiosInstance and endpoints
 
   return {
     data,

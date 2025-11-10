@@ -97,7 +97,9 @@ export function usePendingPolicies() {
   const filterOptions = useMemo(() => {
     const providers = [
       ...new Set(
-        data.map((item) => item.base_policy?.insurance_provider_id).filter(Boolean)
+        data
+          .map((item) => item.base_policy?.insurance_provider_id)
+          .filter(Boolean)
       ),
     ];
     const validationStatuses = [
@@ -160,8 +162,7 @@ export function usePendingPolicies() {
 
     const totalPolicies = data.length;
     const pendingValidation = data.filter(
-      (item) =>
-        item.base_policy?.document_validation_status === "pending"
+      (item) => item.base_policy?.document_validation_status === "pending"
     ).length;
     const passedValidation = data.filter((item) =>
       ["passed", "passed_ai"].includes(
@@ -169,8 +170,7 @@ export function usePendingPolicies() {
       )
     ).length;
     const failedValidation = data.filter(
-      (item) =>
-        item.base_policy?.document_validation_status === "failed"
+      (item) => item.base_policy?.document_validation_status === "failed"
     ).length;
 
     return {
@@ -241,10 +241,35 @@ export function usePendingPolicies() {
       return response.data;
     } catch (err) {
       console.error("Error submitting validation:", err);
-      message.error(
-        "Lỗi khi gửi validation: " +
-          (err.response?.data?.message || err.message)
-      );
+
+      // Parse error message for better user experience
+      let errorMessage = "Lỗi khi gửi validation";
+      const backendError =
+        err.response?.data?.error?.message ||
+        err.response?.data?.message ||
+        err.message;
+
+      if (backendError) {
+        // Check for duplicate key error
+        if (
+          backendError.includes("duplicate key") &&
+          backendError.includes("product_code")
+        ) {
+          errorMessage =
+            "Lỗi: Mã sản phẩm (product_code) đã tồn tại trong hệ thống. Policy này có thể đã được commit trước đó hoặc trùng với policy khác.";
+        }
+        // Check for commit failed error
+        else if (backendError.includes("commit temp policy data failed")) {
+          errorMessage =
+            "Lỗi khi commit policy: Policy này có thể đã được lưu vào database hoặc có xung đột dữ liệu. Vui lòng kiểm tra lại hoặc liên hệ admin.";
+        }
+        // Generic error
+        else {
+          errorMessage = `Lỗi: ${backendError}`;
+        }
+      }
+
+      message.error(errorMessage, 8); // Show for 8 seconds
       throw err;
     }
   };
