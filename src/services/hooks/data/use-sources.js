@@ -1,4 +1,10 @@
 import axiosInstance from "@/libs/axios-instance";
+import {
+  getDataSourceError,
+  getDataSourceInfo,
+  getDataSourceSuccess,
+  parseDataSourceError,
+} from "@/libs/message";
 import { endpoints } from "@/services/endpoints";
 import { message } from "antd";
 import { useEffect, useMemo, useState } from "react";
@@ -59,7 +65,8 @@ export function useSources() {
       } catch (err) {
         setError(err);
         console.error("Error fetching sources:", err);
-        message.error("Lỗi khi tải dữ liệu nguồn: " + err.message);
+        const errorMessage = parseDataSourceError(err, "data_source");
+        message.error(errorMessage);
         setData([]);
       } finally {
         setLoading(false);
@@ -154,17 +161,15 @@ export function useSources() {
         endpoints.policy.data_tier.data_source.create,
         sourceData
       );
-      message.success("Nguồn dữ liệu đã được tạo thành công");
+      message.success(getDataSourceSuccess("CREATE_SUCCESS"));
       // Refetch data to update the list
       const newSourcesData = await fetchSources();
       setData(newSourcesData);
       return response.data;
     } catch (err) {
       console.error("Error creating source:", err);
-      message.error(
-        "Lỗi khi tạo nguồn dữ liệu: " +
-          (err.response?.data?.message || err.message)
-      );
+      const errorMessage = parseDataSourceError(err, "data_source");
+      message.error(errorMessage);
       throw err;
     }
   };
@@ -176,17 +181,15 @@ export function useSources() {
         endpoints.policy.data_tier.data_source.update(id),
         sourceData
       );
-      message.success("Nguồn dữ liệu đã được cập nhật thành công");
+      message.success(getDataSourceSuccess("UPDATE_SUCCESS"));
       // Refetch data to update the list
       const newSourcesData = await fetchSources();
       setData(newSourcesData);
       return response.data;
     } catch (err) {
       console.error("Error updating source:", err);
-      message.error(
-        "Lỗi khi cập nhật nguồn dữ liệu: " +
-          (err.response?.data?.message || err.message)
-      );
+      const errorMessage = parseDataSourceError(err, "data_source");
+      message.error(errorMessage);
       throw err;
     }
   };
@@ -197,16 +200,14 @@ export function useSources() {
       await axiosInstance.delete(
         endpoints.policy.data_tier.data_source.delete(id)
       );
-      message.success("Nguồn dữ liệu đã được xóa thành công");
+      message.success(getDataSourceSuccess("DELETE_SUCCESS"));
       // Refetch data to update the list
       const newSourcesData = await fetchSources();
       setData(newSourcesData);
     } catch (err) {
       console.error("Error deleting source:", err);
-      message.error(
-        "Lỗi khi xóa nguồn dữ liệu: " +
-          (err.response?.data?.message || err.message)
-      );
+      const errorMessage = parseDataSourceError(err, "data_source");
+      message.error(errorMessage);
       throw err;
     }
   };
@@ -230,10 +231,8 @@ export function useSources() {
       return sourceData;
     } catch (err) {
       console.error("Error fetching source:", err);
-      message.error(
-        "Lỗi khi tải nguồn dữ liệu: " +
-          (err.response?.data?.message || err.message)
-      );
+      const errorMessage = parseDataSourceError(err, "data_source");
+      message.error(errorMessage);
       throw err;
     }
   };

@@ -1,8 +1,9 @@
 "use client";
 
 import { CustomForm } from "@/components/custom-form";
+import { createDataTierCategorySchema } from "@/schemas/data-tier-category-schema";
 import { useCategories } from "@/services/hooks/data/use-categories";
-import { Button, Layout, Spin, Typography } from "antd";
+import { Button, Layout, message, Spin, Typography } from "antd";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import "../../data.css";
@@ -31,10 +32,22 @@ export default function CreateCategoryPage() {
   // Handle submit button click
   const handleSubmitClick = async () => {
     try {
+      // 1. Validate Ant Design Form fields first
       const values = await formRef.current.validateFields();
-      await handleFormSubmit(values);
+
+      // 2. Validate with Zod schema (Frontend validation - tuyến phòng thủ đầu tiên)
+      const zodValidation = createDataTierCategorySchema.safeParse(values);
+      if (!zodValidation.success) {
+        const firstError = zodValidation.error.errors[0];
+        message.error(firstError.message);
+        return;
+      }
+
+      // 3. Submit to backend (BE validation là lưới an toàn cuối cùng)
+      await handleFormSubmit(zodValidation.data);
     } catch (err) {
-      // Validation error
+      // Ant Design validation error - already handled by form
+      console.error("Form validation error:", err);
     }
   };
 
@@ -52,9 +65,10 @@ export default function CreateCategoryPage() {
       name: "category_cost_multiplier",
       label: "Hệ số chi phí",
       type: "number",
-      placeholder: "Nhập hệ số chi phí...",
+      placeholder: "Nhập hệ số chi phí (> 0, tối đa 100)...",
       required: true,
-      min: 0,
+      min: 0.01,
+      max: 100,
       step: 0.1,
     },
   ];

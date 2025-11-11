@@ -1,4 +1,10 @@
 import axiosInstance from "@/libs/axios-instance";
+import {
+  getTierCategoryError,
+  getTierCategoryInfo,
+  getTierCategorySuccess,
+  parseDataSourceError,
+} from "@/libs/message";
 import { endpoints } from "@/services/endpoints";
 import { message } from "antd";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -57,7 +63,8 @@ export function useCategories() {
       } catch (err) {
         setError(err);
         console.error("Error fetching categories:", err);
-        message.error("Lỗi khi tải dữ liệu danh mục: " + err.message);
+        const errorMessage = parseDataSourceError(err, "tier_category");
+        message.error(errorMessage);
         setData([]); // Set empty array on error
       } finally {
         setLoading(false);
@@ -134,16 +141,15 @@ export function useCategories() {
         endpoints.policy.data_tier.category.create,
         categoryData
       );
-      message.success("Danh mục đã được tạo thành công");
+      message.success(getTierCategorySuccess("CREATE_SUCCESS"));
       // Optionally refetch data to update the list
       const newCategoriesData = await fetchCategories();
       setData(newCategoriesData);
       return response.data;
     } catch (err) {
       console.error("Error creating category:", err);
-      message.error(
-        "Lỗi khi tạo danh mục: " + (err.response?.data?.message || err.message)
-      );
+      const errorMessage = parseDataSourceError(err, "tier_category");
+      message.error(errorMessage);
       throw err;
     }
   };
@@ -155,17 +161,15 @@ export function useCategories() {
         endpoints.policy.data_tier.category.update(id),
         categoryData
       );
-      message.success("Danh mục đã được cập nhật thành công");
+      message.success(getTierCategorySuccess("UPDATE_SUCCESS"));
       // Refetch data to update the list
       const newCategoriesData = await fetchCategories();
       setData(newCategoriesData);
       return response.data;
     } catch (err) {
       console.error("Error updating category:", err);
-      message.error(
-        "Lỗi khi cập nhật danh mục: " +
-          (err.response?.data?.message || err.message)
-      );
+      const errorMessage = parseDataSourceError(err, "tier_category");
+      message.error(errorMessage);
       throw err;
     }
   };
@@ -176,15 +180,14 @@ export function useCategories() {
       await axiosInstance.delete(
         endpoints.policy.data_tier.category.delete(id)
       );
-      message.success("Danh mục đã được xóa thành công");
+      message.success(getTierCategorySuccess("DELETE_SUCCESS"));
       // Refetch data to update the list
       const newCategoriesData = await fetchCategories();
       setData(newCategoriesData);
     } catch (err) {
       console.error("Error deleting category:", err);
-      message.error(
-        "Lỗi khi xóa danh mục: " + (err.response?.data?.message || err.message)
-      );
+      const errorMessage = parseDataSourceError(err, "tier_category");
+      message.error(errorMessage);
       throw err;
     }
   };
@@ -206,9 +209,8 @@ export function useCategories() {
       return categoryData;
     } catch (err) {
       console.error("Error fetching category:", err);
-      message.error(
-        "Lỗi khi tải danh mục: " + (err.response?.data?.message || err.message)
-      );
+      const errorMessage = parseDataSourceError(err, "tier_category");
+      message.error(errorMessage);
       throw err;
     }
   }, []);

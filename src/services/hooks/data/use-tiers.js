@@ -1,4 +1,10 @@
 import axiosInstance from "@/libs/axios-instance";
+import {
+  getTierError,
+  getTierInfo,
+  getTierSuccess,
+  parseDataSourceError,
+} from "@/libs/message";
 import { endpoints } from "@/services/endpoints";
 import { useCategories } from "@/services/hooks/data/use-categories";
 import { message } from "antd";
@@ -60,7 +66,8 @@ export function useTiers() {
       } catch (err) {
         setError(err);
         console.error("Error fetching tiers:", err);
-        message.error("Lỗi khi tải dữ liệu cấp độ: " + err.message);
+        const errorMessage = parseDataSourceError(err, "tier");
+        message.error(errorMessage);
         setData([]);
       } finally {
         setLoading(false);
@@ -149,16 +156,15 @@ export function useTiers() {
         endpoints.policy.data_tier.tier.create,
         tierData
       );
-      message.success("Cấp độ đã được tạo thành công");
+      message.success(getTierSuccess("CREATE_SUCCESS"));
       // Refetch data to update the list
       const newTiersData = await fetchTiers();
       setData(newTiersData);
       return response.data;
     } catch (err) {
       console.error("Error creating tier:", err);
-      message.error(
-        "Lỗi khi tạo cấp độ: " + (err.response?.data?.message || err.message)
-      );
+      const errorMessage = parseDataSourceError(err, "tier");
+      message.error(errorMessage);
       throw err;
     }
   }, []);
@@ -170,17 +176,15 @@ export function useTiers() {
         endpoints.policy.data_tier.tier.update(id),
         tierData
       );
-      message.success("Cấp độ đã được cập nhật thành công");
+      message.success(getTierSuccess("UPDATE_SUCCESS"));
       // Refetch data to update the list
       const newTiersData = await fetchTiers();
       setData(newTiersData);
       return response.data;
     } catch (err) {
       console.error("Error updating tier:", err);
-      message.error(
-        "Lỗi khi cập nhật cấp độ: " +
-          (err.response?.data?.message || err.message)
-      );
+      const errorMessage = parseDataSourceError(err, "tier");
+      message.error(errorMessage);
       throw err;
     }
   }, []);
@@ -189,15 +193,14 @@ export function useTiers() {
   const deleteTier = useCallback(async (id) => {
     try {
       await axiosInstance.delete(endpoints.policy.data_tier.tier.delete(id));
-      message.success("Cấp độ đã được xóa thành công");
+      message.success(getTierSuccess("DELETE_SUCCESS"));
       // Refetch data to update the list
       const newTiersData = await fetchTiers();
       setData(newTiersData);
     } catch (err) {
       console.error("Error deleting tier:", err);
-      message.error(
-        "Lỗi khi xóa cấp độ: " + (err.response?.data?.message || err.message)
-      );
+      const errorMessage = parseDataSourceError(err, "tier");
+      message.error(errorMessage);
       throw err;
     }
   }, []);
@@ -219,9 +222,8 @@ export function useTiers() {
       return tierData;
     } catch (err) {
       console.error("Error fetching tier:", err);
-      message.error(
-        "Lỗi khi tải cấp độ: " + (err.response?.data?.message || err.message)
-      );
+      const errorMessage = parseDataSourceError(err, "tier");
+      message.error(errorMessage);
       throw err;
     }
   }, []); // Empty dependency array since it only uses axiosInstance and endpoints
