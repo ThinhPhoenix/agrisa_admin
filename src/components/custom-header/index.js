@@ -35,7 +35,11 @@ export default function CustomHeader() {
 
       if (menuItem) {
         foundItems.push(menuItem);
-        const href = i === segments.length - 1 ? undefined : currentPath;
+        // Don't allow clicking on parent items that only have children (no actual page)
+        // Only the last item or items without children should be clickable
+        const isLastItem = i === segments.length - 1;
+        const hasChildren = menuItem.children && menuItem.children.length > 0;
+        const href = isLastItem || hasChildren ? undefined : currentPath;
         items.push({
           title: menuItem.label,
           href,

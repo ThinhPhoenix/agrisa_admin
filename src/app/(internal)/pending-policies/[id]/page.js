@@ -23,6 +23,7 @@ import {
   Button,
   Card,
   Layout,
+  message,
   Modal,
   Spin,
   Tabs,
@@ -52,6 +53,7 @@ export default function PolicyDetailPage() {
       setPolicy(data);
     } catch (err) {
       console.error("Error fetching policy:", err);
+      message.error("Lỗi khi tải chi tiết policy: " + err.message);
     } finally {
       setLoading(false);
     }
@@ -153,8 +155,7 @@ export default function PolicyDetailPage() {
     try {
       await submitValidation(validationData);
       setValidationModalOpen(false);
-      // Refresh data
-      await fetchPolicyDetail();
+      router.push("/pending-policies");
     } catch (err) {
       console.error("Error submitting validation:", err);
       // Error is already handled in hook
