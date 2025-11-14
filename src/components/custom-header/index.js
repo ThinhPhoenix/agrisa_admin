@@ -1,5 +1,5 @@
 import Assets from "@/assets";
-import { sidebarMenuItems, labelTranslations } from "@/libs/menu-config";
+import { labelTranslations, sidebarMenuItems } from "@/libs/menu-config";
 import { Breadcrumb } from "antd";
 import { usePathname } from "next/navigation";
 import AvatarSection from "./avatar-section";

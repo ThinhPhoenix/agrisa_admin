@@ -121,6 +121,79 @@ export function usePartners(partnerId = null) {
     return errors;
   };
 
+  // Create insurance partner
+  const createPartner = useCallback(async (values) => {
+    try {
+      // Transform form values to API payload format
+      const payload = {
+        legal_company_name: values.legal_company_name,
+        partner_trading_name:
+          values.partner_trading_name || values.legal_company_name,
+        partner_display_name:
+          values.partner_display_name ||
+          values.partner_trading_name ||
+          values.legal_company_name,
+        company_type: values.company_type,
+        incorporation_date: values.incorporation_date
+          ? values.incorporation_date.toISOString()
+          : null,
+        tax_identification_number: values.tax_identification_number,
+        business_registration_number: values.business_registration_number || "",
+        partner_tagline: values.partner_tagline || "",
+        partner_description: values.partner_description || "",
+        partner_phone: values.partner_phone || "",
+        partner_official_email: values.partner_official_email,
+        head_office_address: values.head_office_address,
+        province_code: values.province_code,
+        province_name: values.province_name,
+        ward_code: values.ward_code,
+        ward_name: values.ward_name,
+        postal_code: values.postal_code || "",
+        fax_number: values.fax_number || "",
+        customer_service_hotline: values.customer_service_hotline || "",
+        insurance_license_number: values.insurance_license_number,
+        license_issue_date: values.license_issue_date
+          ? values.license_issue_date.toISOString()
+          : null,
+        license_expiry_date: values.license_expiry_date
+          ? values.license_expiry_date.toISOString()
+          : null,
+        authorized_insurance_lines: values.authorized_insurance_lines || [],
+        operating_provinces: values.operating_provinces || [],
+        year_established: values.year_established,
+        partner_website: values.partner_website || "",
+        trust_metric_experience: values.trust_metric_experience || 0,
+        trust_metric_clients: values.trust_metric_clients || 0,
+        trust_metric_claim_rate: values.trust_metric_claim_rate || 0,
+        total_payouts: values.total_payouts || "",
+        average_payout_time: values.average_payout_time || "",
+        confirmation_timeline: values.confirmation_timeline || "",
+        hotline: values.hotline || "",
+        support_hours: values.support_hours || "",
+        coverage_areas: values.coverage_areas || "",
+      };
+
+      const response = await axiosInstance.post(
+        endpoints.partner.create,
+        payload
+      );
+
+      message.success("Tạo thông tin đối tác bảo hiểm thành công!");
+      return response.data;
+    } catch (err) {
+      console.error("Lỗi khi tạo thông tin đối tác:", err);
+
+      // Handle specific errors
+      const errorMessage =
+        err.response?.data?.error?.message ||
+        err.response?.data?.message ||
+        err.message;
+
+      message.error(`Lỗi khi tạo đối tác: ${errorMessage}`);
+      throw err;
+    }
+  }, []);
+
   // Create user account for partner
   const createPartnerAccount = useCallback(async (values, partnerId) => {
     try {
@@ -322,6 +395,8 @@ export function usePartners(partnerId = null) {
     partnerDetail,
     detailLoading,
     fetchPartnerDetail,
+    // Partner actions
+    createPartner,
     createPartnerAccount,
   };
 }

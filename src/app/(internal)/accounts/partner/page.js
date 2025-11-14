@@ -207,7 +207,7 @@ export default function PartnersPage() {
         <div className="partner-header">
           <div>
             <Title level={2} className="partner-title">
-              Quản lý Đối tác Bảo hiểm
+              Quản lý Thông tin Đối tác Bảo hiểm
             </Title>
             <Text className="partner-subtitle">
               Quản lý thông tin các đối tác bảo hiểm nông nghiệp
@@ -285,7 +285,7 @@ export default function PartnersPage() {
         <div className="flex justify-start items-center gap-2 mb-2">
           <Link href="/accounts/partner/create">
             <Button type="primary" icon={<BankOutlined />}>
-              Thêm đối tác
+              Thêm thông tin đối tác
             </Button>
           </Link>
           <Button icon={<DownloadOutlined />}>Nhập excel</Button>
