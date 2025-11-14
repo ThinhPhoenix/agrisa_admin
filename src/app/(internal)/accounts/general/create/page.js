@@ -24,7 +24,7 @@ export default function CreateAccountPage() {
       console.log("Creating account:", formData);
 
       message.success("Tạo tài khoản thành công!");
-      router.push("/accounts");
+      router.push("/accounts/general");
     } catch (error) {
       message.error("Có lỗi xảy ra khi tạo tài khoản!");
     } finally {
@@ -134,7 +134,7 @@ export default function CreateAccountPage() {
       type: "button",
       variant: "dashed",
       buttonText: "Hủy",
-      onClick: () => router.push("/accounts"),
+      onClick: () => router.push("/accounts/general"),
     },
     {
       name: "submitButton",
@@ -154,7 +154,7 @@ export default function CreateAccountPage() {
         {/* Header */}
         <div style={{ marginBottom: "24px" }}>
           <Space align="center" style={{ marginBottom: "16px" }}>
-            <Link href="/accounts">
+            <Link href="/accounts/general">
               <Button type="text" icon={<ArrowLeftOutlined />}>
                 Quay lại
               </Button>

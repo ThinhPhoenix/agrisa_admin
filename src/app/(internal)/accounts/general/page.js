@@ -173,7 +173,7 @@ export default function AccountsPage() {
       width: 150,
       render: (_, record) => (
         <div className="accounts-actions-cell">
-          <Link href={`/accounts/${record.id}`}>
+          <Link href={`/accounts/general/${record.id}`}>
             <Button
               type="dashed"
               size="small"
@@ -354,7 +354,7 @@ export default function AccountsPage() {
 
         {/* Table */}
         <div className="flex justify-start items-center gap-2 mb-2">
-          <Link href="/accounts/create">
+          <Link href="general/create">
             <Button type="primary" icon={<UserOutlined />}>
               Tạo tài khoản
             </Button>

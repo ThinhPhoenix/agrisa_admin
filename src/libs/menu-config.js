@@ -3,6 +3,11 @@ export const sidebarMenuItems = [
   {
     key: "accounts",
     label: "Quản lí tài khoản",
+    children: [
+      { key: "accounts/general", label: "Quản lí chung" },
+      { key: "accounts/partner", label: "Quản lí đối tác" },
+      { key: "accounts/farmer", label: "Quản lí nông dân" },
+    ],
   },
   {
     key: "permissions",
@@ -30,3 +35,8 @@ export const sidebarMenuItems = [
     label: "Cấu hình hệ thống",
   },
 ];
+
+export const labelTranslations = {
+  'Create': 'Tạo mới',
+  'Edit': 'Chỉnh sửa',
+};

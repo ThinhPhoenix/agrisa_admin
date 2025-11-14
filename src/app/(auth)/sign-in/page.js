@@ -23,7 +23,7 @@ const SigninPage = () => {
 
     if (result.success) {
       message.success(result.message);
-      router.push("/accounts");
+      router.push("/accounts/general");
     } else {
       message.error(result.message);
     }

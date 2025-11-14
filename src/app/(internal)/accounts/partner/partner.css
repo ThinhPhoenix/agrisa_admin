@@ -1,0 +1,380 @@
+/* Partner Page Styles */
+
+.partner-content {
+  min-height: 100vh;
+}
+
+.partner-space {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.partner-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
+/* Header */
+.partner-header {
+  margin-bottom: 24px;
+}
+
+.partner-title {
+  margin-bottom: 8px !important;
+  color: #1f2937 !important;
+}
+
+.partner-subtitle {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* Summary Cards */
+.partner-summary-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.partner-summary-card-compact {
+  flex: 1;
+  background: var(--secondary-background);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  min-width: 0;
+}
+
+.partner-summary-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.partner-summary-icon.total {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}
+
+.partner-summary-icon.location {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
+.partner-summary-icon.rating {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.partner-summary-content {
+  flex: 1;
+}
+
+.partner-summary-value-compact {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1;
+}
+
+.partner-summary-label-compact {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+/* Filters */
+.partner-filters {
+  margin-bottom: 24px;
+}
+
+.partner-filter-form {
+  padding: 16px 0;
+}
+
+/* Table */
+.partner-table-wrapper {
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+/* Partner Info Column */
+.partner-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.partner-logo {
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.partner-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.partner-name {
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.partner-tagline {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 6px;
+  font-style: italic;
+}
+
+.partner-rating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.star-icon {
+  color: #f59e0b;
+  font-size: 14px;
+}
+
+.rating-score {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 13px;
+}
+
+.rating-count {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.partner-year {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+/* Contact Column */
+.partner-contact {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #1f2937;
+}
+
+.contact-icon {
+  color: #3b82f6;
+  font-size: 12px;
+}
+
+.contact-email {
+  font-size: 12px;
+  color: #3b82f6;
+}
+
+.contact-hours {
+  font-size: 11px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+/* Location Column */
+.partner-location {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.location-province {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 13px;
+}
+
+.location-icon {
+  color: #10b981;
+  font-size: 14px;
+}
+
+.location-address {
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+.coverage-areas {
+  margin-top: 4px;
+}
+
+.coverage-tag {
+  font-size: 11px;
+  padding: 2px 6px;
+  margin: 0;
+}
+
+/* Trust Metrics Column */
+.partner-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.metric-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #1f2937;
+}
+
+.metric-icon {
+  color: #8b5cf6;
+  font-size: 12px;
+}
+
+.claim-rate {
+  font-weight: 600;
+  color: #16a34a;
+  font-size: 12px;
+}
+
+.payout-info {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+/* Actions Column */
+.partner-actions-cell {
+  display: flex;
+  gap: 6px;
+}
+
+.partner-action-btn {
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.partner-action-btn:hover {
+  transform: translateY(-1px);
+}
+
+/* Partner Detail Page */
+.partner-detail-content {
+  padding: 24px !important;
+  min-height: 100vh !important;
+}
+
+.partner-detail-container {
+  max-width: 1400px !important;
+  margin: 0 auto !important;
+}
+
+.partner-detail-header {
+  margin-bottom: 24px !important;
+  background: var(--secondary-background) !important;
+  padding: 24px !important;
+  border-radius: 8px !important;
+}
+
+.partner-detail-breadcrumb {
+  margin-bottom: 16px !important;
+}
+
+.partner-detail-title-section {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+}
+
+.partner-detail-title {
+  margin-bottom: 8px !important;
+}
+
+.partner-detail-subtitle {
+  font-size: 14px !important;
+  display: block !important;
+  margin-bottom: 12px !important;
+}
+
+.partner-detail-tags {
+  display: flex !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+}
+
+.partner-detail-main {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 24px !important;
+}
+
+.partner-detail-row {
+  margin-bottom: 0 !important;
+}
+
+.partner-detail-card {
+  height: 100% !important;
+}
+
+.partner-error {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 400px !important;
+  text-align: center !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .partner-content {
+    padding: 16px;
+  }
+
+  .partner-summary-row {
+    flex-direction: column;
+  }
+
+  .partner-info {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .partner-logo {
+    width: 48px;
+    height: 48px;
+  }
+
+  .partner-detail-content {
+    padding: 16px !important;
+  }
+
+  .partner-detail-title-section {
+    flex-direction: column !important;
+  }
+}

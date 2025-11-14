@@ -68,7 +68,7 @@ export default function AccountDetailPage() {
           <Title level={3}>Không tìm thấy tài khoản</Title>
           <Text>Tài khoản với ID {id} không tồn tại.</Text>
           <br />
-          <Link href="/accounts">
+          <Link href="/accounts/general">
             <Button type="primary" icon={<ArrowLeftOutlined />}>
               Quay lại danh sách
             </Button>
@@ -110,7 +110,7 @@ export default function AccountDetailPage() {
         {/* Header Section */}
         <div className="accounts-detail-header">
           <div className="accounts-detail-breadcrumb">
-            <Link href="/accounts">
+            <Link href="/accounts/general">
               <Button type="text" icon={<ArrowLeftOutlined />}>
                 Quay lại danh sách
               </Button>

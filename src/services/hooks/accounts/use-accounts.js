@@ -1,10 +1,12 @@
-import axios from "@/libs/axios-instance";
-import { useEffect, useMemo, useState } from "react";
+import axiosInstance from "@/libs/axios-instance";
+import { message } from "antd";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { endpoints } from "../../endpoints";
 
 export function useAccounts() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
     username: "",
     email: "",
@@ -13,41 +15,47 @@ export function useAccounts() {
   });
 
   // Fetch data from API
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(endpoints.user.list);
-        const users = response.data.data.users;
-        // Transform API data to match expected structure
-        const transformedData = users.map((user) => ({
-          id: user.id,
-          username: user.email, // Use email as username
-          full_name: user.email, // Use email as full name since no name field
-          email: user.email,
-          role: user.role === "admin" ? "Quản trị viên" : "Người dùng", // Map role to Vietnamese
-          status:
-            user.status === "active"
-              ? "Tài khoản đang hoạt động bình thường."
-              : user.status === "suspended"
-              ? "Tài khoản bị tạm ngừng."
-              : user.status === "pending_verification"
-              ? "Tài khoản đang chờ xác minh."
-              : user.status === "deactivated"
-              ? "Tài khoản đã bị vô hiệu hóa."
-              : user.status,
-          last_login: user.last_login || user.created_at,
-          avatar:
-            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RnG4W+FgYxN", // Default avatar
-        }));
-        setData(transformedData);
-      } catch (error) {
-        console.error("Error fetching accounts:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await axiosInstance.get(endpoints.user.list);
+      const users = response.data.data.users;
+      // Transform API data to match expected structure
+      const transformedData = users.map((user) => ({
+        id: user.id,
+        username: user.email, // Use email as username
+        full_name: user.email, // Use email as full name since no name field
+        email: user.email,
+        role: user.role === "admin" ? "Quản trị viên" : "Người dùng", // Map role to Vietnamese
+        status:
+          user.status === "active"
+            ? "Tài khoản đang hoạt động bình thường."
+            : user.status === "suspended"
+            ? "Tài khoản bị tạm ngừng."
+            : user.status === "pending_verification"
+            ? "Tài khoản đang chờ xác minh."
+            : user.status === "deactivated"
+            ? "Tài khoản đã bị vô hiệu hóa."
+            : user.status,
+        last_login: user.last_login || user.created_at,
+        avatar:
+          "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RnG4W+FgYxN", // Default avatar
+      }));
+      setData(transformedData);
+      setError(null);
+    } catch (err) {
+      console.error("Error fetching accounts:", err);
+      setError(err);
+      message.error("Lỗi khi tải danh sách người dùng: " + err.message);
+      setData([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   // Filter options
   const filterOptions = useMemo(() => {
@@ -118,6 +126,7 @@ export function useAccounts() {
   };
 
   return {
+    data,
     filteredData,
     filterOptions,
     summaryStats,
@@ -125,5 +134,7 @@ export function useAccounts() {
     updateFilters,
     clearFilters,
     loading,
+    error,
+    refetch: fetchData,
   };
 }

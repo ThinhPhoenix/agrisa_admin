@@ -47,4 +47,8 @@ export const endpoints = {
       validate: "/policy/protected/api/v2/base-policies/validate",
     },
   },
+  partner: {
+    list: "/profile/public/api/v1/insurance-partners",
+    get_one: (id) => `/profile/public/api/v1/insurance-partners/${id}`,
+  },
 };
