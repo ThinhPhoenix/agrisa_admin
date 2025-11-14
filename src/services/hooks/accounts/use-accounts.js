@@ -1,57 +1,77 @@
-import mockData from "@/app/(internal)/accounts/mock.json";
+import axios from "@/libs/axios-instance";
 import { useEffect, useMemo, useState } from "react";
+import { endpoints } from "../../endpoints";
 
 export function useAccounts() {
+  const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     username: "",
     email: "",
     role: "",
     status: "",
-    department: "",
   });
 
-  // Simulate loading
+  // Fetch data from API
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 1000);
-    return () => clearTimeout(timer);
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(endpoints.user.list);
+        const users = response.data.data.users;
+        // Transform API data to match expected structure
+        const transformedData = users.map((user) => ({
+          id: user.id,
+          username: user.email, // Use email as username
+          full_name: user.email, // Use email as full name since no name field
+          email: user.email,
+          role: user.role === "admin" ? "Quản trị viên" : "Người dùng", // Map role to Vietnamese
+          status:
+            user.status === "active"
+              ? "Tài khoản đang hoạt động bình thường."
+              : user.status === "suspended"
+              ? "Tài khoản bị tạm ngừng."
+              : user.status === "pending_verification"
+              ? "Tài khoản đang chờ xác minh."
+              : user.status === "deactivated"
+              ? "Tài khoản đã bị vô hiệu hóa."
+              : user.status,
+          last_login: user.last_login || user.created_at,
+          avatar:
+            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RnG4W+FgYxN", // Default avatar
+        }));
+        setData(transformedData);
+      } catch (error) {
+        console.error("Error fetching accounts:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, []);
 
   // Filter options
   const filterOptions = useMemo(() => {
-    const roles = [...new Set(mockData.map((item) => item.role))].map(
-      (role) => ({
-        label: role,
-        value: role,
-      })
-    );
+    const roles = [...new Set(data.map((item) => item.role))].map((role) => ({
+      label: role,
+      value: role,
+    }));
 
-    const statuses = [...new Set(mockData.map((item) => item.status))].map(
+    const statuses = [...new Set(data.map((item) => item.status))].map(
       (stat) => ({
         label: stat,
         value: stat,
       })
     );
 
-    const departments = [
-      ...new Set(mockData.map((item) => item.department)),
-    ].map((dept) => ({
-      label: dept,
-      value: dept,
-    }));
-
     return {
       roles,
       statuses,
-      departments,
     };
-  }, []);
+  }, [data]);
 
   // Filtered data
   const filteredData = useMemo(() => {
-    return mockData.filter((item) => {
+    return data.filter((item) => {
       const matchesUsername =
         !filters.username ||
         item.username.toLowerCase().includes(filters.username.toLowerCase());
@@ -60,40 +80,27 @@ export function useAccounts() {
         item.email.toLowerCase().includes(filters.email.toLowerCase());
       const matchesRole = !filters.role || item.role === filters.role;
       const matchesStatus = !filters.status || item.status === filters.status;
-      const matchesDepartment =
-        !filters.department || item.department === filters.department;
 
-      return (
-        matchesUsername &&
-        matchesEmail &&
-        matchesRole &&
-        matchesStatus &&
-        matchesDepartment
-      );
+      return matchesUsername && matchesEmail && matchesRole && matchesStatus;
     });
-  }, [filters]);
+  }, [filters, data]);
 
   // Summary stats
   const summaryStats = useMemo(() => {
-    const totalAccounts = mockData.length;
-    const activeAccounts = mockData.filter(
-      (item) => item.status === "Hoạt động"
+    const totalAccounts = data.length;
+    const activeAccounts = data.filter(
+      (item) => item.status === "Tài khoản đang hoạt động bình thường."
     ).length;
-    const adminAccounts = mockData.filter(
-      (item) => item.role === "Super Admin" || item.role === "Admin"
+    const adminAccounts = data.filter(
+      (item) => item.role === "Quản trị viên"
     ).length;
-    const avgPermissions = Math.round(
-      mockData.reduce((sum, item) => sum + item.permissions.length, 0) /
-        mockData.length
-    );
 
     return {
       totalAccounts,
       activeAccounts,
       adminAccounts,
-      avgPermissions,
     };
-  }, []);
+  }, [data]);
 
   // Update filters
   const updateFilters = (newFilters) => {
@@ -107,7 +114,6 @@ export function useAccounts() {
       email: "",
       role: "",
       status: "",
-      department: "",
     });
   };
 

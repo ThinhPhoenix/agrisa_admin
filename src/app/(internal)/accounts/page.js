@@ -47,9 +47,7 @@ export default function AccountsPage() {
     "user_info",
     "role",
     "status",
-    "department",
     "last_login",
-    "permissions",
   ]);
 
   // Loading state check
@@ -76,11 +74,13 @@ export default function AccountsPage() {
   // Get status color
   const getStatusColor = (status) => {
     switch (status) {
-      case "Hoạt động":
+      case "Tài khoản đang hoạt động bình thường.":
         return "green";
-      case "Tạm khóa":
+      case "Tài khoản bị tạm ngừng.":
         return "orange";
-      case "Khóa":
+      case "Tài khoản đang chờ xác minh.":
+        return "blue";
+      case "Tài khoản đã bị vô hiệu hóa.":
         return "red";
       default:
         return "default";
@@ -90,11 +90,8 @@ export default function AccountsPage() {
   // Get role color
   const getRoleColor = (role) => {
     const colors = {
-      "Super Admin": "red",
-      Admin: "orange",
-      Manager: "blue",
-      Staff: "green",
-      Viewer: "purple",
+      "Quản trị viên": "red",
+      "Người dùng": "cyan",
     };
     return colors[role] || "default";
   };
@@ -151,15 +148,6 @@ export default function AccountsPage() {
       ),
     },
     {
-      title: "Phòng ban",
-      dataIndex: "department",
-      key: "department",
-      width: 150,
-      render: (_, record) => (
-        <div className="accounts-department">{record.department}</div>
-      ),
-    },
-    {
       title: "Đăng nhập cuối",
       dataIndex: "last_login",
       key: "last_login",
@@ -174,23 +162,6 @@ export default function AccountsPage() {
               hour: "2-digit",
               minute: "2-digit",
             })}
-          </div>
-        </div>
-      ),
-    },
-    {
-      title: "Quyền hạn",
-      dataIndex: "permissions",
-      key: "permissions",
-      width: 120,
-      render: (_, record) => (
-        <div className="accounts-permissions">
-          <div className="accounts-permission-count">
-            {record.permissions.length} quyền
-          </div>
-          <div className="accounts-permission-list">
-            {record.permissions.slice(0, 2).join(", ")}
-            {record.permissions.length > 2 && "..."}
           </div>
         </div>
       ),
@@ -263,14 +234,6 @@ export default function AccountsPage() {
       placeholder: "Chọn trạng thái",
       options: filterOptions.statuses,
       value: filters.status,
-    },
-    {
-      name: "department",
-      label: "Phòng ban",
-      type: "combobox",
-      placeholder: "Chọn phòng ban",
-      options: filterOptions.departments,
-      value: filters.department,
     },
     {
       name: "searchButton",
@@ -346,20 +309,8 @@ export default function AccountsPage() {
                 {summaryStats.adminAccounts}
               </div>
               <div className="accounts-summary-label-compact">
-                Tài khoản Admin
+                Tài khoản Quản trị viên
               </div>
-            </div>
-          </div>
-
-          <div className="accounts-summary-card-compact">
-            <div className="accounts-summary-icon permissions">
-              <LockOutlined />
-            </div>
-            <div className="accounts-summary-content">
-              <div className="accounts-summary-value-compact">
-                {summaryStats.avgPermissions}
-              </div>
-              <div className="accounts-summary-label-compact">Quyền TB</div>
             </div>
           </div>
         </div>
@@ -389,7 +340,7 @@ export default function AccountsPage() {
                       {/* Second row - Additional filters and actions */}
                       <CustomForm
                         fields={searchFields.slice(3)}
-                        gridColumns="1fr 1fr 1fr 1fr"
+                        gridColumns="1fr 1fr 1fr"
                         gap="16px"
                         onSubmit={handleFormSubmit}
                       />
