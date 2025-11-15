@@ -52,4 +52,9 @@ export const endpoints = {
     get_one: (id) => `/profile/public/api/v1/insurance-partners/${id}`,
     create: "/profile/protected/api/v1/insurance-partners",
   },
+  address: {
+    provinces: "https://production.cas.so/address-kit/2025-07-01/provinces",
+    communes: (provinceCode) =>
+      `https://production.cas.so/address-kit/2025-07-01/provinces/${provinceCode}/communes`,
+  },
 };

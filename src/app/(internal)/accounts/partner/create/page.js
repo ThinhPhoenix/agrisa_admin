@@ -7,21 +7,35 @@ import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import "../partner.css";
-import provinceData from "./province.json";
 
 const { Title } = Typography;
 
 export default function CreatePartnerPage() {
-  const { createPartner } = usePartners();
+  const { createPartner, provinces, communes, fetchCommunes } = usePartners();
   const router = useRouter();
   const formRef = useRef();
   const [submitting, setSubmitting] = useState(false);
+  const [selectedProvince, setSelectedProvince] = useState(null);
 
   // Handle form submit
   const handleFormSubmit = async (formData) => {
     try {
       setSubmitting(true);
-      await createPartner(formData);
+      const provinceNames = formData.operating_provinces
+        .map((code) => provinces.find((p) => p.code === code)?.name)
+        .filter(Boolean);
+      const modifiedData = {
+        ...formData,
+        operating_provinces: provinceNames,
+        coverage_areas: provinceNames.join(", "),
+        head_office_address: `${formData.ward_name || ""}, ${
+          formData.head_office_address || ""
+        }`
+          .trim()
+          .replace(/^,/, "")
+          .replace(/,$/, ""),
+      };
+      await createPartner(modifiedData);
       router.push("/accounts/partner");
     } catch (err) {
       // Error is handled in the hook
@@ -96,9 +110,15 @@ export default function CreatePartnerPage() {
   };
 
   // Province options for dropdown
-  const provinceOptions = provinceData.map((province) => ({
-    label: province,
-    value: province,
+  const provinceOptions = provinces.map((province) => ({
+    label: province.name,
+    value: province.code,
+  }));
+
+  // Commune options for dropdown
+  const communeOptions = communes.map((commune) => ({
+    label: commune.name,
+    value: commune.code,
   }));
 
   // Company type options
@@ -246,7 +266,6 @@ export default function CreatePartnerPage() {
       type: "input",
       placeholder: "https://www.example.com",
       required: false,
-      gridColumn: "span 3",
       rules: [
         {
           type: "url",
@@ -363,63 +382,62 @@ export default function CreatePartnerPage() {
       ),
     },
     {
-      name: "head_office_address",
-      label: "Địa chỉ trụ sở chính",
-      type: "textarea",
-      placeholder: "Nhập địa chỉ đầy đủ...",
-      required: true,
-      maxLength: 255,
-      gridColumn: "span 3",
-    },
-    {
       name: "province_code",
-      label: "Mã tỉnh/thành phố",
-      type: "input",
-      placeholder: "Ví dụ: 92",
+      label: "Tỉnh/Thành phố",
+      type: "select",
+      placeholder: "Chọn tỉnh/thành phố...",
       required: true,
+      options: provinceOptions,
+      showSearch: true,
+      onChange: (value, option) => {
+        fetchCommunes(value);
+        setSelectedProvince(value);
+        formRef.current.setFieldsValue({
+          province_name: option?.children || "",
+        });
+      },
     },
     {
       name: "province_name",
-      label: "Tên tỉnh/thành phố",
-      type: "input",
-      placeholder: "Ví dụ: Thành phố Cần Thơ",
-      required: true,
-    },
-    {
-      name: "district_code",
-      label: "Mã quận/huyện",
-      type: "input",
-      placeholder: "Ví dụ: 916",
-      required: false,
-    },
-    {
-      name: "district_name",
-      label: "Tên quận/huyện",
-      type: "input",
-      placeholder: "Ví dụ: Quận Ninh Kiều",
-      required: false,
+      type: "hidden", // Hidden field to store name
     },
     {
       name: "ward_code",
-      label: "Mã phường/xã",
-      type: "input",
-      placeholder: "Ví dụ: 31150",
+      label: "Phường/Xã",
+      type: "select",
+      placeholder: "Chọn phường/xã...",
       required: false,
+      options: communeOptions,
+      showSearch: true,
+      disabled: !selectedProvince,
+      onChange: (value, option) => {
+        formRef.current.setFieldsValue({
+          ward_name: option?.children || "",
+        });
+      },
     },
-    {
-      name: "ward_name",
-      label: "Tên phường/xã",
-      type: "input",
-      placeholder: "Ví dụ: Phường An Bình",
-      required: false,
-    },
+
     {
       name: "postal_code",
       label: "Mã bưu điện",
       type: "input",
       placeholder: "Ví dụ: 900000",
       required: false,
+    },
+
+    {
+      name: "head_office_address",
+      label: "Địa chỉ trụ sở chính",
+      type: "input",
+      placeholder: "Nhập địa chỉ đầy đủ...",
+      required: true,
+      maxLength: 255,
       gridColumn: "span 3",
+      disabled: !selectedProvince,
+    },
+    {
+      name: "ward_name",
+      type: "hidden", // Hidden field to store name
     },
 
     // ============= GIẤY PHÉP BẢO HIỂM =============
@@ -494,6 +512,7 @@ export default function CreatePartnerPage() {
       required: true,
       options: provinceOptions,
       showSearch: true,
+      mode: "tags",
       gridColumn: "span 3",
     },
     {

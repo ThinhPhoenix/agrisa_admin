@@ -190,6 +190,7 @@ export const CustomForm = forwardRef(function CustomForm(
               allowClear={field.allowClear !== false}
               loading={field.loading}
               size={field.size}
+              mode={field.mode}
               optionLabelProp={field.optionLabelProp}
               dropdownStyle={field.dropdownStyle}
               filterOption={
@@ -245,7 +246,7 @@ export const CustomForm = forwardRef(function CustomForm(
             className={field.itemClassName ?? field.className}
           >
             <Select
-              mode="multiple"
+              mode={field.mode || "multiple"}
               placeholder={field.placeholder}
               style={field.inputStyle ?? field.style}
               className={field.className}
@@ -730,6 +731,16 @@ export const CustomForm = forwardRef(function CustomForm(
             {field.render ? field.render() : null}
           </Form.Item>
         );
+      case "hidden":
+        return (
+          <Form.Item
+            key={field.name}
+            name={field.name}
+            style={{ display: "none" }}
+          >
+            <Input type="hidden" />
+          </Form.Item>
+        );
       default:
         return null;
     }
@@ -740,7 +751,8 @@ export const CustomForm = forwardRef(function CustomForm(
       field.type !== "textarea" &&
       field.type !== "file" &&
       field.type !== "image" &&
-      field.type !== "checkbox-group"
+      field.type !== "checkbox-group" &&
+      field.type !== "hidden"
   );
 
   const fullWidthFields = fields.filter(

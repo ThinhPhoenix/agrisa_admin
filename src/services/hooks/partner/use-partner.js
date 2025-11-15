@@ -17,6 +17,10 @@ export function usePartners(partnerId = null) {
     partner_email: "",
   });
 
+  // Address data
+  const [provinces, setProvinces] = useState([]);
+  const [communes, setCommunes] = useState([]);
+
   // Fetch partners list
   const fetchPartners = async () => {
     try {
@@ -69,6 +73,36 @@ export function usePartners(partnerId = null) {
       throw err;
     } finally {
       setDetailLoading(false);
+    }
+  }, []);
+
+  // Fetch provinces
+  const fetchProvinces = useCallback(async () => {
+    try {
+      const response = await axiosInstance.get(endpoints.address.provinces);
+      if (response.data?.provinces) {
+        setProvinces(response.data.provinces);
+      }
+    } catch (err) {
+      console.error("Error fetching provinces:", err);
+    }
+  }, []);
+
+  // Fetch communes by province code
+  const fetchCommunes = useCallback(async (provinceCode) => {
+    if (!provinceCode) {
+      setCommunes([]);
+      return;
+    }
+    try {
+      const response = await axiosInstance.get(
+        endpoints.address.communes(provinceCode)
+      );
+      if (response.data?.communes) {
+        setCommunes(response.data.communes);
+      }
+    } catch (err) {
+      console.error("Error fetching communes:", err);
     }
   }, []);
 
@@ -299,6 +333,11 @@ export function usePartners(partnerId = null) {
     }
   }, [partnerId, fetchPartnerDetail]);
 
+  // Fetch provinces on mount
+  useEffect(() => {
+    fetchProvinces();
+  }, [fetchProvinces]);
+
   // Filter options
   const filterOptions = useMemo(() => {
     const provinces = [...new Set(data.map((item) => item.province_name))].map(
@@ -398,5 +437,9 @@ export function usePartners(partnerId = null) {
     // Partner actions
     createPartner,
     createPartnerAccount,
+    // Address data
+    provinces,
+    communes,
+    fetchCommunes,
   };
 }
