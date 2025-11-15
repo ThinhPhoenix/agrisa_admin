@@ -123,7 +123,7 @@ export default function CreatePartnerPage() {
       name: "divider_company",
       type: "custom",
       label: "",
-      gridColumn: "span 2",
+      gridColumn: "span 3",
       render: () => (
         <Divider orientation="left" style={{ marginTop: 0, marginBottom: 8 }}>
           <strong style={{ fontSize: "16px" }}>Thông tin công ty</strong>
@@ -157,7 +157,6 @@ export default function CreatePartnerPage() {
       placeholder: "Ví dụ: Bảo hiểm Phương Nam",
       required: false,
       maxLength: 255,
-      gridColumn: "span 2",
     },
     {
       name: "partner_display_name",
@@ -178,7 +177,7 @@ export default function CreatePartnerPage() {
     {
       name: "incorporation_date",
       label: "Ngày thành lập",
-      type: "date",
+      type: "datepicker",
       placeholder: "Chọn ngày thành lập...",
       required: true,
     },
@@ -247,7 +246,7 @@ export default function CreatePartnerPage() {
       type: "input",
       placeholder: "https://www.example.com",
       required: false,
-      gridColumn: "span 2",
+      gridColumn: "span 3",
       rules: [
         {
           type: "url",
@@ -261,7 +260,7 @@ export default function CreatePartnerPage() {
       name: "divider_contact",
       type: "custom",
       label: "",
-      gridColumn: "span 2",
+      gridColumn: "span 3",
       render: () => (
         <Divider orientation="left" style={{ marginTop: 16, marginBottom: 8 }}>
           <strong style={{ fontSize: "16px" }}>Thông tin liên hệ</strong>
@@ -349,7 +348,6 @@ export default function CreatePartnerPage() {
       type: "input",
       placeholder: "Thứ 2 đến Chủ nhật, 7:00 - 20:00",
       required: false,
-      gridColumn: "span 2",
     },
 
     // ============= ĐỊA CHỈ TRỤ SỞ CHÍNH =============
@@ -357,7 +355,7 @@ export default function CreatePartnerPage() {
       name: "divider_address",
       type: "custom",
       label: "",
-      gridColumn: "span 2",
+      gridColumn: "span 3",
       render: () => (
         <Divider orientation="left" style={{ marginTop: 16, marginBottom: 8 }}>
           <strong style={{ fontSize: "16px" }}>Địa chỉ trụ sở chính</strong>
@@ -371,7 +369,7 @@ export default function CreatePartnerPage() {
       placeholder: "Nhập địa chỉ đầy đủ...",
       required: true,
       maxLength: 255,
-      gridColumn: "span 2",
+      gridColumn: "span 3",
     },
     {
       name: "province_code",
@@ -388,18 +386,32 @@ export default function CreatePartnerPage() {
       required: true,
     },
     {
+      name: "district_code",
+      label: "Mã quận/huyện",
+      type: "input",
+      placeholder: "Ví dụ: 916",
+      required: false,
+    },
+    {
+      name: "district_name",
+      label: "Tên quận/huyện",
+      type: "input",
+      placeholder: "Ví dụ: Quận Ninh Kiều",
+      required: false,
+    },
+    {
       name: "ward_code",
       label: "Mã phường/xã",
       type: "input",
       placeholder: "Ví dụ: 31150",
-      required: true,
+      required: false,
     },
     {
       name: "ward_name",
       label: "Tên phường/xã",
       type: "input",
       placeholder: "Ví dụ: Phường An Bình",
-      required: true,
+      required: false,
     },
     {
       name: "postal_code",
@@ -407,6 +419,7 @@ export default function CreatePartnerPage() {
       type: "input",
       placeholder: "Ví dụ: 900000",
       required: false,
+      gridColumn: "span 3",
     },
 
     // ============= GIẤY PHÉP BẢO HIỂM =============
@@ -414,7 +427,7 @@ export default function CreatePartnerPage() {
       name: "divider_license",
       type: "custom",
       label: "",
-      gridColumn: "span 2",
+      gridColumn: "span 3",
       render: () => (
         <Divider orientation="left" style={{ marginTop: 16, marginBottom: 8 }}>
           <strong style={{ fontSize: "16px" }}>Giấy phép bảo hiểm</strong>
@@ -442,16 +455,28 @@ export default function CreatePartnerPage() {
     {
       name: "license_issue_date",
       label: "Ngày cấp giấy phép",
-      type: "date",
+      type: "datepicker",
       placeholder: "Chọn ngày cấp...",
       required: true,
     },
     {
       name: "license_expiry_date",
       label: "Ngày hết hạn giấy phép",
-      type: "date",
+      type: "datepicker",
       placeholder: "Chọn ngày hết hạn...",
       required: true,
+    },
+    {
+      name: "license_status",
+      label: "Trạng thái giấy phép",
+      type: "select",
+      placeholder: "Chọn trạng thái...",
+      required: false,
+      options: [
+        { label: "Còn hiệu lực", value: "active" },
+        { label: "Sắp hết hạn", value: "expiring_soon" },
+        { label: "Hết hạn", value: "expired" },
+      ],
     },
     {
       name: "authorized_insurance_lines",
@@ -460,7 +485,6 @@ export default function CreatePartnerPage() {
       placeholder: "Chọn loại hình bảo hiểm...",
       required: true,
       options: insuranceLinesOptions,
-      gridColumn: "span 2",
     },
     {
       name: "operating_provinces",
@@ -470,7 +494,7 @@ export default function CreatePartnerPage() {
       required: true,
       options: provinceOptions,
       showSearch: true,
-      gridColumn: "span 2",
+      gridColumn: "span 3",
     },
     {
       name: "coverage_areas",
@@ -478,7 +502,7 @@ export default function CreatePartnerPage() {
       type: "textarea",
       placeholder: "Ví dụ: Cần Thơ, An Giang, Đồng Tháp...",
       required: false,
-      gridColumn: "span 2",
+      gridColumn: "span 3",
     },
 
     // ============= CHỈ SỐ TIN CẬY & THỐNG KÊ =============
@@ -486,7 +510,7 @@ export default function CreatePartnerPage() {
       name: "divider_metrics",
       type: "custom",
       label: "",
-      gridColumn: "span 2",
+      gridColumn: "span 3",
       render: () => (
         <Divider orientation="left" style={{ marginTop: 16, marginBottom: 8 }}>
           <strong style={{ fontSize: "16px" }}>
@@ -499,7 +523,7 @@ export default function CreatePartnerPage() {
       name: "trust_metric_experience",
       label: "Năm kinh nghiệm",
       type: "number",
-      placeholder: "Nhập số năm kinh nghiệm...",
+      placeholder: "Nhập số năm...",
       required: false,
       min: 0,
     },
@@ -507,7 +531,7 @@ export default function CreatePartnerPage() {
       name: "trust_metric_clients",
       label: "Số lượng khách hàng",
       type: "number",
-      placeholder: "Nhập số lượng khách hàng...",
+      placeholder: "Nhập số lượng...",
       required: false,
       min: 0,
     },
@@ -515,7 +539,7 @@ export default function CreatePartnerPage() {
       name: "trust_metric_claim_rate",
       label: "Tỷ lệ bồi thường (%)",
       type: "number",
-      placeholder: "Nhập tỷ lệ bồi thường...",
+      placeholder: "Nhập tỷ lệ %...",
       required: false,
       min: 0,
       max: 100,
@@ -531,9 +555,8 @@ export default function CreatePartnerPage() {
       name: "average_payout_time",
       label: "Thời gian chi trả trung bình",
       type: "input",
-      placeholder: "Ví dụ: 4 ngày làm việc sau khi xác nhận thanh toán",
+      placeholder: "Ví dụ: 4 ngày làm việc",
       required: false,
-      gridColumn: "span 2",
     },
     {
       name: "confirmation_timeline",
@@ -557,7 +580,7 @@ export default function CreatePartnerPage() {
           <CustomForm
             ref={formRef}
             fields={formFields}
-            gridColumns="1fr 1fr"
+            gridColumns="1fr 1fr 1fr"
             gap="16px"
           />
 
