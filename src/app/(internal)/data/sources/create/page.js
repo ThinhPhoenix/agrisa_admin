@@ -50,8 +50,14 @@ export default function CreateSourcePage() {
         return;
       }
 
-      // 3. Submit to backend (BE validation là lưới an toàn cuối cùng)
-      await handleFormSubmit(zodValidation.data);
+      // 3. Add api_endpoint as empty string to payload
+      const payload = {
+        ...zodValidation.data,
+        api_endpoint: "",
+      };
+
+      // 4. Submit to backend (BE validation là lưới an toàn cuối cùng)
+      await handleFormSubmit(payload);
     } catch (err) {
       // Ant Design validation error - already handled by form
       console.error("Form validation error:", err);
@@ -74,6 +80,13 @@ export default function CreateSourcePage() {
     { label: "Weather (Thời tiết)", value: "weather" },
     { label: "Satellite (Vệ tinh)", value: "satellite" },
     { label: "Derived (Dẫn xuất)", value: "derived" },
+  ];
+
+  // Parameter name options (fixed values)
+  const parameterNameOptions = [
+    { label: "NDVI", value: "ndvi" },
+    { label: "NDMI", value: "ndmi" },
+    { label: "Rain Fall", value: "rainfall" },
   ];
 
   // Parameter type options (fixed values from API)
@@ -107,10 +120,10 @@ export default function CreateSourcePage() {
     {
       name: "parameter_name",
       label: "Tên tham số",
-      type: "input",
-      placeholder: "Ví dụ: temperature, humidity...",
+      type: "select",
+      placeholder: "Chọn tên tham số...",
       required: true,
-      maxLength: 100,
+      options: parameterNameOptions,
     },
     {
       name: "parameter_type",
@@ -186,12 +199,12 @@ export default function CreateSourcePage() {
     },
     {
       name: "base_cost",
-      label: "Chi phí cơ bản",
+      label: "Chi phí cơ bản (VND)",
       type: "number",
-      placeholder: "Nhập chi phí cơ bản...",
+      placeholder: "Nhập chi phí cơ bản (VND)...",
       required: true,
       min: 0,
-      step: 0.01,
+      step: 1000,
     },
     {
       name: "data_tier_id",
@@ -217,14 +230,6 @@ export default function CreateSourcePage() {
       placeholder: "Nhập tên nhà cung cấp...",
       required: false,
       maxLength: 200,
-    },
-    {
-      name: "api_endpoint",
-      label: "API Endpoint",
-      type: "input",
-      placeholder: "Nhập URL API endpoint...",
-      required: false,
-      maxLength: 500,
     },
   ];
 
