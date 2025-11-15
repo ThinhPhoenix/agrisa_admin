@@ -16,24 +16,33 @@ export default function CreatePartnerPage() {
   const formRef = useRef();
   const [submitting, setSubmitting] = useState(false);
   const [selectedProvince, setSelectedProvince] = useState(null);
+  const [provinceName, setProvinceName] = useState("");
+  const [wardName, setWardName] = useState("");
 
   // Handle form submit
   const handleFormSubmit = async (formData) => {
     try {
       setSubmitting(true);
-      const provinceNames = formData.operating_provinces
+      const operatingProvinceNames = formData.operating_provinces
+        .map((code) => provinces.find((p) => p.code === code)?.name)
+        .filter(Boolean);
+      const coverageProvinceNames = formData.coverage_areas
         .map((code) => provinces.find((p) => p.code === code)?.name)
         .filter(Boolean);
       const modifiedData = {
         ...formData,
-        operating_provinces: provinceNames,
-        coverage_areas: provinceNames.join(", "),
-        head_office_address: `${formData.ward_name || ""}, ${
-          formData.head_office_address || ""
-        }`
-          .trim()
+        operating_provinces: operatingProvinceNames,
+        coverage_areas: coverageProvinceNames.join(", "),
+        head_office_address: `${formData.head_office_address || ""}, ${
+          wardName || ""
+        }, ${provinceName || ""}`
           .replace(/^,/, "")
-          .replace(/,$/, ""),
+          .replace(/,$/, "")
+          .replace(/, ,/g, ",")
+          .replace(/ ,/g, ",")
+          .trim(),
+        province_name: provinceName,
+        ward_name: wardName,
       };
       await createPartner(modifiedData);
       router.push("/accounts/partner");
@@ -70,14 +79,14 @@ export default function CreatePartnerPage() {
 
       // Validate license_issue_date after incorporation_date
       if (values.incorporation_date && values.license_issue_date) {
-        if (values.license_issue_date.isBefore(values.incorporation_date)) {
+        if (!values.license_issue_date.isAfter(values.incorporation_date)) {
           errors.push("Ngày cấp giấy phép phải sau ngày thành lập công ty");
         }
       }
 
       // Validate license_expiry_date after license_issue_date
       if (values.license_issue_date && values.license_expiry_date) {
-        if (values.license_expiry_date.isBefore(values.license_issue_date)) {
+        if (!values.license_expiry_date.isAfter(values.license_issue_date)) {
           errors.push("Ngày hết hạn giấy phép phải sau ngày cấp giấy phép");
         }
       }
@@ -389,34 +398,25 @@ export default function CreatePartnerPage() {
       required: true,
       options: provinceOptions,
       showSearch: true,
-      onChange: (value, option) => {
+      onChange: (value) => {
         fetchCommunes(value);
         setSelectedProvince(value);
-        formRef.current.setFieldsValue({
-          province_name: option?.children || "",
-        });
+        setProvinceName(provinces.find((p) => p.code === value)?.name || "");
       },
-    },
-    {
-      name: "province_name",
-      type: "hidden", // Hidden field to store name
     },
     {
       name: "ward_code",
       label: "Phường/Xã",
       type: "select",
       placeholder: "Chọn phường/xã...",
-      required: false,
+      required: true,
       options: communeOptions,
       showSearch: true,
       disabled: !selectedProvince,
-      onChange: (value, option) => {
-        formRef.current.setFieldsValue({
-          ward_name: option?.children || "",
-        });
+      onChange: (value) => {
+        setWardName(communes.find((c) => c.code === value)?.name || "");
       },
     },
-
     {
       name: "postal_code",
       label: "Mã bưu điện",
@@ -424,7 +424,6 @@ export default function CreatePartnerPage() {
       placeholder: "Ví dụ: 900000",
       required: false,
     },
-
     {
       name: "head_office_address",
       label: "Địa chỉ trụ sở chính",
@@ -434,10 +433,6 @@ export default function CreatePartnerPage() {
       maxLength: 255,
       gridColumn: "span 3",
       disabled: !selectedProvince,
-    },
-    {
-      name: "ward_name",
-      type: "hidden", // Hidden field to store name
     },
 
     // ============= GIẤY PHÉP BẢO HIỂM =============
@@ -518,9 +513,12 @@ export default function CreatePartnerPage() {
     {
       name: "coverage_areas",
       label: "Khu vực phủ sóng",
-      type: "textarea",
-      placeholder: "Ví dụ: Cần Thơ, An Giang, Đồng Tháp...",
+      type: "multiselect",
+      placeholder: "Chọn tỉnh/thành phố...",
       required: false,
+      options: provinceOptions,
+      showSearch: true,
+      mode: "tags",
       gridColumn: "span 3",
     },
 
