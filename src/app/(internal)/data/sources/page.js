@@ -161,7 +161,9 @@ export default function SourcesPage() {
       key: "base_cost",
       width: 100,
       render: (_, record) => (
-        <div className="data-item-name">{record.base_cost}₫</div>
+        <div className="data-item-name">
+          {record.base_cost.toLocaleString("en-US")}₫
+        </div>
       ),
     },
     {

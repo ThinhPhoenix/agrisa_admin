@@ -180,12 +180,6 @@ export default function EditSourcePage() {
       type: "input",
       disabled: true,
     },
-    {
-      name: "api_endpoint",
-      label: "API Endpoint",
-      type: "input",
-      disabled: true,
-    },
   ];
 
   // Loading state check

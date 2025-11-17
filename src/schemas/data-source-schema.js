@@ -1,13 +1,19 @@
 const { default: z } = require("zod");
-const { getDataSourceValidation } = require("../libs/message/data-source-message");
+const {
+  getDataSourceValidation,
+} = require("../libs/message/data-source-message");
 
 // Enum values from BE
 const DataSourceTypeEnum = z.enum(["weather", "satellite", "derived"], {
-  errorMap: () => ({ message: getDataSourceValidation("DATA_SOURCE_TYPE_INVALID") }),
+  errorMap: () => ({
+    message: getDataSourceValidation("DATA_SOURCE_TYPE_INVALID"),
+  }),
 });
 
 const ParameterTypeEnum = z.enum(["numeric", "boolean", "categorical"], {
-  errorMap: () => ({ message: getDataSourceValidation("PARAMETER_TYPE_INVALID") }),
+  errorMap: () => ({
+    message: getDataSourceValidation("PARAMETER_TYPE_INVALID"),
+  }),
 });
 
 /**
@@ -79,14 +85,6 @@ const createDataSourceSchema = z
       .nullable(),
 
     data_provider: z.string().trim().optional().nullable(),
-
-    api_endpoint: z
-      .string()
-      .url(getDataSourceValidation("API_ENDPOINT_INVALID"))
-      .trim()
-      .optional()
-      .nullable()
-      .or(z.literal("")),
   })
   .refine(
     (data) => {
@@ -172,14 +170,6 @@ const updateDataSourceSchema = z
       .nullable(),
 
     data_provider: z.string().trim().optional().nullable(),
-
-    api_endpoint: z
-      .string()
-      .url(getDataSourceValidation("API_ENDPOINT_INVALID"))
-      .trim()
-      .optional()
-      .nullable()
-      .or(z.literal("")),
 
     is_active: z.boolean().optional(),
   })

@@ -50,13 +50,10 @@ export default function CreateSourcePage() {
         return;
       }
 
-      // 3. Add api_endpoint as empty string to payload
       const payload = {
         ...zodValidation.data,
-        api_endpoint: "",
       };
 
-      // 4. Submit to backend (BE validation là lưới an toàn cuối cùng)
       await handleFormSubmit(payload);
     } catch (err) {
       // Ant Design validation error - already handled by form
@@ -98,13 +95,10 @@ export default function CreateSourcePage() {
 
   // Update frequency options
   const updateFrequencyOptions = [
-    { label: "Theo giờ (Hourly)", value: "hourly" },
     { label: "Theo ngày (Daily)", value: "daily" },
     { label: "Theo tuần (Weekly)", value: "weekly" },
     { label: "Theo tháng (Monthly)", value: "monthly" },
     { label: "Theo năm (Yearly)", value: "yearly" },
-    { label: "Thời gian thực (Real-time)", value: "real-time" },
-    { label: "30 phút", value: "30 minutes" },
   ];
 
   // Form fields

@@ -60,13 +60,11 @@ export const DATA_SOURCE_MESSAGES = {
       DATA_TIER_ID_INVALID: "ID cấp độ dữ liệu không hợp lệ!",
 
       // Min/Max value
-      MIN_MAX_INVALID: "Giá trị tối thiểu phải nhỏ hơn hoặc bằng giá trị tối đa!",
+      MIN_MAX_INVALID:
+        "Giá trị tối thiểu phải nhỏ hơn hoặc bằng giá trị tối đa!",
 
       // Accuracy rating
       ACCURACY_RATING_INVALID: "Độ chính xác phải từ 0 đến 100!",
-
-      // URL
-      API_ENDPOINT_INVALID: "URL API không hợp lệ!",
 
       // Display name and description
       DISPLAY_NAME_REQUIRED: "Vui lòng nhập tên hiển thị!",
@@ -115,9 +113,11 @@ export const DATA_SOURCE_MESSAGES = {
 
       CATEGORY_MULTIPLIER_REQUIRED: "Vui lòng nhập hệ số nhân danh mục!",
       CATEGORY_MULTIPLIER_INVALID: "Hệ số nhân danh mục phải là số dương!",
-      CATEGORY_MULTIPLIER_OUT_OF_RANGE: "Hệ số nhân danh mục phải lớn hơn 0 và không quá 100!",
+      CATEGORY_MULTIPLIER_OUT_OF_RANGE:
+        "Hệ số nhân danh mục phải lớn hơn 0 và không quá 100!",
 
-      CATEGORY_DESCRIPTION_TOO_LONG: "Mô tả danh mục không được vượt quá 500 ký tự!",
+      CATEGORY_DESCRIPTION_TOO_LONG:
+        "Mô tả danh mục không được vượt quá 500 ký tự!",
     },
 
     INFO: {
@@ -160,7 +160,8 @@ export const DATA_SOURCE_MESSAGES = {
 
       TIER_MULTIPLIER_REQUIRED: "Vui lòng nhập hệ số nhân cấp độ!",
       TIER_MULTIPLIER_INVALID: "Hệ số nhân cấp độ phải là số dương!",
-      TIER_MULTIPLIER_OUT_OF_RANGE: "Hệ số nhân cấp độ phải lớn hơn 0 và không quá 100!",
+      TIER_MULTIPLIER_OUT_OF_RANGE:
+        "Hệ số nhân cấp độ phải lớn hơn 0 và không quá 100!",
     },
 
     INFO: {
@@ -240,7 +241,11 @@ export const parseDataSourceError = (error, context = "data_source") => {
   }
 
   const { status, data } = error.response;
-  const lowerMessage = (data?.error?.message || data?.message || "").toLowerCase();
+  const lowerMessage = (
+    data?.error?.message ||
+    data?.message ||
+    ""
+  ).toLowerCase();
 
   // Backend error code mapping
   if (data?.error?.code) {
@@ -286,10 +291,16 @@ export const parseDataSourceError = (error, context = "data_source") => {
   if (lowerMessage.includes("parameter name cannot be empty")) {
     return DATA_SOURCE_MESSAGES.DATA_SOURCE.VALIDATION.PARAMETER_NAME_EMPTY;
   }
-  if (lowerMessage.includes("tier level") && lowerMessage.includes("already exists")) {
+  if (
+    lowerMessage.includes("tier level") &&
+    lowerMessage.includes("already exists")
+  ) {
     return DATA_SOURCE_MESSAGES.TIER.ERROR.TIER_LEVEL_EXISTS;
   }
-  if (lowerMessage.includes("category") && lowerMessage.includes("does not exist")) {
+  if (
+    lowerMessage.includes("category") &&
+    lowerMessage.includes("does not exist")
+  ) {
     return DATA_SOURCE_MESSAGES.TIER.ERROR.CATEGORY_NOT_EXIST;
   }
   if (lowerMessage.includes("invalid uuid")) {
@@ -298,7 +309,8 @@ export const parseDataSourceError = (error, context = "data_source") => {
   // PostgreSQL numeric field overflow - phát hiện khi giá trị vượt quá giới hạn
   if (lowerMessage.includes("numeric field overflow")) {
     if (context === "tier_category") {
-      return DATA_SOURCE_MESSAGES.TIER_CATEGORY.VALIDATION.CATEGORY_MULTIPLIER_OUT_OF_RANGE;
+      return DATA_SOURCE_MESSAGES.TIER_CATEGORY.VALIDATION
+        .CATEGORY_MULTIPLIER_OUT_OF_RANGE;
     } else if (context === "tier") {
       return DATA_SOURCE_MESSAGES.TIER.VALIDATION.TIER_MULTIPLIER_OUT_OF_RANGE;
     }
