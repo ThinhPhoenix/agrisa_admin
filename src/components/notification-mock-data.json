@@ -1,0 +1,34 @@
+[
+  {
+    "id": 1,
+    "title": "Chính xác mới đang chờ duyệt",
+    "description": "Có 3 chính xác mới cần được phê duyệt",
+    "timestamp": "2025-11-23T10:30:00",
+    "type": "approval",
+    "read": false
+  },
+  {
+    "id": 2,
+    "title": "Cập nhật dữ liệu chính xác",
+    "description": "Dữ liệu chính xác đã được cập nhật bởi đối tác ABC",
+    "timestamp": "2025-11-23T09:15:00",
+    "type": "claim",
+    "read": false
+  },
+  {
+    "id": 3,
+    "title": "Phê duyệt chính xác thành công",
+    "description": "Chính xác #1234 đã được phê duyệt",
+    "timestamp": "2025-11-22T14:20:00",
+    "type": "policy",
+    "read": true
+  },
+  {
+    "id": 4,
+    "title": "Đối tác mới đăng ký",
+    "description": "Đối tác Nông nghiệp XYZ đã đăng ký vào hệ thống",
+    "timestamp": "2025-11-22T11:00:00",
+    "type": "approval",
+    "read": true
+  }
+]
