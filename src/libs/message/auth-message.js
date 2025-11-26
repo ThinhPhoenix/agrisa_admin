@@ -92,6 +92,7 @@ export const AUTH_MESSAGES = {
       ACCOUNT_VERIFIED: "Tài khoản đã được xác thực thành công!",
       PASSWORD_CHANGED: "Mật khẩu đã được thay đổi thành công!",
       SESSION_EXTENDED: "Phiên đăng nhập đã được gia hạn!",
+      AUTH_ME_SUCCESS: "Lấy thông tin tài khoản thành công!",
     },
 
     ERROR: {
@@ -119,6 +120,12 @@ export const AUTH_MESSAGES = {
         "Token làm mới không hợp lệ. Vui lòng đăng nhập lại!",
       SESSION_EXPIRED: "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!",
       TOKEN_INVALID: "Token không hợp lệ. Vui lòng đăng nhập lại!",
+
+      // Account/Profile not found errors
+      ACCOUNT_NOT_FOUND: "Tài khoản không hợp lệ. Vui lòng liên hệ quản trị viên.",
+      PROFILE_NOT_FOUND: "Không tìm thấy thông tin người dùng. Vui lòng liên hệ quản trị viên.",
+      USER_NOT_FOUND: "Không tìm thấy người dùng. Vui lòng liên hệ quản trị viên.",
+      AUTH_ME_FAILED: "Không thể lấy thông tin tài khoản. Vui lòng đăng nhập lại!",
 
       // Social login errors
       SOCIAL_LOGIN_FAILED:
@@ -319,6 +326,12 @@ export const mapBackendErrorCode = (errorCode, context = "general") => {
     SESSION_EXPIRED: AUTH_MESSAGES.SIGNIN.ERROR.SESSION_EXPIRED,
     REFRESH_TOKEN_EXPIRED: AUTH_MESSAGES.SIGNIN.ERROR.REFRESH_TOKEN_EXPIRED,
     REFRESH_TOKEN_INVALID: AUTH_MESSAGES.SIGNIN.ERROR.REFRESH_TOKEN_INVALID,
+    AUTH_ME_FAILED: AUTH_MESSAGES.SIGNIN.ERROR.AUTH_ME_FAILED,
+
+    // Account/Profile/User not found errors
+    ACCOUNT_NOT_FOUND: AUTH_MESSAGES.SIGNIN.ERROR.ACCOUNT_NOT_FOUND,
+    PROFILE_NOT_FOUND: AUTH_MESSAGES.SIGNIN.ERROR.PROFILE_NOT_FOUND,
+    USER_NOT_FOUND: AUTH_MESSAGES.SIGNIN.ERROR.USER_NOT_FOUND,
 
     // === AUTHORIZATION ERRORS (403) ===
     ACTION_FORBIDDEN: "Hành động không được phép. Trạng thái tài khoản không phù hợp!",
@@ -540,6 +553,24 @@ export const parseBackendError = (error, context = "general") => {
     default:
       return "Có lỗi xảy ra. Vui lòng thử lại!";
   }
+};
+
+/**
+ * Convenience wrapper for parseBackendError
+ * Extracts error message from axios error and returns Vietnamese message
+ * @param {object} error - Axios error object
+ * @param {string} context - Context: "signin", "register", "general"
+ * @returns {object} { message: string, code?: string }
+ */
+export const mapBackendError = (error, context = "general") => {
+  const message = parseBackendError(error, context);
+  const code = error.response?.data?.error?.code || error.response?.data?.code || null;
+
+  return {
+    message,
+    code,
+    status: error.response?.status || null,
+  };
 };
 
 /**

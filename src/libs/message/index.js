@@ -23,6 +23,7 @@ export {
   mapBackendErrorCode,
   mapBackendErrorMessage,
   parseBackendError,
+  mapBackendError,
   mapBackendSuccessMessage,
 } from "./auth-message.js";
 export {

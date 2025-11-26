@@ -13,10 +13,11 @@ export const useAuthStore = create((set, get) => ({
   user: defaultUser,
   isLoading: false,
   error: null,
+  isManualLogout: false, // Track if logout was manual
 
   // Set user data
   setUser: (userData) => {
-    set({ user: userData });
+    set({ user: userData, isManualLogout: false });
     // Save token to localStorage
     if (userData.token) {
       localStorage.setItem("token", userData.token);
@@ -34,13 +35,15 @@ export const useAuthStore = create((set, get) => ({
   },
 
   // Clear user data
-  clearUser: () => {
+  clearUser: (isManual = false) => {
     localStorage.removeItem("token");
     localStorage.removeItem("refresh_token");
+    localStorage.removeItem("me");
     set({
       user: defaultUser,
       isLoading: false,
       error: null,
+      isManualLogout: isManual,
     });
   },
 

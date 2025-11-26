@@ -1,12 +1,15 @@
 "use client";
 import Assets from "@/assets";
+import AuthLoading from "@/components/auth-loading";
 import CustomForm from "@/components/custom-form";
 import { getSignInValidation } from "@/libs/message";
 import { useSignIn } from "@/services/hooks/auth/use-auth";
+import { useAuthStore } from "@/stores/auth-store";
 import { message, Typography } from "antd";
 import { Lock, LogIn, User } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import "./signin.css";
 
 const { Title, Text } = Typography;
@@ -14,6 +17,29 @@ const { Title, Text } = Typography;
 const SigninPage = () => {
   const { signIn, isLoading } = useSignIn();
   const router = useRouter();
+  const user = useAuthStore((s) => s.user);
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
+
+  // Redirect to /accounts/general if already authenticated
+  useEffect(() => {
+    const storedToken =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const hasToken = Boolean(user?.token) || Boolean(storedToken);
+    const hasRoles = Array.isArray(user?.roles) && user.roles.length > 0;
+    const isAuthenticated = hasToken || hasRoles;
+
+    if (isAuthenticated) {
+      router.push("/accounts/general");
+    } else {
+      // Auth check complete, show sign-in form
+      setIsAuthChecking(false);
+    }
+  }, [user, router]);
+
+  // Show loading screen while checking authentication to prevent form flashing
+  if (isAuthChecking) {
+    return <AuthLoading />;
+  }
 
   const onFinish = async (values) => {
     const result = await signIn({

@@ -1,19 +1,100 @@
 "use client";
+import AuthLoading from "@/components/auth-loading";
 import CustomHeader from "@/components/custom-header";
 import CustomSidebar from "@/components/custom-sidebar";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { getErrorMessage } from "@/libs/message/common-message";
+import { useAuthStore } from "@/stores/auth-store";
+import { message } from "antd";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
 export default function InternalLayoutFlexbox({ children }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
+  const isVerifying = useRef(false);
+  const hasShownErrorRef = useRef(false);
+
   const router = useRouter();
+  const pathname = usePathname();
+
+  // Subscribe to auth store
+  const isManualLogout = useAuthStore((s) => s.isManualLogout);
+  const setUser = useAuthStore((s) => s.setUser);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/sign-in");
+    // Prevent redirect loop when already on sign-in page
+    if (!pathname || pathname.startsWith("/sign-in")) {
+      setIsAuthChecking(false);
+      return;
     }
-  }, [router]);
+
+    // Prevent multiple simultaneous verification calls
+    if (isVerifying.current) return;
+    isVerifying.current = true;
+
+    const verifyAuth = () => {
+      // Consider token from store OR persisted token in localStorage
+      const storedToken =
+        typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+      // If no token at all, redirect immediately
+      if (!storedToken) {
+        if (!hasShownErrorRef.current && !isManualLogout) {
+          message.error(getErrorMessage("SESSION_EXPIRED"));
+          hasShownErrorRef.current = true;
+        }
+        router.push("/sign-in");
+        return;
+      }
+
+      // Have token - load user data from localStorage if available
+      try {
+        const storedMe = localStorage.getItem("me");
+        if (storedMe) {
+          const profile = JSON.parse(storedMe);
+          const existingToken = localStorage.getItem("token") || null;
+          const existingRefresh = localStorage.getItem("refresh_token") || null;
+
+          const userData = {
+            user_id: profile.user_id || null,
+            profile_id: profile.profile_id || null,
+            roles: profile.role_id ? [profile.role_id] : [],
+            token: existingToken,
+            refresh_token: existingRefresh,
+            expires_at: null,
+            session_id: null,
+            profile,
+            user: {
+              id: profile.user_id || null,
+              email: profile.email || null,
+              full_name: profile.full_name || null,
+              display_name: profile.display_name || null,
+              primary_phone: profile.primary_phone || null,
+              partner_id: profile.partner_id || null,
+              role_id: profile.role_id || null,
+            },
+          };
+
+          setUser(userData);
+        }
+      } catch (error) {
+        console.warn("Failed to parse stored user data:", error);
+      }
+
+      // Token exists, allow rendering
+      // Note: Token validation will happen when API calls are made
+      // If token is invalid, axios interceptor will handle logout
+      setIsAuthChecking(false);
+      isVerifying.current = false;
+    };
+
+    verifyAuth();
+  }, [pathname, router, isManualLogout, setUser]);
+
+  // Show loading screen while checking authentication to prevent data leakage
+  if (isAuthChecking) {
+    return <AuthLoading />;
+  }
 
   return (
     <div className="flex h-screen overflow-hidden">
