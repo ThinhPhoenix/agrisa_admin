@@ -195,8 +195,10 @@ export const CustomForm = forwardRef(function CustomForm(
               dropdownStyle={field.dropdownStyle}
               filterOption={
                 field.filterOption ||
-                ((input, option) =>
-                  option.children.toLowerCase().includes(input.toLowerCase()))
+                ((input, option) => {
+                  const text = option.children || option.label || '';
+                  return text.toLowerCase().includes(input.toLowerCase());
+                })
               }
               onChange={(value) => {
                 field?.onChange && field.onChange(value, form);
@@ -256,8 +258,10 @@ export const CustomForm = forwardRef(function CustomForm(
               loading={field.loading}
               filterOption={
                 field.filterOption ||
-                ((input, option) =>
-                  option.children.toLowerCase().includes(input.toLowerCase()))
+                ((input, option) => {
+                  const text = option.children || option.label || '';
+                  return text.toLowerCase().includes(input.toLowerCase());
+                })
               }
               onChange={(value) => {
                 field?.onChange && field.onChange(value, form);
@@ -684,8 +688,10 @@ export const CustomForm = forwardRef(function CustomForm(
               loading={field.loading}
               filterOption={
                 field.filterOption ||
-                ((input, option) =>
-                  option.children.toLowerCase().includes(input.toLowerCase()))
+                ((input, option) => {
+                  const text = option.children || option.label || '';
+                  return text.toLowerCase().includes(input.toLowerCase());
+                })
               }
               onChange={(value) => {
                 field?.onChange && field.onChange(value, form);

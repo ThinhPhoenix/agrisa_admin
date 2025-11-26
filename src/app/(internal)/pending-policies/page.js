@@ -3,6 +3,7 @@
 import SelectedColumn from "@/components/column-selector";
 import { CustomForm } from "@/components/custom-form";
 import CustomTable from "@/components/custom-table";
+import { useTableData } from "@/services/hooks/common/use-table-data";
 import { usePendingPolicies } from "@/services/hooks/policy/use-pending-policies";
 import {
   CheckCircleOutlined,
@@ -23,6 +24,7 @@ const { Title, Text } = Typography;
 
 export default function PendingPoliciesPage() {
   const {
+    data,
     filteredData,
     filterOptions,
     summaryStats,
@@ -42,6 +44,23 @@ export default function PendingPoliciesPage() {
     "validation_summary",
     "created_at",
   ]);
+
+  // Flatten RAW data (not filteredData) for searching - use data to avoid duplicate filtering
+  const flattenedData = (data || []).map(item => ({
+    ...item,
+    product_name: item.base_policy?.product_name || '',
+    product_code: item.base_policy?.product_code || '',
+    insurance_provider_id: item.base_policy?.insurance_provider_id || '',
+    crop_type: item.base_policy?.crop_type || '',
+    document_validation_status: item.base_policy?.document_validation_status || '',
+  }));
+
+  // Frontend table data hook - use RAW data instead of filteredData
+  const tableData = useTableData(flattenedData, {
+    searchFields: ['product_name', 'product_code', 'insurance_provider_id'],
+    defaultFilters: {},
+    pageSize: 10,
+  });
 
   // Loading state check
   if (loading) {
@@ -431,18 +450,11 @@ export default function PendingPoliciesPage() {
 
         <CustomTable
           columns={columns}
-          dataSource={filteredData}
+          dataSource={tableData.paginatedData}
           visibleColumns={visibleColumns}
           rowKey={(record) => record.base_policy?.id || Math.random()}
           scroll={{ x: 1400 }}
-          pagination={{
-            total: filteredData.length,
-            pageSize: 10,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total, range) =>
-              `${range[0]}-${range[1]} của ${total} policy`,
-          }}
+          pagination={tableData.paginationConfig}
         />
       </div>
     </Layout.Content>

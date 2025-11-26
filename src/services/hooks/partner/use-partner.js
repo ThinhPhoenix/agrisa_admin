@@ -338,19 +338,17 @@ export function usePartners(partnerId = null) {
     fetchProvinces();
   }, [fetchProvinces]);
 
-  // Filter options
+  // Filter options - use provinces from API instead of data
   const filterOptions = useMemo(() => {
-    const provinces = [...new Set(data.map((item) => item.province_name))].map(
-      (province) => ({
-        label: province,
-        value: province,
-      })
-    );
+    const provinceOptions = provinces.map((province) => ({
+      label: province.name || province.province_name,
+      value: province.name || province.province_name, // Use name for filtering
+    }));
 
     return {
-      provinces,
+      provinces: provinceOptions,
     };
-  }, [data]);
+  }, [provinces]);
 
   // Filtered data
   const filteredData = useMemo(() => {

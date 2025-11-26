@@ -4,6 +4,7 @@ import SelectedColumn from "@/components/column-selector";
 import { CustomForm } from "@/components/custom-form";
 import CustomTable from "@/components/custom-table";
 import { useAccounts } from "@/services/hooks/accounts/use-accounts";
+import { useTableData } from "@/services/hooks/common/use-table-data";
 import {
   CheckCircleOutlined,
   DownloadOutlined,
@@ -33,6 +34,7 @@ const { Title, Text } = Typography;
 
 export default function AccountsPage() {
   const {
+    data,
     filteredData,
     filterOptions,
     summaryStats,
@@ -50,6 +52,16 @@ export default function AccountsPage() {
     "last_login",
   ]);
 
+  // Frontend table data hook - use RAW data instead of filteredData
+  const tableData = useTableData(data, {
+    searchFields: ["username", "full_name", "email"],
+    defaultFilters: {
+      role: "",
+      status: "",
+    },
+    pageSize: 10,
+  });
+
   // Loading state check
   if (loading) {
     return (
@@ -61,14 +73,14 @@ export default function AccountsPage() {
     );
   }
 
-  // Handle form submit
+  // Handle form submit - use tableData handlers instead of hook's updateFilters
   const handleFormSubmit = (formData) => {
-    updateFilters(formData);
+    tableData.handleFormSubmit(formData);
   };
 
-  // Handle clear filters
+  // Handle clear filters - use tableData handlers instead of hook's clearFilters
   const handleClearFilters = () => {
-    clearFilters();
+    tableData.handleClearFilters();
   };
 
   // Get status color
@@ -205,18 +217,11 @@ export default function AccountsPage() {
   const searchFields = [
     // First row - Main filters (3 fields)
     {
-      name: "username",
-      label: "Tên đăng nhập",
+      name: "search",
+      label: "Tìm kiếm",
       type: "input",
-      placeholder: "Tìm kiếm theo username...",
-      value: filters.username,
-    },
-    {
-      name: "email",
-      label: "Email",
-      type: "input",
-      placeholder: "Tìm kiếm theo email...",
-      value: filters.email,
+      placeholder: "Tìm kiếm theo tên đăng kí, họ tên, email...",
+      value: tableData.searchText,
     },
     {
       name: "role",
@@ -224,16 +229,22 @@ export default function AccountsPage() {
       type: "combobox",
       placeholder: "Chọn vai trò",
       options: filterOptions.roles,
-      value: filters.role,
+      value: tableData.filters.role,
     },
-    // Second row - Additional filters and actions (4 fields)
     {
       name: "status",
       label: "Trạng thái",
       type: "combobox",
       placeholder: "Chọn trạng thái",
       options: filterOptions.statuses,
-      value: filters.status,
+      value: tableData.filters.status,
+    },
+    // Second row - Additional filters and actions (2 buttons)
+    {
+      name: "spacer",
+      type: "custom",
+      label: "",
+      render: () => <div />,
     },
     {
       name: "searchButton",
@@ -329,22 +340,12 @@ export default function AccountsPage() {
                 ),
                 children: (
                   <div className="accounts-filter-form">
-                    <div className="space-y-4">
-                      {/* First row - Main filters */}
-                      <CustomForm
-                        fields={searchFields.slice(0, 3)}
-                        gridColumns="1fr 1fr 1fr"
-                        gap="16px"
-                        onSubmit={handleFormSubmit}
-                      />
-                      {/* Second row - Additional filters and actions */}
-                      <CustomForm
-                        fields={searchFields.slice(3)}
-                        gridColumns="1fr 1fr 1fr"
-                        gap="16px"
-                        onSubmit={handleFormSubmit}
-                      />
-                    </div>
+                    <CustomForm
+                      fields={searchFields}
+                      gridColumns="1fr 1fr 1fr"
+                      gap="16px"
+                      onSubmit={handleFormSubmit}
+                    />
                   </div>
                 ),
               },
@@ -370,18 +371,11 @@ export default function AccountsPage() {
 
         <CustomTable
           columns={columns}
-          dataSource={filteredData}
+          dataSource={tableData.paginatedData}
           visibleColumns={visibleColumns}
           rowKey="id"
           scroll={{ x: 1200 }}
-          pagination={{
-            total: filteredData.length,
-            pageSize: 10,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total, range) =>
-              `${range[0]}-${range[1]} của ${total} tài khoản`,
-          }}
+          pagination={tableData.paginationConfig}
         />
       </div>
     </Layout.Content>

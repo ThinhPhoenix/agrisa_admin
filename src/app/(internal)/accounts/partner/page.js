@@ -3,6 +3,7 @@
 import SelectedColumn from "@/components/column-selector";
 import { CustomForm } from "@/components/custom-form";
 import CustomTable from "@/components/custom-table";
+import { useTableData } from "@/services/hooks/common/use-table-data";
 import { usePartners } from "@/services/hooks/partner/use-partner";
 import {
   BankOutlined,
@@ -20,6 +21,7 @@ const { Title, Text } = Typography;
 
 export default function PartnersPage() {
   const {
+    data,
     filteredData,
     filterOptions,
     summaryStats,
@@ -41,6 +43,15 @@ export default function PartnersPage() {
     "claim_rate",
   ]);
 
+  // Frontend table data hook - use RAW data instead of filteredData
+  const tableData = useTableData(data, {
+    searchFields: ['partner_display_name', 'partner_phone', 'partner_official_email', 'hotline', 'province_name'],
+    defaultFilters: {
+      province_name: '',
+    },
+    pageSize: 10,
+  });
+
   if (loading) {
     return (
       <Layout.Content className="partner-content">
@@ -52,11 +63,11 @@ export default function PartnersPage() {
   }
 
   const handleFormSubmit = (formData) => {
-    updateFilters(formData);
+    tableData.handleFormSubmit(formData);
   };
 
   const handleClearFilters = () => {
-    clearFilters();
+    tableData.handleClearFilters();
   };
 
   const columns = [
@@ -153,18 +164,11 @@ export default function PartnersPage() {
 
   const searchFields = [
     {
-      name: "partner_display_name",
-      label: "Tên đối tác",
+      name: "search",
+      label: "Tìm kiếm",
       type: "input",
-      placeholder: "Tìm kiếm theo tên đối tác...",
-      value: filters.partner_display_name,
-    },
-    {
-      name: "partner_phone",
-      label: "Số điện thoại",
-      type: "input",
-      placeholder: "Tìm kiếm theo số điện thoại...",
-      value: filters.partner_phone,
+      placeholder: "Tìm kiếm theo tên, email, điện thoại...",
+      value: tableData.searchText,
     },
     {
       name: "province_name",
@@ -172,14 +176,13 @@ export default function PartnersPage() {
       type: "combobox",
       placeholder: "Chọn tỉnh/thành phố",
       options: filterOptions.provinces,
-      value: filters.province_name,
+      value: tableData.filters.province_name,
     },
     {
-      name: "partner_email",
-      label: "Email",
-      type: "input",
-      placeholder: "Tìm kiếm theo email...",
-      value: filters.partner_email,
+      name: "spacer",
+      type: "custom",
+      label: "",
+      render: () => <div />,
     },
     {
       name: "searchButton",
@@ -261,20 +264,12 @@ export default function PartnersPage() {
                 ),
                 children: (
                   <div className="partner-filter-form">
-                    <div className="space-y-4">
-                      <CustomForm
-                        fields={searchFields.slice(0, 3)}
-                        gridColumns="1fr 1fr 1fr"
-                        gap="16px"
-                        onSubmit={handleFormSubmit}
-                      />
-                      <CustomForm
-                        fields={searchFields.slice(3)}
-                        gridColumns="1fr 1fr 1fr"
-                        gap="16px"
-                        onSubmit={handleFormSubmit}
-                      />
-                    </div>
+                    <CustomForm
+                      fields={searchFields}
+                      gridColumns="1fr 1fr 1fr"
+                      gap="16px"
+                      onSubmit={handleFormSubmit}
+                    />
                   </div>
                 ),
               },
@@ -299,18 +294,11 @@ export default function PartnersPage() {
 
         <CustomTable
           columns={columns}
-          dataSource={filteredData}
+          dataSource={tableData.paginatedData}
           visibleColumns={visibleColumns}
           rowKey="partner_id"
           scroll={{ x: 1400 }}
-          pagination={{
-            total: filteredData.length,
-            pageSize: 10,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total, range) =>
-              `${range[0]}-${range[1]} của ${total} đối tác`,
-          }}
+          pagination={tableData.paginationConfig}
         />
       </div>
     </Layout.Content>
