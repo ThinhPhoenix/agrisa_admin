@@ -8,6 +8,8 @@ export function usePolicyDetail(policyId) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [farmData, setFarmData] = useState(null);
+  const [loadingFarm, setLoadingFarm] = useState(false);
   const [monitoringData, setMonitoringData] = useState([]);
   const [loadingMonitoring, setLoadingMonitoring] = useState(false);
 
@@ -51,6 +53,31 @@ export function usePolicyDetail(policyId) {
     }
   }, [policyId]);
 
+  // Fetch farm data
+  const fetchFarmData = useCallback(async (farmId) => {
+    if (!farmId) return;
+
+    try {
+      setLoadingFarm(true);
+      const response = await axiosInstance.get(
+        endpoints.policy.farm.detail(farmId)
+      );
+
+      if (response.data?.success && response.data?.data) {
+        setFarmData(response.data.data);
+      } else if (response.data) {
+        setFarmData(response.data);
+      } else {
+        setFarmData(null);
+      }
+    } catch (err) {
+      console.error("Error fetching farm data:", err);
+      setFarmData(null);
+    } finally {
+      setLoadingFarm(false);
+    }
+  }, []);
+
   // Fetch monitoring data for the farm
   const fetchMonitoringData = useCallback(async (farmId, startTimestamp, endTimestamp) => {
     if (!farmId) return;
@@ -88,12 +115,13 @@ export function usePolicyDetail(policyId) {
     }
   }, []);
 
-  // Auto-fetch monitoring data when policy detail is loaded
+  // Auto-fetch farm and monitoring data when policy detail is loaded
   useEffect(() => {
     if (data?.farm_id) {
+      fetchFarmData(data.farm_id);
       fetchMonitoringData(data.farm_id);
     }
-  }, [data?.farm_id, fetchMonitoringData]);
+  }, [data?.farm_id, fetchFarmData, fetchMonitoringData]);
 
   // Fetch policy detail on mount or when policyId changes
   useEffect(() => {
@@ -147,9 +175,12 @@ export function usePolicyDetail(policyId) {
     data,
     loading,
     error,
+    farmData,
+    loadingFarm,
     monitoringData,
     loadingMonitoring,
     refetch: fetchPolicyDetail,
+    fetchFarmData,
     fetchMonitoringData,
     // Helper functions
     formatCurrency,

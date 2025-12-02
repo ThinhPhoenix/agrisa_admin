@@ -150,11 +150,20 @@ export default function ClaimDetailPage() {
         </div>
 
         {/* Basic Info Card */}
-        <Card className="claim-detail-card">
-          <Title level={4} className="claim-detail-section-title">
-            <SafetyOutlined /> {claimMessage.detail.basicInfo}
-          </Title>
-          <Descriptions column={{ xs: 1, sm: 2, md: 3 }} bordered>
+        <Card
+          className="claim-detail-card"
+          style={{
+            backgroundColor: "#fefcf5",
+            borderColor: "#e5e7eb",
+          }}
+        >
+          <div className="flex items-center gap-2 mb-4">
+            <SafetyOutlined className="text-lg text-blue-500" />
+            <Title level={5} className="mb-0">
+              {claimMessage.detail.basicInfo}
+            </Title>
+          </div>
+          <Descriptions column={{ xs: 1, sm: 2, md: 3 }} bordered size="small">
             <Descriptions.Item label={claimMessage.fields.claimNumber}>
               <strong>{claim.claim_number}</strong>
             </Descriptions.Item>
@@ -188,11 +197,20 @@ export default function ClaimDetailPage() {
         </Card>
 
         {/* Payout Calculation Card */}
-        <Card className="claim-detail-card">
-          <Title level={4} className="claim-detail-section-title">
-            <DollarOutlined /> {claimMessage.detail.payoutCalculation}
-          </Title>
-          <Descriptions column={{ xs: 1, sm: 2, md: 3 }} bordered>
+        <Card
+          className="claim-detail-card"
+          style={{
+            backgroundColor: "#fefcf5",
+            borderColor: "#e5e7eb",
+          }}
+        >
+          <div className="flex items-center gap-2 mb-4">
+            <DollarOutlined className="text-lg text-green-500" />
+            <Title level={5} className="mb-0">
+              {claimMessage.detail.payoutCalculation}
+            </Title>
+          </div>
+          <Descriptions column={{ xs: 1, sm: 2, md: 3 }} bordered size="small">
             <Descriptions.Item label={claimMessage.fields.claimAmount}>
               <strong className="text-xl text-blue-600">
                 {formatCurrency(claim.claim_amount)}
@@ -211,11 +229,20 @@ export default function ClaimDetailPage() {
         </Card>
 
         {/* Review Info Card */}
-        <Card className="claim-detail-card">
-          <Title level={4} className="claim-detail-section-title">
-            <CheckCircleOutlined /> {claimMessage.detail.reviewInfo}
-          </Title>
-          <Descriptions column={{ xs: 1, sm: 2 }} bordered>
+        <Card
+          className="claim-detail-card"
+          style={{
+            backgroundColor: "#fefcf5",
+            borderColor: "#e5e7eb",
+          }}
+        >
+          <div className="flex items-center gap-2 mb-4">
+            <CheckCircleOutlined className="text-lg text-orange-500" />
+            <Title level={5} className="mb-0">
+              {claimMessage.detail.reviewInfo}
+            </Title>
+          </div>
+          <Descriptions column={{ xs: 1, sm: 2 }} bordered size="small">
             <Descriptions.Item label={claimMessage.fields.partnerDecision}>
               {claim.partner_decision ? (
                 <Tag color={claim.partner_decision === "approved" ? "green" : "red"}>
@@ -251,11 +278,20 @@ export default function ClaimDetailPage() {
 
         {/* Evidence Info Card */}
         {claim.evidence_summary && (
-          <Card className="claim-detail-card">
-            <Title level={4} className="claim-detail-section-title">
-              <FileTextOutlined /> {claimMessage.detail.evidenceInfo}
-            </Title>
-            <Descriptions column={{ xs: 1, sm: 2, md: 3 }} bordered>
+          <Card
+            className="claim-detail-card"
+            style={{
+              backgroundColor: "#fefcf5",
+              borderColor: "#e5e7eb",
+            }}
+          >
+            <div className="flex items-center gap-2 mb-4">
+              <FileTextOutlined className="text-lg text-green-600" />
+              <Title level={5} className="mb-0">
+                {claimMessage.detail.evidenceInfo}
+              </Title>
+            </div>
+            <Descriptions column={{ xs: 1, sm: 2, md: 3 }} bordered size="small">
               <Descriptions.Item label={claimMessage.fields.triggeredAt}>
                 {formatDateTime(claim.evidence_summary.triggered_at)}
               </Descriptions.Item>
@@ -283,6 +319,8 @@ export default function ClaimDetailPage() {
                   rowKey={(record) => record.condition_id || Math.random()}
                   pagination={false}
                   scroll={{ x: 800 }}
+                  size="small"
+                  bordered
                 />
               </div>
             )}
