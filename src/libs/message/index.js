@@ -55,6 +55,8 @@ export {
   getTierInfo,
   parseDataSourceError,
 } from "./data-source-message.js";
+export { policyMessage } from "./policy-message.js";
+export { claimMessage } from "./claim-message.js";
 
 // Re-export with clearer names for easier usage
 export { SIGNIN_MESSAGES as SignInMessages } from "./auth-message.js";

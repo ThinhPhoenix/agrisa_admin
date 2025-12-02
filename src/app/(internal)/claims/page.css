@@ -1,0 +1,127 @@
+/* Claim Management Page Styles */
+.claim-content {
+  @apply p-6 min-h-screen;
+}
+
+.claim-space {
+  @apply space-y-6;
+}
+
+.claim-header {
+  @apply flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6;
+}
+
+.claim-title {
+  @apply text-2xl font-bold text-gray-800 mb-0 flex items-center gap-2;
+}
+
+.claim-icon {
+  @apply text-blue-600;
+}
+
+.claim-subtitle {
+  @apply text-sm text-gray-600 mt-1;
+}
+
+.claim-loading {
+  @apply flex justify-center items-center min-h-[400px];
+}
+
+/* Summary Cards */
+.claim-summary-row {
+  @apply grid grid-cols-2 md:grid-cols-4 gap-4 mb-6;
+}
+
+.claim-summary-card-compact {
+  @apply bg-white rounded-lg border border-gray-200 p-4 flex items-center gap-3;
+}
+
+.claim-summary-content {
+  @apply flex-1;
+}
+
+.claim-summary-value-compact {
+  @apply text-xl font-bold text-gray-800 mb-1 leading-tight;
+}
+
+.claim-summary-label-compact {
+  @apply text-sm text-gray-600 leading-tight;
+}
+
+.claim-summary-icon {
+  @apply w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-lg font-bold;
+}
+
+.claim-summary-icon.total {
+  @apply bg-blue-100 text-blue-600;
+}
+
+.claim-summary-icon.pending {
+  @apply bg-orange-100 text-orange-600;
+}
+
+.claim-summary-icon.approved {
+  @apply bg-green-100 text-green-600;
+}
+
+.claim-summary-icon.paid {
+  @apply bg-purple-100 text-purple-600;
+}
+
+.claim-filter-form {
+  @apply p-4;
+}
+
+.claim-actions-cell {
+  @apply flex gap-1;
+}
+
+.claim-action-btn {
+  @apply flex items-center justify-center;
+}
+
+/* Detail Page */
+.claim-detail-content {
+  @apply p-6 min-h-screen;
+}
+
+.claim-detail-space {
+  @apply space-y-6;
+}
+
+.claim-detail-card {
+  @apply bg-white rounded-lg border border-gray-200 p-6;
+}
+
+.claim-detail-section-title {
+  @apply text-lg font-semibold text-gray-800 mb-4 pb-2 border-b-2 border-blue-500;
+}
+
+.claim-detail-row {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4;
+}
+
+.claim-detail-item {
+  @apply flex flex-col gap-1;
+}
+
+.claim-detail-label {
+  @apply text-sm font-medium text-gray-600;
+}
+
+.claim-detail-value {
+  @apply text-base text-gray-900;
+}
+
+.claim-detail-value-highlight {
+  @apply text-lg font-semibold text-blue-600;
+}
+
+/* Evidence Table */
+.claim-evidence-table {
+  @apply mt-4;
+}
+
+.claim-evidence-empty {
+  @apply text-center py-8 text-gray-500;
+}

@@ -5,7 +5,7 @@ import BasicInfoTab from "@/components/layout/policy/detail/BasicInfoTab";
 import ConfigurationInfoTab from "@/components/layout/policy/detail/ConfigurationInfoTab";
 import TagsInfoTab from "@/components/layout/policy/detail/TagsInfoTab";
 import ValidationFormModal from "@/components/layout/policy/detail/ValidationFormModal";
-import { usePendingPolicies } from "@/services/hooks/policy/use-pending-policies";
+import { usePendingPolicies } from "@/services/hooks/base-policy/use-pending-base-policies";
 import {
   CheckCircleOutlined,
   ClockCircleOutlined,

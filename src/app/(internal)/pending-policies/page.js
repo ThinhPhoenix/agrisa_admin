@@ -3,8 +3,8 @@
 import SelectedColumn from "@/components/column-selector";
 import { CustomForm } from "@/components/custom-form";
 import CustomTable from "@/components/custom-table";
+import { usePendingPolicies } from "@/services/hooks/base-policy/use-pending-base-policies";
 import { useTableData } from "@/services/hooks/common/use-table-data";
-import { usePendingPolicies } from "@/services/hooks/policy/use-pending-policies";
 import {
   CheckCircleOutlined,
   ClockCircleOutlined,
@@ -46,18 +46,19 @@ export default function PendingPoliciesPage() {
   ]);
 
   // Flatten RAW data (not filteredData) for searching - use data to avoid duplicate filtering
-  const flattenedData = (data || []).map(item => ({
+  const flattenedData = (data || []).map((item) => ({
     ...item,
-    product_name: item.base_policy?.product_name || '',
-    product_code: item.base_policy?.product_code || '',
-    insurance_provider_id: item.base_policy?.insurance_provider_id || '',
-    crop_type: item.base_policy?.crop_type || '',
-    document_validation_status: item.base_policy?.document_validation_status || '',
+    product_name: item.base_policy?.product_name || "",
+    product_code: item.base_policy?.product_code || "",
+    insurance_provider_id: item.base_policy?.insurance_provider_id || "",
+    crop_type: item.base_policy?.crop_type || "",
+    document_validation_status:
+      item.base_policy?.document_validation_status || "",
   }));
 
   // Frontend table data hook - use RAW data instead of filteredData
   const tableData = useTableData(flattenedData, {
-    searchFields: ['product_name', 'product_code', 'insurance_provider_id'],
+    searchFields: ["product_name", "product_code", "insurance_provider_id"],
     defaultFilters: {},
     pageSize: 10,
   });
@@ -111,9 +112,21 @@ export default function PendingPoliciesPage() {
   // Get validation status config
   const getValidationStatusConfig = (status) => {
     const configs = {
-      pending: { color: "orange", icon: <ClockCircleOutlined />, text: "Chờ duyệt" },
-      passed_ai: { color: "cyan", icon: <CheckCircleOutlined />, text: "AI duyệt" },
-      passed: { color: "green", icon: <CheckCircleOutlined />, text: "Đã duyệt" },
+      pending: {
+        color: "orange",
+        icon: <ClockCircleOutlined />,
+        text: "Chờ duyệt",
+      },
+      passed_ai: {
+        color: "cyan",
+        icon: <CheckCircleOutlined />,
+        text: "AI duyệt",
+      },
+      passed: {
+        color: "green",
+        icon: <CheckCircleOutlined />,
+        text: "Đã duyệt",
+      },
       failed: { color: "red", icon: <CloseCircleOutlined />, text: "Thất bại" },
       warning: { color: "gold", icon: <WarningOutlined />, text: "Cảnh báo" },
     };

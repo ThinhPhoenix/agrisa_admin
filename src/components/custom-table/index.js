@@ -7,6 +7,9 @@ const CustomTable = ({
   scroll,
   pageSizeOptions = ["10", "20", "50", "100"],
   visibleColumns, // Array of dataIndex to show
+  rowSelection, // Row selection config
+  rowKey, // Row key for selection
+  ...restProps // Pass through any other props
 }) => {
   // Filter columns based on visibleColumns if provided
   const filteredColumns = visibleColumns
@@ -28,18 +31,23 @@ const CustomTable = ({
         columns={filteredColumns}
         scroll={scroll ?? { x: "100%" }}
         tableLayout="auto"
+        rowSelection={rowSelection}
+        rowKey={rowKey}
         pagination={
-          pagination
-            ? {
+          pagination === false
+            ? false
+            : typeof pagination === "object"
+            ? { ...pagination, position: ["bottomCenter"] }
+            : {
                 pageSize: 10,
                 showSizeChanger: true,
                 pageSizeOptions: pageSizeOptions,
                 showTotal: (total, range) =>
-                  `${range[0]}-${range[1]} of ${total} items`,
+                  `${range[0]}-${range[1]} của ${total} mục`,
                 position: ["bottomCenter"],
               }
-            : false
         }
+        {...restProps}
       />
     </div>
   );

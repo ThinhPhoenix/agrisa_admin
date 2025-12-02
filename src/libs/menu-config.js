@@ -22,6 +22,14 @@ export const sidebarMenuItems = [
     label: "Chính sách đang chờ duyệt",
   },
   {
+    key: "policies",
+    label: "Quản lý đơn bảo hiểm",
+  },
+  {
+    key: "claims",
+    label: "Quản lý bồi thường",
+  },
+  {
     key: "data",
     label: "Quản lý dữ liệu",
     children: [

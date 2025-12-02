@@ -46,6 +46,29 @@ export const endpoints = {
       get_draft_filter: "/policy/protected/api/v2/base-policies/draft/filter",
       validate: "/policy/protected/api/v2/base-policies/validate",
     },
+    registered_policy: {
+      list: "/policy/protected/api/v2/policies/read-all/list",
+      detail: (policy_id) =>
+        `/policy/protected/api/v2/policies/read-all/detail/${policy_id}`,
+      stats: "/policy/protected/api/v2/policies/read-all/stats",
+      filter: "/policy/protected/api/v2/policies/read-all/filter",
+      monitoring_data: "/policy/protected/api/v2/policies/read-all/monitoring-data",
+      monitoring_data_by_farm: (farm_id) =>
+        `/policy/protected/api/v2/policies/read-all/monitoring-data/${farm_id}`,
+      update_status: (policy_id) =>
+        `/policy/protected/api/v2/policies/update-any/status/${policy_id}`,
+      update_underwriting: (policy_id) =>
+        `/policy/protected/api/v2/policies/update-any/underwriting/${policy_id}`,
+    },
+    claim: {
+      list: "/policy/protected/api/v2/claims/read-all/list",
+      detail: (claim_id) =>
+        `/policy/protected/api/v2/claims/read-all/detail/${claim_id}`,
+      by_policy: (policy_id) =>
+        `/policy/protected/api/v2/claims/read-all/by-policy/${policy_id}`,
+      by_farm: (farm_id) =>
+        `/policy/protected/api/v2/claims/read-all/by-farm/${farm_id}`,
+    },
   },
   partner: {
     list: "/profile/public/api/v1/insurance-partners",
