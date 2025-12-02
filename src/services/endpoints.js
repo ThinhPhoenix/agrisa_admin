@@ -45,6 +45,7 @@ export const endpoints = {
     base_policy: {
       get_draft_filter: "/policy/protected/api/v2/base-policies/draft/filter",
       validate: "/policy/protected/api/v2/base-policies/validate",
+      detail: "/policy/protected/api/v2/base-policies/detail",
     },
     farm: {
       detail: (farm_id) => `/policy/protected/api/v2/farms/${farm_id}`,

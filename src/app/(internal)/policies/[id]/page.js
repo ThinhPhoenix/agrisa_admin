@@ -39,8 +39,12 @@ export default function PolicyDetailPage() {
     data: policy,
     loading,
     farmData,
+    basePolicyData,
+    loadingBasePolicy,
     monitoringData,
     loadingMonitoring,
+    dataSourceNames,
+    loadingDataSources,
     refetch,
     formatCurrency,
     formatDate,
@@ -158,8 +162,11 @@ export default function PolicyDetailPage() {
       ),
       children: (
         <BasePolicyTab
-          basePolicy={policy.base_policy}
+          basePolicy={basePolicyData || policy.base_policy}
+          loadingBasePolicy={loadingBasePolicy}
           formatCurrency={formatCurrency}
+          dataSourceNames={dataSourceNames}
+          loadingDataSources={loadingDataSources}
         />
       ),
     },

@@ -10,8 +10,12 @@ export function usePolicyDetail(policyId) {
   const [error, setError] = useState(null);
   const [farmData, setFarmData] = useState(null);
   const [loadingFarm, setLoadingFarm] = useState(false);
+  const [basePolicyData, setBasePolicyData] = useState(null);
+  const [loadingBasePolicy, setLoadingBasePolicy] = useState(false);
   const [monitoringData, setMonitoringData] = useState([]);
   const [loadingMonitoring, setLoadingMonitoring] = useState(false);
+  const [dataSourceNames, setDataSourceNames] = useState({});
+  const [loadingDataSources, setLoadingDataSources] = useState(false);
 
   // Fetch policy detail
   const fetchPolicyDetail = useCallback(async () => {
@@ -78,6 +82,37 @@ export function usePolicyDetail(policyId) {
     }
   }, []);
 
+  // Fetch base policy data
+  const fetchBasePolicyData = useCallback(async (basePolicyId, providerId) => {
+    if (!basePolicyId || !providerId) return;
+
+    try {
+      setLoadingBasePolicy(true);
+      const params = new URLSearchParams({
+        id: basePolicyId,
+        provider_id: providerId,
+        include_pdf: "true",
+      });
+
+      const response = await axiosInstance.get(
+        `${endpoints.policy.base_policy.detail}?${params.toString()}`
+      );
+
+      if (response.data?.success && response.data?.data) {
+        setBasePolicyData(response.data.data);
+      } else if (response.data) {
+        setBasePolicyData(response.data);
+      } else {
+        setBasePolicyData(null);
+      }
+    } catch (err) {
+      console.error("Error fetching base policy data:", err);
+      setBasePolicyData(null);
+    } finally {
+      setLoadingBasePolicy(false);
+    }
+  }, []);
+
   // Fetch monitoring data for the farm
   const fetchMonitoringData = useCallback(async (farmId, startTimestamp, endTimestamp) => {
     if (!farmId) return;
@@ -115,13 +150,74 @@ export function usePolicyDetail(policyId) {
     }
   }, []);
 
-  // Auto-fetch farm and monitoring data when policy detail is loaded
+  // Fetch data source names from triggers
+  const fetchDataSourceNames = useCallback(async (triggers) => {
+    if (!triggers || triggers.length === 0) return;
+
+    const dataSourceIds = new Set();
+    triggers.forEach((trigger) => {
+      trigger.conditions?.forEach((condition) => {
+        if (condition.data_source_id) {
+          dataSourceIds.add(condition.data_source_id);
+        }
+      });
+    });
+
+    if (dataSourceIds.size === 0) return;
+
+    setLoadingDataSources(true);
+    const names = {};
+
+    try {
+      await Promise.all(
+        Array.from(dataSourceIds).map(async (id) => {
+          try {
+            const response = await axiosInstance.get(
+              endpoints.policy.data_tier.data_source.get_one(id)
+            );
+
+            let sourceData = response.data;
+            if (response.data?.success && response.data?.data) {
+              sourceData = response.data.data;
+            }
+
+            if (sourceData?.source_name) {
+              names[id] = sourceData.source_name;
+            } else if (sourceData?.display_name_vi) {
+              names[id] = sourceData.display_name_vi;
+            } else {
+              names[id] = id;
+            }
+          } catch (err) {
+            console.error(`Error fetching data source ${id}:`, err);
+            names[id] = id;
+          }
+        })
+      );
+
+      setDataSourceNames(names);
+    } finally {
+      setLoadingDataSources(false);
+    }
+  }, []);
+
+  // Auto-fetch farm, base policy and monitoring data when policy detail is loaded
   useEffect(() => {
     if (data?.farm_id) {
       fetchFarmData(data.farm_id);
       fetchMonitoringData(data.farm_id);
     }
-  }, [data?.farm_id, fetchFarmData, fetchMonitoringData]);
+    if (data?.base_policy_id && data?.insurance_provider_id) {
+      fetchBasePolicyData(data.base_policy_id, data.insurance_provider_id);
+    }
+  }, [data?.farm_id, data?.base_policy_id, data?.insurance_provider_id, fetchFarmData, fetchMonitoringData, fetchBasePolicyData]);
+
+  // Auto-fetch data source names when base policy data is loaded
+  useEffect(() => {
+    if (basePolicyData?.triggers) {
+      fetchDataSourceNames(basePolicyData.triggers);
+    }
+  }, [basePolicyData?.triggers, fetchDataSourceNames]);
 
   // Fetch policy detail on mount or when policyId changes
   useEffect(() => {
@@ -177,10 +273,15 @@ export function usePolicyDetail(policyId) {
     error,
     farmData,
     loadingFarm,
+    basePolicyData,
+    loadingBasePolicy,
     monitoringData,
     loadingMonitoring,
+    dataSourceNames,
+    loadingDataSources,
     refetch: fetchPolicyDetail,
     fetchFarmData,
+    fetchBasePolicyData,
     fetchMonitoringData,
     // Helper functions
     formatCurrency,
