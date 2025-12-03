@@ -227,11 +227,14 @@ export const claimMessage = {
     helpText: {
       title: "Hướng dẫn sử dụng",
       step1: "1. Tìm kiếm và chọn đơn bảo hiểm cần test từ danh sách",
-      step2: "2. Chọn điều kiện kích hoạt từ policy (tự động load sau khi chọn đơn)",
-      step3: "3. Chọn Data Source để tự động điền tên tham số, đơn vị và nguồn đo",
+      step2:
+        "2. Chọn điều kiện kích hoạt từ policy (tự động load sau khi chọn đơn)",
+      step3:
+        "3. Chọn Data Source để tự động điền tên tham số, đơn vị và nguồn đo",
       step4:
         "4. Nhập giá trị đo (phải vượt ngưỡng trong điều kiện để tạo claim)",
-      step5: "5. Chọn ngày giờ đo dữ liệu (sẽ tự động chuyển sang Unix timestamp)",
+      step5:
+        "5. Chọn ngày giờ đo dữ liệu (sẽ tự động chuyển sang Unix timestamp)",
       note: "Lưu ý: Chọn Data Source để tự động điền thông tin, hoặc có thể nhập thủ công. Chỉ tạo claim nếu giá trị đo vượt ngưỡng.",
     },
   },

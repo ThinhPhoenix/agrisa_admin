@@ -1,11 +1,11 @@
 "use client";
 
 import { CustomForm } from "@/components/custom-form";
+import axiosInstance from "@/libs/axios-instance";
 import { claimMessage } from "@/libs/message";
+import { endpoints } from "@/services/endpoints";
 import { useTestTrigger } from "@/services/hooks/claim/use-test-trigger";
 import { usePolicies } from "@/services/hooks/policy";
-import axiosInstance from "@/libs/axios-instance";
-import { endpoints } from "@/services/endpoints";
 import {
   ArrowLeftOutlined,
   CheckCircleOutlined,
@@ -17,11 +17,20 @@ import {
   PlusOutlined,
   ReloadOutlined,
 } from "@ant-design/icons";
-import { Alert, Button, Card, Divider, Layout, Space, Typography, message as antMessage } from "antd";
+import {
+  Alert,
+  Button,
+  Card,
+  Divider,
+  Layout,
+  Space,
+  Typography,
+  message as antMessage,
+} from "antd";
+import dayjs from "dayjs";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState, useEffect } from "react";
-import dayjs from "dayjs";
+import { useEffect, useRef, useState } from "react";
 import "./page.css";
 
 const { Title, Text } = Typography;
@@ -44,7 +53,8 @@ function ConditionForm({
   useEffect(() => {
     if (conditionFormRef.current) {
       conditionFormRef.current.setFieldsValue({
-        [`condition_id_${condition.id}`]: condition.base_policy_trigger_condition_id,
+        [`condition_id_${condition.id}`]:
+          condition.base_policy_trigger_condition_id,
         [`data_source_${condition.id}`]: condition.data_source_id,
         [`parameter_${condition.id}`]: condition.parameter_name,
         [`measured_value_${condition.id}`]: condition.measured_value,
@@ -86,7 +96,8 @@ function ConditionForm({
       showSearch: true,
       loading: loadingConditions,
       disabled: !selectedPolicyId || loadingConditions,
-      tooltip: "Chọn điều kiện kích hoạt - thông tin data source sẽ được tự động điền",
+      tooltip:
+        "Chọn điều kiện kích hoạt - thông tin data source sẽ được tự động điền",
     },
     {
       name: `parameter_${condition.id}`,
@@ -293,19 +304,31 @@ export default function TestTriggerPage() {
                   if (condition.data_source_id) {
                     try {
                       const dsResponse = await axiosInstance.get(
-                        endpoints.policy.data_tier.data_source.get_one(condition.data_source_id)
+                        endpoints.policy.data_tier.data_source.get_one(
+                          condition.data_source_id
+                        )
                       );
                       if (dsResponse.data?.success && dsResponse.data?.data) {
                         dataSourceInfo = dsResponse.data.data;
                       }
                     } catch (dsError) {
-                      console.warn(`Failed to fetch data source ${condition.data_source_id}:`, dsError);
+                      console.warn(
+                        `Failed to fetch data source ${condition.data_source_id}:`,
+                        dsError
+                      );
                     }
                   }
 
                   const label = dataSourceInfo
-                    ? `${dataSourceInfo.display_name_vi || dataSourceInfo.parameter_name} ${condition.threshold_operator || ""} ${condition.threshold_value || ""}`
-                    : `${condition.threshold_operator || ""} ${condition.threshold_value || ""} (${trigger.growth_stage || "Trigger"})`;
+                    ? `${
+                        dataSourceInfo.display_name_vi ||
+                        dataSourceInfo.parameter_name
+                      } ${condition.threshold_operator || ""} ${
+                        condition.threshold_value || ""
+                      }`
+                    : `${condition.threshold_operator || ""} ${
+                        condition.threshold_value || ""
+                      } (${trigger.growth_stage || "Trigger"})`;
 
                   allConditions.push({
                     value: condition.id,
@@ -410,12 +433,20 @@ export default function TestTriggerPage() {
                 parameter_name: dataSource.parameter_name || "",
                 unit: dataSource.unit || "",
                 measurement_source: dataSource.data_provider || "",
-                confidence_score: dataSource.accuracy_rating !== undefined ? dataSource.accuracy_rating : 0.95,
-                data_quality: dataSource.accuracy_rating !== undefined
-                  ? (dataSource.accuracy_rating >= 0.95 ? "excellent" :
-                     dataSource.accuracy_rating >= 0.9 ? "good" :
-                     dataSource.accuracy_rating >= 0.8 ? "fair" : "poor")
-                  : "good",
+                confidence_score:
+                  dataSource.accuracy_rating !== undefined
+                    ? dataSource.accuracy_rating
+                    : 0.95,
+                data_quality:
+                  dataSource.accuracy_rating !== undefined
+                    ? dataSource.accuracy_rating >= 0.95
+                      ? "excellent"
+                      : dataSource.accuracy_rating >= 0.9
+                      ? "good"
+                      : dataSource.accuracy_rating >= 0.8
+                      ? "fair"
+                      : "poor"
+                    : "good",
               };
             }
             return c;
@@ -423,7 +454,9 @@ export default function TestTriggerPage() {
         );
 
         antMessage.success(
-          `Đã tự động điền thông tin từ data source "${dataSource.display_name_vi || dataSource.parameter_name}"`
+          `Đã tự động điền thông tin từ data source "${
+            dataSource.display_name_vi || dataSource.parameter_name
+          }"`
         );
         return;
       }
@@ -434,7 +467,6 @@ export default function TestTriggerPage() {
       conditions.map((c) => (c.id === id ? { ...c, [field]: value } : c))
     );
   };
-
 
   // Handle form submission
   const handleSubmit = async (formData) => {
@@ -507,7 +539,9 @@ export default function TestTriggerPage() {
     })
     .map((policy) => ({
       value: policy.id,
-      label: `${policy.policy_number} - ${policy.farm?.farm_name || "N/A"} (${policy.status})`,
+      label: `${policy.policy_number} - ${policy.farm?.farm_name || "N/A"} (${
+        policy.status
+      })`,
       labelProp: policy.policy_number,
     }));
 
@@ -531,7 +565,6 @@ export default function TestTriggerPage() {
       tooltip: "Tìm kiếm và chọn đơn bảo hiểm để test điều kiện kích hoạt",
     },
   ];
-
 
   return (
     <Layout.Content className="test-trigger-content">
