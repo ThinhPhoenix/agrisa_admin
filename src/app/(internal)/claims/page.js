@@ -4,14 +4,15 @@ import SelectedColumn from "@/components/column-selector";
 import { CustomForm } from "@/components/custom-form";
 import CustomTable from "@/components/custom-table";
 import { claimMessage } from "@/libs/message";
-import { useTableData } from "@/services/hooks/common/use-table-data";
 import { useClaims } from "@/services/hooks/claim";
+import { useTableData } from "@/services/hooks/common/use-table-data";
 import {
   CheckCircleOutlined,
   ClockCircleOutlined,
   CloseCircleOutlined,
   DollarOutlined,
   DownloadOutlined,
+  ExperimentOutlined,
   EyeOutlined,
   FilterOutlined,
   SearchOutlined,
@@ -76,7 +77,10 @@ export default function ClaimsPage() {
   const renderStatusBadge = (status) => {
     const statusConfigs = {
       generated: { color: "default", icon: <ClockCircleOutlined /> },
-      pending_partner_review: { color: "orange", icon: <ClockCircleOutlined /> },
+      pending_partner_review: {
+        color: "orange",
+        icon: <ClockCircleOutlined />,
+      },
       approved: { color: "green", icon: <CheckCircleOutlined /> },
       rejected: { color: "red", icon: <CloseCircleOutlined /> },
       paid: { color: "purple", icon: <DollarOutlined /> },
@@ -283,6 +287,15 @@ export default function ClaimsPage() {
               Quản lý và theo dõi các yêu cầu bồi thường bảo hiểm nông nghiệp
             </Text>
           </div>
+          <Link href="/claims/test-trigger">
+            <Button
+              type="primary"
+              icon={<ExperimentOutlined />}
+              className="!bg-purple-600 hover:!bg-purple-700 !border-purple-600"
+            >
+              {claimMessage.actions.testTrigger}
+            </Button>
+          </Link>
         </div>
 
         <div className="claim-summary-row">
@@ -370,7 +383,9 @@ export default function ClaimsPage() {
         </div>
 
         <div className="flex justify-start items-center gap-2 mb-2">
-          <Button icon={<DownloadOutlined />}>{claimMessage.actions.export}</Button>
+          <Button icon={<DownloadOutlined />}>
+            {claimMessage.actions.export}
+          </Button>
           <SelectedColumn
             columns={columns}
             visibleColumns={visibleColumns}

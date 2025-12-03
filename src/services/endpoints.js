@@ -56,7 +56,8 @@ export const endpoints = {
         `/policy/protected/api/v2/policies/read-all/detail/${policy_id}`,
       stats: "/policy/protected/api/v2/policies/read-all/stats",
       filter: "/policy/protected/api/v2/policies/read-all/filter",
-      monitoring_data: "/policy/protected/api/v2/policies/read-all/monitoring-data",
+      monitoring_data:
+        "/policy/protected/api/v2/policies/read-all/monitoring-data",
       monitoring_data_by_farm: (farm_id) =>
         `/policy/protected/api/v2/policies/read-all/monitoring-data/${farm_id}`,
       update_status: (policy_id) =>
@@ -72,6 +73,8 @@ export const endpoints = {
         `/policy/protected/api/v2/claims/read-all/by-policy/${policy_id}`,
       by_farm: (farm_id) =>
         `/policy/protected/api/v2/claims/read-all/by-farm/${farm_id}`,
+      test_trigger: (policy_id) =>
+        `/policy/protected/api/v2/policies/test/trigger-claim/${policy_id}`,
     },
   },
   partner: {

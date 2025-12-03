@@ -136,6 +136,10 @@ export const claimMessage = {
     viewFarm: "Xem nông trại",
     back: "Quay lại",
     export: "Xuất Excel",
+    testTrigger: "Giả lập điều kiện",
+    submitTest: "Thực hiện kiểm tra",
+    addCondition: "Thêm điều kiện",
+    removeCondition: "Xóa điều kiện",
   },
 
   // Success messages
@@ -166,5 +170,69 @@ export const claimMessage = {
     filter: "Không tìm thấy bồi thường phù hợp với bộ lọc",
     evidence: "Chưa có bằng chứng",
     conditions: "Chưa có điều kiện kích hoạt",
+  },
+
+  // Test Trigger Feature
+  testTrigger: {
+    title: "Giả lập điều kiện kích hoạt bồi thường",
+    subtitle:
+      "Tạo dữ liệu giả lập để kiểm tra điều kiện kích hoạt và tạo yêu cầu bồi thường",
+    selectPolicy: "Chọn đơn bảo hiểm",
+    policyPlaceholder: "Chọn hoặc tìm kiếm đơn bảo hiểm...",
+    monitoringDataSection: "Dữ liệu giám sát giả lập",
+    conditionIdLabel: "Mã điều kiện kích hoạt",
+    conditionIdPlaceholder: "Nhập mã UUID của điều kiện",
+    conditionIdTooltip:
+      "Base Policy Trigger Condition ID - Phải khớp với điều kiện trong policy",
+    parameterLabel: "Tên tham số",
+    parameterPlaceholder: "Chọn tham số đo lường",
+    measuredValueLabel: "Giá trị đo",
+    measuredValuePlaceholder: "Nhập giá trị đo (phải vượt ngưỡng để tạo claim)",
+    measuredValueTooltip:
+      "Giá trị này sẽ được so sánh với ngưỡng trong điều kiện",
+    unitLabel: "Đơn vị",
+    unitPlaceholder: "Ví dụ: mm, °C, index",
+    timestampLabel: "Thời gian đo (Unix timestamp)",
+    timestampPlaceholder: "Để trống sẽ dùng thời gian hiện tại",
+    dataQualityLabel: "Chất lượng dữ liệu",
+    confidenceScoreLabel: "Điểm tin cậy",
+    confidenceScorePlaceholder: "Giá trị từ 0.0 đến 1.0",
+    measurementSourceLabel: "Nguồn đo",
+    measurementSourcePlaceholder: "Ví dụ: satellite, sensor, manual",
+    checkPolicyLabel: "Kiểm tra điều kiện policy",
+    checkPolicyTooltip:
+      "Nếu bật, hệ thống sẽ đánh giá điều kiện kích hoạt và tạo claim nếu thỏa mãn",
+    resultSection: "Kết quả kiểm tra",
+    testSuccessTitle: "Kiểm tra thành công!",
+    testSuccess: "Dữ liệu giả lập đã được gửi và xử lý thành công",
+    claimsGenerated: "Bồi thường được tạo",
+    dataStored: "Dữ liệu đã được lưu",
+    testDataCount: "Số điều kiện đã test",
+    checkPolicyEnabled: "Đã kiểm tra điều kiện",
+    viewClaims: "Xem danh sách bồi thường",
+    testAgain: "Test lại",
+    parameters: {
+      rainfall: "Lượng mưa (rainfall)",
+      ndvi: "Chỉ số thực vật - NDVI (ndvi)",
+      ndmi: "Chỉ số độ ẩm - NDMI (ndmi)",
+      temperature: "Nhiệt độ (temperature)",
+      soil_moisture: "Độ ẩm đất (soil_moisture)",
+    },
+    dataQuality: {
+      excellent: "Xuất sắc (excellent)",
+      good: "Tốt (good)",
+      fair: "Khá (fair)",
+      poor: "Kém (poor)",
+    },
+    helpText: {
+      title: "Hướng dẫn sử dụng",
+      step1: "1. Tìm kiếm và chọn đơn bảo hiểm cần test từ danh sách",
+      step2: "2. Chọn điều kiện kích hoạt từ policy (tự động load sau khi chọn đơn)",
+      step3: "3. Chọn Data Source để tự động điền tên tham số, đơn vị và nguồn đo",
+      step4:
+        "4. Nhập giá trị đo (phải vượt ngưỡng trong điều kiện để tạo claim)",
+      step5: "5. Chọn ngày giờ đo dữ liệu (sẽ tự động chuyển sang Unix timestamp)",
+      note: "Lưu ý: Chọn Data Source để tự động điền thông tin, hoặc có thể nhập thủ công. Chỉ tạo claim nếu giá trị đo vượt ngưỡng.",
+    },
   },
 };
