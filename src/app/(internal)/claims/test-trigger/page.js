@@ -16,7 +16,16 @@ import {
   PlusOutlined,
   ReloadOutlined,
 } from "@ant-design/icons";
-import { Alert, Button, Card, Divider, Layout, Space, Typography } from "antd";
+import {
+  Alert,
+  Button,
+  Card,
+  Divider,
+  Layout,
+  Space,
+  Typography,
+  message,
+} from "antd";
 import dayjs from "dayjs";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -137,12 +146,8 @@ function ConditionForm({
         handleConditionChange(condition.id, "data_quality", value),
       disabled: !!condition.data_source_id,
       options: [
-        {
-          value: "excellent",
-          label: "Tuyệt Vời",
-        },
         { value: "good", label: "Tốt" },
-        { value: "fair", label: "Bình Thường" },
+        { value: "acceptable", label: "Chấp Nhận Được" },
         { value: "poor", label: "Kém" },
       ],
       tooltip: "Chất lượng dữ liệu - tự động điền khi chọn data source",
@@ -287,14 +292,12 @@ export default function TestTriggerPage() {
               measurement_source: selectedSource.data_provider || "",
               // Set confidence score from accuracy_rating if available
               confidence_score: selectedSource.accuracy_rating || 0.95,
-              // Set data quality based on accuracy rating
+              // Set data quality based on accuracy rating (matching BE enum: good, acceptable, poor)
               data_quality:
-                selectedSource.accuracy_rating >= 0.95
-                  ? "excellent"
-                  : selectedSource.accuracy_rating >= 0.9
+                selectedSource.accuracy_rating >= 0.85
                   ? "good"
-                  : selectedSource.accuracy_rating >= 0.8
-                  ? "fair"
+                  : selectedSource.accuracy_rating >= 0.7
+                  ? "acceptable"
                   : "poor",
             };
           }
@@ -347,8 +350,82 @@ export default function TestTriggerPage() {
 
   // Handle form submission
   const handleSubmit = async (formData) => {
-    if (!selectedPolicyId || !selectedFarmId) {
+    // Frontend validation
+    if (!selectedPolicyId) {
+      message.error(claimMessage.testTrigger.validation.policyRequired);
       return;
+    }
+
+    if (!selectedFarmId) {
+      message.error(claimMessage.testTrigger.validation.farmIdRequired);
+      return;
+    }
+
+    if (conditions.length === 0) {
+      message.error(claimMessage.testTrigger.validation.noConditions);
+      return;
+    }
+
+    // Validate each condition
+    for (let i = 0; i < conditions.length; i++) {
+      const condition = conditions[i];
+      const conditionNum = i + 1;
+
+      if (!condition.data_source_id) {
+        message.error(
+          `Điều kiện ${conditionNum}: ${claimMessage.testTrigger.validation.dataSourceRequired}`
+        );
+        return;
+      }
+
+      if (!condition.parameter_name) {
+        message.error(
+          `Điều kiện ${conditionNum}: ${claimMessage.testTrigger.validation.parameterRequired}`
+        );
+        return;
+      }
+
+      if (
+        condition.measured_value === null ||
+        condition.measured_value === undefined ||
+        condition.measured_value === ""
+      ) {
+        message.error(
+          `Điều kiện ${conditionNum}: ${claimMessage.testTrigger.validation.measuredValueRequired}`
+        );
+        return;
+      }
+
+      if (isNaN(condition.measured_value)) {
+        message.error(
+          `Điều kiện ${conditionNum}: ${claimMessage.testTrigger.validation.measuredValueInvalid}`
+        );
+        return;
+      }
+
+      if (
+        condition.confidence_score !== null &&
+        (condition.confidence_score < 0 || condition.confidence_score > 1)
+      ) {
+        message.error(
+          `Điều kiện ${conditionNum}: ${claimMessage.testTrigger.validation.confidenceScoreRange}`
+        );
+        return;
+      }
+
+      // Validate component_data JSON if provided
+      if (condition.component_data) {
+        try {
+          if (typeof condition.component_data === "string") {
+            JSON.parse(condition.component_data);
+          }
+        } catch (e) {
+          message.error(
+            `Điều kiện ${conditionNum}: ${claimMessage.testTrigger.validation.componentDataInvalidJson}`
+          );
+          return;
+        }
+      }
     }
 
     // Build monitoring data from conditions
@@ -383,7 +460,7 @@ export default function TestTriggerPage() {
               ? JSON.parse(condition.component_data)
               : condition.component_data;
         } catch (e) {
-          // If not valid JSON, skip it
+          // If not valid JSON, skip it (already validated above)
           console.warn("Invalid component_data JSON:", e);
         }
       }
