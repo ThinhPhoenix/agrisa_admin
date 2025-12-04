@@ -1,10 +1,9 @@
 "use client";
 
 import { CustomForm } from "@/components/custom-form";
-import axiosInstance from "@/libs/axios-instance";
 import { claimMessage } from "@/libs/message";
-import { endpoints } from "@/services/endpoints";
 import { useTestTrigger } from "@/services/hooks/claim/use-test-trigger";
+import { useSources } from "@/services/hooks/data/use-sources";
 import { usePolicies } from "@/services/hooks/policy";
 import {
   ArrowLeftOutlined,
@@ -17,16 +16,7 @@ import {
   PlusOutlined,
   ReloadOutlined,
 } from "@ant-design/icons";
-import {
-  Alert,
-  Button,
-  Card,
-  Divider,
-  Layout,
-  Space,
-  Typography,
-  message as antMessage,
-} from "antd";
+import { Alert, Button, Card, Divider, Layout, Space, Typography } from "antd";
 import dayjs from "dayjs";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -40,10 +30,10 @@ function ConditionForm({
   condition,
   index,
   conditions,
-  triggerConditions,
-  loadingConditions,
-  selectedPolicyId,
+  dataSourceOptions,
+  dataSourcesLoading,
   handleConditionChange,
+  handleDataSourceChange,
   handleRemoveCondition,
   claimMessage,
 }) {
@@ -53,8 +43,6 @@ function ConditionForm({
   useEffect(() => {
     if (conditionFormRef.current) {
       conditionFormRef.current.setFieldsValue({
-        [`condition_id_${condition.id}`]:
-          condition.base_policy_trigger_condition_id,
         [`data_source_${condition.id}`]: condition.data_source_id,
         [`parameter_${condition.id}`]: condition.parameter_name,
         [`measured_value_${condition.id}`]: condition.measured_value,
@@ -63,11 +51,11 @@ function ConditionForm({
         [`data_quality_${condition.id}`]: condition.data_quality,
         [`confidence_score_${condition.id}`]: condition.confidence_score,
         [`source_${condition.id}`]: condition.measurement_source,
+        [`component_data_${condition.id}`]: condition.component_data,
       });
     }
   }, [
     condition.id,
-    condition.base_policy_trigger_condition_id,
     condition.data_source_id,
     condition.parameter_name,
     condition.measured_value,
@@ -76,62 +64,58 @@ function ConditionForm({
     condition.data_quality,
     condition.confidence_score,
     condition.measurement_source,
+    condition.component_data,
   ]);
 
   const fields = [
     {
-      name: `condition_id_${condition.id}`,
-      label: claimMessage.testTrigger.conditionIdLabel,
+      name: `data_source_${condition.id}`,
+      label: "Nguồn dữ liệu (Data Source)",
       type: "select",
-      placeholder: claimMessage.testTrigger.conditionIdPlaceholder,
+      placeholder: "Chọn nguồn dữ liệu để tự động điền thông tin",
       required: true,
-      value: condition.base_policy_trigger_condition_id,
-      onChange: (value) =>
-        handleConditionChange(
-          condition.id,
-          "base_policy_trigger_condition_id",
-          value
-        ),
-      options: triggerConditions,
+      value: condition.data_source_id,
+      onChange: (value) => handleDataSourceChange(condition.id, value),
+      options: dataSourceOptions,
       showSearch: true,
-      loading: loadingConditions,
-      disabled: !selectedPolicyId || loadingConditions,
+      loading: dataSourcesLoading,
+      optionLabelProp: "labelProp",
       tooltip:
-        "Chọn điều kiện kích hoạt - thông tin data source sẽ được tự động điền",
+        "Chọn nguồn dữ liệu để tự động điền tên tham số, đơn vị và nguồn đo",
     },
     {
       name: `parameter_${condition.id}`,
-      label: claimMessage.testTrigger.parameterLabel,
+      label: "Tên Tham Số",
       type: "input",
-      placeholder: "Tự động điền khi chọn Trigger Condition",
+      placeholder: "Tự động điền khi chọn Data Source",
       required: true,
       value: condition.parameter_name,
       onChange: (value) =>
         handleConditionChange(condition.id, "parameter_name", value),
-      tooltip: "Tên tham số - tự động điền khi chọn trigger condition",
-      disabled: !!condition.base_policy_trigger_condition_id, // Disable khi đã chọn trigger
+      disabled: !!condition.data_source_id,
+      tooltip: "Tên tham số - tự động điền khi chọn data source",
     },
     {
       name: `measured_value_${condition.id}`,
-      label: claimMessage.testTrigger.measuredValueLabel,
+      label: "Giá Trị Đo",
       type: "number",
-      placeholder: claimMessage.testTrigger.measuredValuePlaceholder,
+      placeholder: "Nhập giá trị đo được",
       required: true,
       value: condition.measured_value,
       onChange: (value) =>
         handleConditionChange(condition.id, "measured_value", value),
-      tooltip: claimMessage.testTrigger.measuredValueTooltip,
+      tooltip: "Giá trị đo được từ data source",
       step: 0.01,
     },
     {
       name: `unit_${condition.id}`,
-      label: claimMessage.testTrigger.unitLabel,
+      label: "Đơn Vị",
       type: "input",
-      placeholder: "Tự động điền khi chọn Trigger Condition",
+      placeholder: "Tự động điền khi chọn Data Source",
       value: condition.unit,
       onChange: (value) => handleConditionChange(condition.id, "unit", value),
-      tooltip: "Đơn vị đo - tự động điền khi chọn trigger condition",
-      disabled: !!condition.base_policy_trigger_condition_id, // Disable khi đã chọn trigger
+      disabled: !!condition.data_source_id,
+      tooltip: "Đơn vị đo - tự động điền khi chọn data source",
     },
     {
       name: `timestamp_${condition.id}`,
@@ -146,47 +130,57 @@ function ConditionForm({
     },
     {
       name: `data_quality_${condition.id}`,
-      label: claimMessage.testTrigger.dataQualityLabel,
+      label: "Chất Lượng Dữ Liệu",
       type: "select",
       value: condition.data_quality,
       onChange: (value) =>
         handleConditionChange(condition.id, "data_quality", value),
+      disabled: !!condition.data_source_id,
       options: [
         {
           value: "excellent",
-          label: claimMessage.testTrigger.dataQuality.excellent,
+          label: "Tuyệt Vời",
         },
-        { value: "good", label: claimMessage.testTrigger.dataQuality.good },
-        { value: "fair", label: claimMessage.testTrigger.dataQuality.fair },
-        { value: "poor", label: claimMessage.testTrigger.dataQuality.poor },
+        { value: "good", label: "Tốt" },
+        { value: "fair", label: "Bình Thường" },
+        { value: "poor", label: "Kém" },
       ],
-      disabled: !!condition.base_policy_trigger_condition_id, // Disable khi đã chọn trigger
-      tooltip: "Chất lượng dữ liệu - tự động điền khi chọn trigger condition",
+      tooltip: "Chất lượng dữ liệu - tự động điền khi chọn data source",
     },
     {
       name: `confidence_score_${condition.id}`,
-      label: claimMessage.testTrigger.confidenceScoreLabel,
+      label: "Điểm Tin Cậy",
       type: "number",
-      placeholder: claimMessage.testTrigger.confidenceScorePlaceholder,
+      placeholder: "0.0 - 1.0",
       value: condition.confidence_score,
       onChange: (value) =>
         handleConditionChange(condition.id, "confidence_score", value),
       min: 0,
       max: 1,
       step: 0.01,
-      disabled: !!condition.base_policy_trigger_condition_id, // Disable khi đã chọn trigger
-      tooltip: "Độ tin cậy - tự động điền khi chọn trigger condition",
+      tooltip: "Độ tin cậy (0.0-1.0) - tự động điền khi chọn data source",
     },
     {
       name: `source_${condition.id}`,
-      label: claimMessage.testTrigger.measurementSourceLabel,
+      label: "Nguồn Đo",
       type: "input",
-      placeholder: "Tự động điền khi chọn Trigger Condition",
+      placeholder: "Tự động điền khi chọn Data Source",
       value: condition.measurement_source,
       onChange: (value) =>
         handleConditionChange(condition.id, "measurement_source", value),
-      tooltip: "Nguồn đo dữ liệu - tự động điền khi chọn trigger condition",
-      disabled: !!condition.base_policy_trigger_condition_id, // Disable khi đã chọn trigger
+      disabled: !!condition.data_source_id,
+      tooltip: "Nguồn đo dữ liệu - tự động điền khi chọn data source",
+    },
+    {
+      name: `component_data_${condition.id}`,
+      label: "Dữ liệu thành phần (Component Data)",
+      type: "textarea",
+      placeholder: 'JSON format tùy chọn, ví dụ: {"nir": 0.25, "swir": 0.15}',
+      value: condition.component_data,
+      onChange: (value) =>
+        handleConditionChange(condition.id, "component_data", value),
+      rows: 2,
+      tooltip: "Dữ liệu bổ sung dạng JSON (tùy chọn)",
     },
   ];
 
@@ -226,11 +220,11 @@ export default function TestTriggerPage() {
   const { loading, testResult, submitTestTrigger, resetTestResult } =
     useTestTrigger();
   const { data: policies, loading: policiesLoading } = usePolicies();
+  const { data: dataSources, loading: dataSourcesLoading } = useSources();
 
   const [conditions, setConditions] = useState([
     {
       id: 1,
-      base_policy_trigger_condition_id: "",
       data_source_id: "",
       parameter_name: "",
       measured_value: null,
@@ -239,126 +233,84 @@ export default function TestTriggerPage() {
       data_quality: "good",
       confidence_score: 0.95,
       measurement_source: "",
+      component_data: "",
     },
   ]);
 
   const [selectedPolicyId, setSelectedPolicyId] = useState("");
+  const [selectedFarmId, setSelectedFarmId] = useState("");
   const [checkPolicy, setCheckPolicy] = useState(true);
-  const [triggerConditions, setTriggerConditions] = useState([]);
-  const [loadingConditions, setLoadingConditions] = useState(false);
   const [policySearchText, setPolicySearchText] = useState("");
 
   // Fetch trigger conditions when policy is selected
   useEffect(() => {
-    if (selectedPolicyId) {
-      fetchTriggerConditions(selectedPolicyId);
-    } else {
-      setTriggerConditions([]);
-    }
+    // Removed: No need to fetch trigger conditions anymore
+    // farm_id is extracted from selected policy
   }, [selectedPolicyId]);
 
-  // Fetch trigger conditions from base policy detail
-  const fetchTriggerConditions = async (policyId) => {
-    setLoadingConditions(true);
-    try {
-      // First, get the registered policy to extract base_policy_id
-      const policyResponse = await axiosInstance.get(
-        endpoints.policy.registered_policy.detail(policyId)
+  // Handle data source selection and auto-populate related fields
+  const handleDataSourceChange = (conditionId, dataSourceId) => {
+    // If data source is cleared (empty string), clear all auto-filled fields
+    if (!dataSourceId) {
+      setConditions(
+        conditions.map((c) => {
+          if (c.id === conditionId) {
+            return {
+              ...c,
+              data_source_id: "",
+              parameter_name: "",
+              unit: "",
+              measurement_source: "",
+              confidence_score: 0.95,
+              data_quality: "good",
+            };
+          }
+          return c;
+        })
       );
+      return;
+    }
 
-      if (policyResponse.data?.success && policyResponse.data?.data) {
-        const policyData = policyResponse.data.data;
-        const basePolicyId = policyData.base_policy_id;
+    const selectedSource = dataSources?.find((ds) => ds.id === dataSourceId);
 
-        if (!basePolicyId) {
-          antMessage.warning("Policy này không có base policy liên kết");
-          setTriggerConditions([]);
-          setLoadingConditions(false);
-          return;
-        }
-
-        // Now fetch base policy detail with the base_policy_id
-        const basePolicyResponse = await axiosInstance.get(
-          endpoints.policy.base_policy.detail,
-          {
-            params: {
-              id: basePolicyId,
-              include_pdf: false,
-            },
+    if (selectedSource) {
+      // Parse and auto-fill all available fields from data source
+      setConditions(
+        conditions.map((c) => {
+          if (c.id === conditionId) {
+            return {
+              ...c,
+              data_source_id: dataSourceId,
+              // Core fields from data source
+              parameter_name: selectedSource.parameter_name || "",
+              unit: selectedSource.unit || "",
+              measurement_source: selectedSource.data_provider || "",
+              // Set confidence score from accuracy_rating if available
+              confidence_score: selectedSource.accuracy_rating || 0.95,
+              // Set data quality based on accuracy rating
+              data_quality:
+                selectedSource.accuracy_rating >= 0.95
+                  ? "excellent"
+                  : selectedSource.accuracy_rating >= 0.9
+                  ? "good"
+                  : selectedSource.accuracy_rating >= 0.8
+                  ? "fair"
+                  : "poor",
+            };
           }
-        );
-
-        if (basePolicyResponse.data?.success && basePolicyResponse.data?.data) {
-          const responseData = basePolicyResponse.data.data;
-          const triggers = responseData.triggers;
-
-          if (triggers && Array.isArray(triggers) && triggers.length > 0) {
-            const allConditions = [];
-
-            // Fetch data source details for each condition
-            for (const trigger of triggers) {
-              if (trigger.conditions && Array.isArray(trigger.conditions)) {
-                for (const condition of trigger.conditions) {
-                  // Fetch data source detail if data_source_id exists
-                  let dataSourceInfo = null;
-                  if (condition.data_source_id) {
-                    try {
-                      const dsResponse = await axiosInstance.get(
-                        endpoints.policy.data_tier.data_source.get_one(
-                          condition.data_source_id
-                        )
-                      );
-                      if (dsResponse.data?.success && dsResponse.data?.data) {
-                        dataSourceInfo = dsResponse.data.data;
-                      }
-                    } catch (dsError) {
-                      console.warn(
-                        `Failed to fetch data source ${condition.data_source_id}:`,
-                        dsError
-                      );
-                    }
-                  }
-
-                  const label = dataSourceInfo
-                    ? `${
-                        dataSourceInfo.display_name_vi ||
-                        dataSourceInfo.parameter_name
-                      } ${condition.threshold_operator || ""} ${
-                        condition.threshold_value || ""
-                      }`
-                    : `${condition.threshold_operator || ""} ${
-                        condition.threshold_value || ""
-                      } (${trigger.growth_stage || "Trigger"})`;
-
-                  allConditions.push({
-                    value: condition.id,
-                    label: label,
-                    // Store full condition and data source data
-                    condition: condition,
-                    trigger: trigger,
-                    dataSource: dataSourceInfo,
-                  });
-                }
-              }
-            }
-
-            setTriggerConditions(allConditions);
-
-            if (allConditions.length === 0) {
-              antMessage.warning("Base policy này chưa có điều kiện kích hoạt");
-            }
-          } else {
-            setTriggerConditions([]);
-            antMessage.warning("Base policy này chưa có điều kiện kích hoạt");
-          }
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching trigger conditions:", error);
-      antMessage.error("Không thể tải điều kiện kích hoạt");
-      setTriggerConditions([]);
-    } finally {
-      setLoadingConditions(false);
+          return c;
+        })
+      );
+    } else {
+      handleConditionChange(conditionId, "data_source_id", dataSourceId);
+    }
+  }; // Handle policy selection - extract farm_id from selected policy
+  const handlePolicySelect = (policyId) => {
+    setSelectedPolicyId(policyId);
+    // Extract farm_id from selected policy
+    const selectedPolicy = policies.find((p) => p.id === policyId);
+    if (selectedPolicy?.farm?.id) {
+      setSelectedFarmId(selectedPolicy.farm.id);
     }
   };
 
@@ -366,7 +318,6 @@ export default function TestTriggerPage() {
   const handleAddCondition = () => {
     const newCondition = {
       id: Date.now(),
-      base_policy_trigger_condition_id: "",
       data_source_id: "",
       parameter_name: "",
       measured_value: null,
@@ -375,6 +326,7 @@ export default function TestTriggerPage() {
       data_quality: "good",
       confidence_score: 0.95,
       measurement_source: "",
+      component_data: "",
     };
     setConditions([...conditions, newCondition]);
   };
@@ -388,81 +340,6 @@ export default function TestTriggerPage() {
 
   // Update condition field
   const handleConditionChange = (id, field, value) => {
-    // If changing the base_policy_trigger_condition_id
-    if (field === "base_policy_trigger_condition_id") {
-      // If value is cleared/empty, reset auto-filled fields
-      if (!value) {
-        setConditions(
-          conditions.map((c) => {
-            if (c.id === id) {
-              return {
-                ...c,
-                [field]: "",
-                // Clear auto-filled fields
-                data_source_id: "",
-                parameter_name: "",
-                unit: "",
-                measurement_source: "",
-                confidence_score: 0.95,
-                data_quality: "good",
-              };
-            }
-            return c;
-          })
-        );
-        antMessage.info("Đã xóa thông tin tự động điền");
-        return;
-      }
-
-      // If value is selected, auto-fill data from trigger condition
-      const selectedTriggerCondition = triggerConditions.find(
-        (tc) => tc.value === value
-      );
-
-      if (selectedTriggerCondition && selectedTriggerCondition.dataSource) {
-        const dataSource = selectedTriggerCondition.dataSource;
-
-        setConditions(
-          conditions.map((c) => {
-            if (c.id === id) {
-              return {
-                ...c,
-                [field]: value,
-                // Auto-fill from data source
-                data_source_id: dataSource.id,
-                parameter_name: dataSource.parameter_name || "",
-                unit: dataSource.unit || "",
-                measurement_source: dataSource.data_provider || "",
-                confidence_score:
-                  dataSource.accuracy_rating !== undefined
-                    ? dataSource.accuracy_rating
-                    : 0.95,
-                data_quality:
-                  dataSource.accuracy_rating !== undefined
-                    ? dataSource.accuracy_rating >= 0.95
-                      ? "excellent"
-                      : dataSource.accuracy_rating >= 0.9
-                      ? "good"
-                      : dataSource.accuracy_rating >= 0.8
-                      ? "fair"
-                      : "poor"
-                    : "good",
-              };
-            }
-            return c;
-          })
-        );
-
-        antMessage.success(
-          `Đã tự động điền thông tin từ data source "${
-            dataSource.display_name_vi || dataSource.parameter_name
-          }"`
-        );
-        return;
-      }
-    }
-
-    // Default behavior for other fields
     setConditions(
       conditions.map((c) => (c.id === id ? { ...c, [field]: value } : c))
     );
@@ -470,25 +347,26 @@ export default function TestTriggerPage() {
 
   // Handle form submission
   const handleSubmit = async (formData) => {
-    if (!selectedPolicyId) {
+    if (!selectedPolicyId || !selectedFarmId) {
       return;
     }
 
     // Build monitoring data from conditions
     const monitoringData = conditions.map((condition) => {
       const data = {
-        base_policy_trigger_condition_id:
-          condition.base_policy_trigger_condition_id,
+        data_source_id: condition.data_source_id,
         parameter_name: condition.parameter_name,
         measured_value: condition.measured_value,
-        data_quality: condition.data_quality,
       };
 
-      // Add optional fields
+      // Add optional fields (in order matching API spec)
       if (condition.unit) data.unit = condition.unit;
       if (condition.measurement_date) {
         // Convert dayjs to Unix timestamp (Vietnam timezone)
         data.measurement_timestamp = dayjs(condition.measurement_date).unix();
+      }
+      if (condition.data_quality) {
+        data.data_quality = condition.data_quality;
       }
       if (condition.confidence_score !== null) {
         data.confidence_score = condition.confidence_score;
@@ -496,6 +374,22 @@ export default function TestTriggerPage() {
       if (condition.measurement_source) {
         data.measurement_source = condition.measurement_source;
       }
+      // Add component_data if provided (optional)
+      if (condition.component_data) {
+        try {
+          // Try to parse as JSON
+          data.component_data =
+            typeof condition.component_data === "string"
+              ? JSON.parse(condition.component_data)
+              : condition.component_data;
+        } catch (e) {
+          // If not valid JSON, skip it
+          console.warn("Invalid component_data JSON:", e);
+        }
+      }
+
+      // Add farm_id at the end (as per API spec)
+      data.farm_id = selectedFarmId;
 
       return data;
     });
@@ -509,7 +403,6 @@ export default function TestTriggerPage() {
     setConditions([
       {
         id: Date.now(),
-        base_policy_trigger_condition_id: "",
         data_source_id: "",
         parameter_name: "",
         measured_value: null,
@@ -518,13 +411,23 @@ export default function TestTriggerPage() {
         data_quality: "good",
         confidence_score: 0.95,
         measurement_source: "",
+        component_data: "",
       },
     ]);
     setSelectedPolicyId("");
+    setSelectedFarmId("");
     setPolicySearchText("");
-    setTriggerConditions([]);
     setCheckPolicy(true);
   };
+
+  // Prepare data source options for select
+  const dataSourceOptions = (dataSources || []).map((source) => ({
+    value: source.id,
+    label: `${source.display_name_vi || source.parameter_name} - ${
+      source.data_provider || "N/A"
+    }`,
+    labelProp: source.display_name_vi || source.parameter_name,
+  }));
 
   // Prepare policy options for select
   const policyOptions = policies
@@ -549,13 +452,13 @@ export default function TestTriggerPage() {
   const policyFields = [
     {
       name: "policy_id",
-      label: claimMessage.testTrigger.selectPolicy,
+      label: "Chọn Đơn Bảo Hiểm",
       type: "select",
-      placeholder: claimMessage.testTrigger.policyPlaceholder,
+      placeholder: "Nhập số đơn, ID nông dân hoặc tên trang trại",
       required: true,
       gridColumn: "1 / -1",
       value: selectedPolicyId,
-      onChange: (value) => setSelectedPolicyId(value),
+      onChange: handlePolicySelect,
       options: policyOptions,
       showSearch: true,
       loading: policiesLoading,
@@ -574,16 +477,15 @@ export default function TestTriggerPage() {
           <div>
             <Title level={2} className="test-trigger-title">
               <ExperimentOutlined className="test-trigger-icon" />
-              {claimMessage.testTrigger.title}
+              Giả Lập Điều Kiện Kích Hoạt
             </Title>
             <Text className="test-trigger-subtitle">
-              {claimMessage.testTrigger.subtitle}
+              Tạo dữ liệu giả lập để kiểm tra điều kiện kích hoạt và tự động tạo
+              yêu cầu bồi thường
             </Text>
           </div>
           <Link href="/claims">
-            <Button icon={<ArrowLeftOutlined />}>
-              {claimMessage.actions.back}
-            </Button>
+            <Button icon={<ArrowLeftOutlined />}>← Quay Lại</Button>
           </Link>
         </div>
 
@@ -591,27 +493,33 @@ export default function TestTriggerPage() {
         <div className="test-trigger-help">
           <div className="test-trigger-help-title">
             <InfoCircleOutlined />
-            {claimMessage.testTrigger.helpText.title}
+            Hướng Dẫn Sử Dụng
           </div>
           <div className="test-trigger-help-list">
             <div className="test-trigger-help-item">
-              {claimMessage.testTrigger.helpText.step1}
+              1. Chọn đơn bảo hiểm từ dropdown (tìm theo số đơn, ID nông dân
+              hoặc tên trang trại)
             </div>
             <div className="test-trigger-help-item">
-              {claimMessage.testTrigger.helpText.step2}
+              2. Chọn nguồn dữ liệu (Data Source) - các thông tin sẽ tự động
+              điền
             </div>
             <div className="test-trigger-help-item">
-              {claimMessage.testTrigger.helpText.step3}
+              3. Nhập giá trị đo (measured value) để kiểm tra điều kiện kích
+              hoạt
             </div>
             <div className="test-trigger-help-item">
-              {claimMessage.testTrigger.helpText.step4}
+              4. Chọn thời gian đo (tùy chọn, mặc định = thời gian hiện tại)
             </div>
             <div className="test-trigger-help-item">
-              {claimMessage.testTrigger.helpText.step5}
+              5. Nhấp "Giả Lập Điều Kiện" để submit test - hệ thống sẽ kiểm tra
+              và tự động tạo yêu cầu bồi thường nếu điều kiện thỏa mãn
             </div>
           </div>
           <div className="test-trigger-help-note">
-            <InfoCircleOutlined /> {claimMessage.testTrigger.helpText.note}
+            <InfoCircleOutlined /> Lưu ý: Các trường tên tham số, đơn vị, nguồn
+            đo, chất lượng dữ liệu sẽ tự động điền từ data source và bị disable.
+            Nếu xóa data source, các trường này sẽ mất ngay.
           </div>
         </div>
 
@@ -621,12 +529,12 @@ export default function TestTriggerPage() {
             <div className="test-trigger-result-header">
               <CheckCircleOutlined className="test-trigger-result-icon success" />
               <Title level={4} className="test-trigger-result-title success">
-                {claimMessage.testTrigger.testSuccessTitle}
+                ✓ TEST THÀNH CÔNG
               </Title>
             </div>
             <div className="test-trigger-result-body">
               <Alert
-                message={claimMessage.testTrigger.testSuccess}
+                message="Dữ liệu test được gửi thành công. Yêu cầu bồi thường đã được tạo nếu điều kiện được thỏa mãn."
                 type="success"
                 showIcon
                 style={{ marginBottom: "20px" }}
@@ -637,7 +545,7 @@ export default function TestTriggerPage() {
                   <DatabaseOutlined className="test-trigger-result-item-icon" />
                   <div className="test-trigger-result-item-content">
                     <div className="test-trigger-result-item-label">
-                      {claimMessage.testTrigger.testDataCount}
+                      Số Dữ Liệu Test
                     </div>
                     <div className="test-trigger-result-item-value">
                       {testResult.test_data_count || 0}
@@ -649,12 +557,10 @@ export default function TestTriggerPage() {
                   <CheckCircleOutlined className="test-trigger-result-item-icon" />
                   <div className="test-trigger-result-item-content">
                     <div className="test-trigger-result-item-label">
-                      {claimMessage.testTrigger.dataStored}
+                      Dữ Liệu Được Lưu
                     </div>
                     <div className="test-trigger-result-item-value">
-                      {testResult.monitoring_stored
-                        ? claimMessage.fields.yes
-                        : claimMessage.fields.no}
+                      {testResult.monitoring_stored ? "Có" : "Không"}
                     </div>
                   </div>
                 </div>
@@ -663,12 +569,10 @@ export default function TestTriggerPage() {
                   <ExperimentOutlined className="test-trigger-result-item-icon" />
                   <div className="test-trigger-result-item-content">
                     <div className="test-trigger-result-item-label">
-                      {claimMessage.testTrigger.checkPolicyEnabled}
+                      Kiểm Tra Chính Sách
                     </div>
                     <div className="test-trigger-result-item-value">
-                      {testResult.check_policy
-                        ? claimMessage.fields.yes
-                        : claimMessage.fields.no}
+                      {testResult.check_policy ? "Có" : "Không"}
                     </div>
                   </div>
                 </div>
@@ -689,7 +593,7 @@ export default function TestTriggerPage() {
               <div className="test-trigger-result-actions">
                 <Link href="/claims">
                   <Button type="primary" icon={<EyeOutlined />} size="large">
-                    {claimMessage.testTrigger.viewClaims}
+                    Xem Yêu Cầu Bồi Thường
                   </Button>
                 </Link>
                 <Button
@@ -697,7 +601,7 @@ export default function TestTriggerPage() {
                   size="large"
                   onClick={handleTestAgain}
                 >
-                  {claimMessage.testTrigger.testAgain}
+                  Test Lại
                 </Button>
               </div>
             </div>
@@ -710,7 +614,7 @@ export default function TestTriggerPage() {
             <div className="test-trigger-card-body">
               {/* Policy Selection */}
               <div className="test-trigger-section-title">
-                {claimMessage.testTrigger.selectPolicy}
+                Chọn Đơn Bảo Hiểm
               </div>
               <CustomForm
                 ref={formRef}
@@ -719,11 +623,75 @@ export default function TestTriggerPage() {
                 gap="16px"
               />
 
+              {/* Display Farm Info when policy is selected */}
+              {selectedPolicyId && selectedFarmId && (
+                <div
+                  style={{
+                    marginTop: "16px",
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "16px",
+                  }}
+                >
+                  <div>
+                    <label
+                      style={{
+                        display: "block",
+                        marginBottom: "8px",
+                        fontWeight: 500,
+                      }}
+                    >
+                      Farm ID
+                    </label>
+                    <input
+                      type="text"
+                      value={selectedFarmId}
+                      disabled
+                      style={{
+                        width: "100%",
+                        padding: "8px 12px",
+                        border: "1px solid #d9d9d9",
+                        borderRadius: "4px",
+                        backgroundColor: "#f5f5f5",
+                        cursor: "not-allowed",
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label
+                      style={{
+                        display: "block",
+                        marginBottom: "8px",
+                        fontWeight: 500,
+                      }}
+                    >
+                      Tên Farm
+                    </label>
+                    <input
+                      type="text"
+                      value={
+                        policies.find((p) => p.id === selectedPolicyId)?.farm
+                          ?.farm_name || ""
+                      }
+                      disabled
+                      style={{
+                        width: "100%",
+                        padding: "8px 12px",
+                        border: "1px solid #d9d9d9",
+                        borderRadius: "4px",
+                        backgroundColor: "#f5f5f5",
+                        cursor: "not-allowed",
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+
               <Divider />
 
               {/* Monitoring Data Section */}
               <div className="test-trigger-section-title">
-                {claimMessage.testTrigger.monitoringDataSection}
+                Dữ Liệu Giám Sát (Monitoring Data)
               </div>
 
               <Space
@@ -737,10 +705,10 @@ export default function TestTriggerPage() {
                     condition={condition}
                     index={index}
                     conditions={conditions}
-                    triggerConditions={triggerConditions}
-                    loadingConditions={loadingConditions}
-                    selectedPolicyId={selectedPolicyId}
+                    dataSourceOptions={dataSourceOptions}
+                    dataSourcesLoading={dataSourcesLoading}
                     handleConditionChange={handleConditionChange}
+                    handleDataSourceChange={handleDataSourceChange}
                     handleRemoveCondition={handleRemoveCondition}
                     claimMessage={claimMessage}
                   />
@@ -753,7 +721,7 @@ export default function TestTriggerPage() {
                 onClick={handleAddCondition}
                 style={{ width: "100%", marginTop: "16px" }}
               >
-                {claimMessage.actions.addCondition}
+                + Thêm Điều Kiện
               </Button>
 
               <Divider />
@@ -763,13 +731,14 @@ export default function TestTriggerPage() {
                 fields={[
                   {
                     name: "check_policy",
-                    label: claimMessage.testTrigger.checkPolicyLabel,
+                    label: "Kiểm Tra Chính Sách (Check Policy)",
                     type: "switch",
                     value: checkPolicy,
                     onChange: (checked) => setCheckPolicy(checked),
-                    tooltip: claimMessage.testTrigger.checkPolicyTooltip,
-                    checkedChildren: claimMessage.fields.yes,
-                    unCheckedChildren: claimMessage.fields.no,
+                    tooltip:
+                      "Bật: Kiểm tra điều kiện và tự động tạo claim. Tắt: Chỉ lưu dữ liệu",
+                    checkedChildren: "Có",
+                    unCheckedChildren: "Không",
                   },
                 ]}
                 gridColumns="1fr"
@@ -791,7 +760,7 @@ export default function TestTriggerPage() {
                   fontSize: "16px",
                 }}
               >
-                {claimMessage.actions.submitTest}
+                Giả Lập Điều Kiện
               </Button>
             </div>
           </Card>
