@@ -10,39 +10,63 @@ import {
   DollarOutlined,
   FileTextOutlined,
   SafetyOutlined,
+  WalletOutlined,
   WarningOutlined,
 } from "@ant-design/icons";
 import {
   Button,
   Card,
   Descriptions,
+  Divider,
   Layout,
-  Space,
+  Modal,
   Spin,
   Table,
   Tag,
   Typography,
 } from "antd";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
 import "../page.css";
 
 const { Title, Text } = Typography;
 
 export default function ClaimDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const claimId = params.id;
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const {
     data: claim,
     loading,
+    deleteClaim,
     formatCurrency,
     formatDate,
     formatDateTime,
-    getStatusLabel,
-    getPartnerDecisionLabel,
-    getParameterLabel,
   } = useClaimDetail(claimId);
+
+  // Handle delete claim with confirmation
+  const handleDeleteClaim = () => {
+    Modal.confirm({
+      title: claimMessage.actions.delete,
+      content: claimMessage.actions.confirmDelete,
+      okText: claimMessage.actions.delete,
+      cancelText: claimMessage.actions.back,
+      okType: "danger",
+      onOk: async () => {
+        setDeleteLoading(true);
+        const success = await deleteClaim();
+        setDeleteLoading(false);
+
+        if (success) {
+          // Navigate back to claims list after successful deletion
+          router.push("/claims");
+        }
+      },
+    });
+  };
 
   if (loading) {
     return (
@@ -67,59 +91,103 @@ export default function ClaimDetailPage() {
   // Helper function to render status badge
   const renderStatusBadge = (status) => {
     const statusConfigs = {
-      generated: { color: "default", icon: <ClockCircleOutlined /> },
-      pending_partner_review: { color: "orange", icon: <ClockCircleOutlined /> },
-      approved: { color: "green", icon: <CheckCircleOutlined /> },
-      rejected: { color: "red", icon: <CloseCircleOutlined /> },
-      paid: { color: "purple", icon: <DollarOutlined /> },
+      generated: {
+        color: "default",
+        icon: <ClockCircleOutlined />,
+        label: "Đã tạo",
+      },
+      pending_partner_review: {
+        color: "orange",
+        icon: <ClockCircleOutlined />,
+        label: "Chờ đối tác xét duyệt",
+      },
+      approved: {
+        color: "green",
+        icon: <CheckCircleOutlined />,
+        label: "Đã phê duyệt",
+      },
+      rejected: {
+        color: "red",
+        icon: <CloseCircleOutlined />,
+        label: "Bị từ chối",
+      },
+      paid: {
+        color: "purple",
+        icon: <DollarOutlined />,
+        label: "Đã thanh toán",
+      },
     };
 
     const config = statusConfigs[status] || statusConfigs.generated;
     return (
       <Tag color={config.color} icon={config.icon}>
-        {getStatusLabel(status)}
+        {config.label}
       </Tag>
     );
+  };
+
+  // Helper function to get parameter label
+  const getParameterLabel = (parameter) => {
+    const labels = {
+      rainfall: "Lượng mưa",
+      ndvi: "Chỉ số thực vật (NDVI)",
+      ndmi: "Chỉ số độ ẩm (NDMI)",
+      temperature: "Nhiệt độ",
+    };
+    return labels[parameter] || parameter;
+  };
+
+  // Helper function to get partner decision label
+  const getPartnerDecisionLabel = (decision) => {
+    const labels = {
+      approved: "Phê duyệt",
+      rejected: "Từ chối",
+      pending: "Chờ xét duyệt",
+    };
+    return labels[decision] || "-";
   };
 
   // Trigger conditions table columns
   const conditionColumns = [
     {
-      title: claimMessage.condition.parameter,
+      title: "Tham số",
       dataIndex: "parameter",
       key: "parameter",
       render: (text) => getParameterLabel(text),
     },
     {
-      title: claimMessage.condition.measuredValue,
+      title: "Giá trị đo",
       dataIndex: "measured_value",
       key: "measured_value",
       render: (value) => value?.toFixed(2) || "-",
     },
     {
-      title: claimMessage.condition.thresholdValue,
+      title: "Ngưỡng",
       dataIndex: "threshold_value",
       key: "threshold_value",
       render: (value) => value?.toFixed(2) || "-",
     },
     {
-      title: claimMessage.condition.operator,
+      title: "Toán tử",
       dataIndex: "operator",
       key: "operator",
     },
     {
-      title: claimMessage.condition.timestamp,
+      title: "Thời gian",
       dataIndex: "timestamp",
       key: "timestamp",
       render: (timestamp) => formatDateTime(timestamp),
     },
     {
-      title: claimMessage.condition.isEarlyWarning,
+      title: "Cảnh báo sớm",
       dataIndex: "is_early_warning",
       key: "is_early_warning",
       render: (isWarning) => (
-        <Tag color={isWarning ? "orange" : "default"} icon={isWarning ? <WarningOutlined /> : null}>
-          {isWarning ? claimMessage.fields.yes : claimMessage.fields.no}
+        <Tag
+          color={isWarning ? "orange" : "default"}
+          icon={isWarning ? <WarningOutlined /> : null}
+        >
+          {isWarning ? "Có" : "Không"}
         </Tag>
       ),
     },
@@ -132,24 +200,35 @@ export default function ClaimDetailPage() {
     <Layout.Content className="claim-detail-content">
       <div className="claim-detail-space">
         {/* Header */}
-        <div className="claim-header">
-          <div>
-            <Space>
-              <Link href="/claims">
-                <Button icon={<ArrowLeftOutlined />}>{claimMessage.actions.back}</Button>
-              </Link>
-              <Title level={2} className="claim-title">
-                <DollarOutlined className="claim-icon" />
-                {claimMessage.title.detail}
-              </Title>
-            </Space>
-            <Text className="claim-subtitle">
-              {claimMessage.fields.claimNumber}: <strong>{claim.claim_number}</strong>
-            </Text>
-          </div>
+        <div
+          className="claim-header"
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Title level={2} className="claim-title" style={{ margin: 0 }}>
+            Chi tiết yêu cầu bồi thường
+          </Title>
+          <Link href="/claims">
+            <Button icon={<ArrowLeftOutlined />}>Quay lại</Button>
+          </Link>
+          {/* Delete button - commented out for now */}
+          {/* <div>
+            <Button
+              type="primary"
+              danger
+              icon={<DeleteOutlined />}
+              onClick={handleDeleteClaim}
+              loading={deleteLoading}
+            >
+              Xóa bồi thường
+            </Button>
+          </div> */}
         </div>
 
-        {/* Basic Info Card */}
+        {/* Unified Claim Detail Card */}
         <Card
           className="claim-detail-card"
           style={{
@@ -157,175 +236,173 @@ export default function ClaimDetailPage() {
             borderColor: "#e5e7eb",
           }}
         >
+          {/* Basic Info Section */}
           <div className="flex items-center gap-2 mb-4">
             <SafetyOutlined className="text-lg text-blue-500" />
             <Title level={5} className="mb-0">
-              {claimMessage.detail.basicInfo}
+              Thông tin cơ bản
             </Title>
           </div>
           <Descriptions column={{ xs: 1, sm: 2, md: 3 }} bordered size="small">
-            <Descriptions.Item label={claimMessage.fields.claimNumber}>
+            <Descriptions.Item label="Số bồi thường">
               <strong>{claim.claim_number}</strong>
             </Descriptions.Item>
-            <Descriptions.Item label={claimMessage.fields.status}>
+            <Descriptions.Item label="Trạng thái">
               {renderStatusBadge(claim.status)}
             </Descriptions.Item>
-            <Descriptions.Item label={claimMessage.fields.autoGenerated}>
+            <Descriptions.Item label="Tự động tạo">
               <Tag color={claim.auto_generated ? "blue" : "default"}>
-                {claim.auto_generated ? claimMessage.fields.yes : claimMessage.fields.no}
+                {claim.auto_generated ? "Có" : "Không"}
               </Tag>
             </Descriptions.Item>
-            <Descriptions.Item label={claimMessage.fields.policyId}>
+            <Descriptions.Item label="Mã đơn bảo hiểm">
               {claim.registered_policy_id}
             </Descriptions.Item>
-            <Descriptions.Item label={claimMessage.fields.farmId}>
+            <Descriptions.Item label="Mã nông trại">
               {claim.farm_id}
             </Descriptions.Item>
-            <Descriptions.Item label={claimMessage.fields.triggerId}>
+            <Descriptions.Item label="Mã điều kiện kích hoạt">
               {claim.base_policy_trigger_id}
             </Descriptions.Item>
-            <Descriptions.Item label={claimMessage.fields.triggerTimestamp}>
+            <Descriptions.Item label="Thời gian kích hoạt">
               {formatDateTime(claim.trigger_timestamp)}
             </Descriptions.Item>
-            <Descriptions.Item label={claimMessage.fields.createdAt}>
+            <Descriptions.Item label="Ngày tạo">
               {formatDateTime(claim.created_at)}
             </Descriptions.Item>
-            <Descriptions.Item label={claimMessage.fields.updatedAt}>
+            <Descriptions.Item label="Cập nhật lần cuối">
               {formatDateTime(claim.updated_at)}
             </Descriptions.Item>
           </Descriptions>
-        </Card>
 
-        {/* Payout Calculation Card */}
-        <Card
-          className="claim-detail-card"
-          style={{
-            backgroundColor: "#fefcf5",
-            borderColor: "#e5e7eb",
-          }}
-        >
+          <Divider />
+
+          {/* Payout Calculation Section */}
           <div className="flex items-center gap-2 mb-4">
-            <DollarOutlined className="text-lg text-green-500" />
+            <WalletOutlined className="text-lg text-green-500" />
             <Title level={5} className="mb-0">
-              {claimMessage.detail.payoutCalculation}
+              Tính toán bồi thường
             </Title>
           </div>
           <Descriptions column={{ xs: 1, sm: 2, md: 3 }} bordered size="small">
-            <Descriptions.Item label={claimMessage.fields.claimAmount}>
+            <Descriptions.Item label="Tổng số tiền bồi thường">
               <strong className="text-xl text-blue-600">
                 {formatCurrency(claim.claim_amount)}
               </strong>
             </Descriptions.Item>
-            <Descriptions.Item label={claimMessage.fields.calculatedFixPayout}>
+            <Descriptions.Item label="Bồi thường cố định">
               {formatCurrency(claim.calculated_fix_payout)}
             </Descriptions.Item>
-            <Descriptions.Item label={claimMessage.fields.calculatedThresholdPayout}>
+            <Descriptions.Item label="Bồi thường theo ngưỡng">
               {formatCurrency(claim.calculated_threshold_payout)}
             </Descriptions.Item>
-            <Descriptions.Item label={claimMessage.fields.overThresholdValue} span={3}>
+            <Descriptions.Item label="Giá trị vượt ngưỡng" span={3}>
               {claim.over_threshold_value?.toFixed(2) || "-"}
             </Descriptions.Item>
           </Descriptions>
-        </Card>
 
-        {/* Review Info Card */}
-        <Card
-          className="claim-detail-card"
-          style={{
-            backgroundColor: "#fefcf5",
-            borderColor: "#e5e7eb",
-          }}
-        >
+          <Divider />
+
+          {/* Review Info Section */}
           <div className="flex items-center gap-2 mb-4">
             <CheckCircleOutlined className="text-lg text-orange-500" />
             <Title level={5} className="mb-0">
-              {claimMessage.detail.reviewInfo}
+              Thông tin xét duyệt
             </Title>
           </div>
           <Descriptions column={{ xs: 1, sm: 2 }} bordered size="small">
-            <Descriptions.Item label={claimMessage.fields.partnerDecision}>
+            <Descriptions.Item label="Quyết định của đối tác">
               {claim.partner_decision ? (
-                <Tag color={claim.partner_decision === "approved" ? "green" : "red"}>
+                <Tag
+                  color={
+                    claim.partner_decision === "approved" ? "green" : "red"
+                  }
+                >
                   {getPartnerDecisionLabel(claim.partner_decision)}
                 </Tag>
               ) : (
                 "-"
               )}
             </Descriptions.Item>
-            <Descriptions.Item label={claimMessage.fields.reviewedBy}>
+            <Descriptions.Item label="Người xét duyệt">
               {claim.reviewed_by || "-"}
             </Descriptions.Item>
-            <Descriptions.Item label={claimMessage.fields.partnerReviewTime}>
+            <Descriptions.Item label="Thời gian xét duyệt">
               {claim.partner_review_timestamp
                 ? formatDateTime(claim.partner_review_timestamp)
                 : "-"}
             </Descriptions.Item>
-            <Descriptions.Item label={claimMessage.fields.autoApproved}>
+            {/* <Descriptions.Item label="Tự động phê duyệt">
               <Tag color={claim.auto_approved ? "orange" : "default"}>
-                {claim.auto_approved ? claimMessage.fields.yes : claimMessage.fields.no}
+                {claim.auto_approved ? "Có" : "Không"}
               </Tag>
             </Descriptions.Item>
-            <Descriptions.Item label={claimMessage.fields.autoApprovalDeadline} span={2}>
+            <Descriptions.Item label="Hạn tự động phê duyệt" span={2}>
               {claim.auto_approval_deadline
                 ? formatDateTime(claim.auto_approval_deadline)
                 : "-"}
-            </Descriptions.Item>
-            <Descriptions.Item label={claimMessage.fields.partnerNotes} span={2}>
+            </Descriptions.Item> */}
+            <Descriptions.Item label="Ghi chú của đối tác" span={2}>
               {claim.partner_notes || "-"}
             </Descriptions.Item>
           </Descriptions>
-        </Card>
 
-        {/* Evidence Info Card */}
-        {claim.evidence_summary && (
-          <Card
-            className="claim-detail-card"
-            style={{
-              backgroundColor: "#fefcf5",
-              borderColor: "#e5e7eb",
-            }}
-          >
-            <div className="flex items-center gap-2 mb-4">
-              <FileTextOutlined className="text-lg text-green-600" />
-              <Title level={5} className="mb-0">
-                {claimMessage.detail.evidenceInfo}
-              </Title>
-            </div>
-            <Descriptions column={{ xs: 1, sm: 2, md: 3 }} bordered size="small">
-              <Descriptions.Item label={claimMessage.fields.triggeredAt}>
-                {formatDateTime(claim.evidence_summary.triggered_at)}
-              </Descriptions.Item>
-              <Descriptions.Item label={claimMessage.fields.conditionsCount}>
-                {claim.evidence_summary.conditions_count || 0}
-              </Descriptions.Item>
-              <Descriptions.Item label={claimMessage.fields.generationMethod}>
-                <Tag color={claim.evidence_summary.generation_method === "automatic" ? "blue" : "orange"}>
-                  {claim.evidence_summary.generation_method === "automatic"
-                    ? claimMessage.fields.automatic
-                    : claimMessage.fields.manual}
-                </Tag>
-              </Descriptions.Item>
-            </Descriptions>
-
-            {/* Trigger Conditions Table */}
-            {conditions.length > 0 && (
-              <div className="claim-evidence-table">
-                <Title level={5} className="mt-6 mb-4">
-                  {claimMessage.detail.triggerConditions}
+          {/* Evidence Info Section */}
+          {claim.evidence_summary && (
+            <>
+              <Divider />
+              <div className="flex items-center gap-2 mb-4">
+                <FileTextOutlined className="text-lg text-green-600" />
+                <Title level={5} className="mb-0">
+                  Bằng chứng kích hoạt
                 </Title>
-                <Table
-                  columns={conditionColumns}
-                  dataSource={conditions}
-                  rowKey={(record) => record.condition_id || Math.random()}
-                  pagination={false}
-                  scroll={{ x: 800 }}
-                  size="small"
-                  bordered
-                />
               </div>
-            )}
-          </Card>
-        )}
+              <Descriptions
+                column={{ xs: 1, sm: 2, md: 3 }}
+                bordered
+                size="small"
+              >
+                <Descriptions.Item label="Kích hoạt lúc">
+                  {formatDateTime(claim.evidence_summary.triggered_at)}
+                </Descriptions.Item>
+                <Descriptions.Item label="Số điều kiện">
+                  {claim.evidence_summary.conditions_count || 0}
+                </Descriptions.Item>
+                <Descriptions.Item label="Phương thức tạo">
+                  <Tag
+                    color={
+                      claim.evidence_summary.generation_method === "automatic"
+                        ? "blue"
+                        : "orange"
+                    }
+                  >
+                    {claim.evidence_summary.generation_method === "automatic"
+                      ? "Tự động"
+                      : "Thủ công"}
+                  </Tag>
+                </Descriptions.Item>
+              </Descriptions>
+
+              {/* Trigger Conditions Table */}
+              {conditions.length > 0 && (
+                <div className="claim-evidence-table">
+                  <Title level={5} className="mt-6 mb-4">
+                    Điều kiện kích hoạt
+                  </Title>
+                  <Table
+                    columns={conditionColumns}
+                    dataSource={conditions}
+                    rowKey={(record) => record.condition_id || Math.random()}
+                    pagination={false}
+                    scroll={{ x: 800 }}
+                    size="small"
+                    bordered
+                  />
+                </div>
+              )}
+            </>
+          )}
+        </Card>
       </div>
     </Layout.Content>
   );

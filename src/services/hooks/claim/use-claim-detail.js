@@ -1,6 +1,6 @@
 import axiosInstance from "@/libs/axios-instance";
-import { endpoints } from "@/services/endpoints";
 import { claimMessage } from "@/libs/message";
+import { endpoints } from "@/services/endpoints";
 import { message } from "antd";
 import { useCallback, useEffect, useState } from "react";
 
@@ -103,11 +103,45 @@ export function useClaimDetail(claimId) {
     return claimMessage.parameters[parameter] || parameter;
   };
 
+  // Delete claim function
+  const deleteClaim = useCallback(async () => {
+    if (!claimId) {
+      message.error(claimMessage.error.invalidClaimId);
+      return false;
+    }
+
+    try {
+      const response = await axiosInstance.delete(
+        endpoints.policy.claim.delete(claimId)
+      );
+
+      if (response.data?.success || response.status === 200) {
+        message.success(claimMessage.success.deleteClaim);
+        return true;
+      } else {
+        throw new Error(claimMessage.error.deleteClaimFailed);
+      }
+    } catch (err) {
+      console.error("Error deleting claim:", err);
+
+      const errorMessage =
+        err.response?.status === 404
+          ? claimMessage.error.notFound
+          : err.response?.status === 401
+          ? claimMessage.error.unauthorized
+          : claimMessage.error.deleteClaim;
+
+      message.error(errorMessage);
+      return false;
+    }
+  }, [claimId]);
+
   return {
     data,
     loading,
     error,
     refetch: fetchClaimDetail,
+    deleteClaim,
     // Helper functions
     formatCurrency,
     formatDate,

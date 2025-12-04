@@ -1,6 +1,6 @@
 import axiosInstance from "@/libs/axios-instance";
-import { endpoints } from "@/services/endpoints";
 import { claimMessage } from "@/libs/message";
+import { endpoints } from "@/services/endpoints";
 import { message } from "antd";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -22,7 +22,11 @@ export function useClaims() {
 
       // Add params if they have values
       Object.keys(queryParams).forEach((key) => {
-        if (queryParams[key] !== "" && queryParams[key] !== null && queryParams[key] !== undefined) {
+        if (
+          queryParams[key] !== "" &&
+          queryParams[key] !== null &&
+          queryParams[key] !== undefined
+        ) {
           params.append(key, queryParams[key]);
         }
       });
@@ -66,7 +70,11 @@ export function useClaims() {
 
       // Only include filters with values
       Object.keys(filters).forEach((key) => {
-        if (filters[key] !== "" && filters[key] !== null && filters[key] !== undefined) {
+        if (
+          filters[key] !== "" &&
+          filters[key] !== null &&
+          filters[key] !== undefined
+        ) {
           queryParams[key] = filters[key];
         }
       });
@@ -93,10 +101,13 @@ export function useClaims() {
 
   // Filter options
   const filterOptions = useMemo(() => {
-    const statusOptions = Object.keys(claimMessage.status).map((key) => ({
-      label: claimMessage.status[key],
-      value: key,
-    }));
+    const statusOptions = [
+      { label: "Đã tạo", value: "generated" },
+      { label: "Chờ đối tác xét duyệt", value: "pending_partner_review" },
+      { label: "Đã phê duyệt", value: "approved" },
+      { label: "Bị từ chối", value: "rejected" },
+      { label: "Đã thanh toán", value: "paid" },
+    ];
 
     return {
       statusOptions,

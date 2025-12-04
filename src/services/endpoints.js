@@ -75,6 +75,8 @@ export const endpoints = {
         `/policy/protected/api/v2/claims/read-all/by-farm/${farm_id}`,
       test_trigger: (policy_id) =>
         `/policy/protected/api/v2/policies/test/trigger-claim/${policy_id}`,
+      delete: (claim_id) =>
+        `/policy/protected/api/v2/claims/delete-any/${claim_id}`,
     },
   },
   partner: {
