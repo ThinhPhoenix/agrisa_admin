@@ -25,13 +25,7 @@ const { Title, Text } = Typography;
 export default function PendingPoliciesPage() {
   const {
     data,
-    filteredData,
-    filterOptions,
     summaryStats,
-    filters,
-    updateFilters,
-    applyApiFilters,
-    clearFilters,
     loading,
   } = usePendingPolicies();
 
@@ -45,7 +39,7 @@ export default function PendingPoliciesPage() {
     "created_at",
   ]);
 
-  // Flatten RAW data (not filteredData) for searching - use data to avoid duplicate filtering
+  // Flatten RAW data for searching - extract nested fields for easier search
   const flattenedData = (data || []).map((item) => ({
     ...item,
     product_name: item.base_policy?.product_name || "",
@@ -56,14 +50,29 @@ export default function PendingPoliciesPage() {
       item.base_policy?.document_validation_status || "",
   }));
 
-  // Frontend table data hook - use RAW data instead of filteredData
+  // Frontend table data hook - Simple search on visible table data only
   const {
     paginatedData,
+    handleFormSubmit,
+    handleClearFilters,
     paginationConfig,
   } = useTableData(flattenedData, {
     searchFields: ["product_name", "product_code", "insurance_provider_id"],
-    defaultFilters: {},
+    defaultFilters: {
+      searchText: "",
+    },
     pageSize: 10,
+    filterHandlers: {
+      searchText: (item, value) => {
+        if (!value || value === "") return true;
+        const searchLower = value.toLowerCase();
+        return (
+          item.product_name?.toLowerCase().includes(searchLower) ||
+          item.product_code?.toLowerCase().includes(searchLower) ||
+          item.insurance_provider_id?.toLowerCase().includes(searchLower)
+        );
+      },
+    },
   });
 
   // Loading state check
@@ -76,41 +85,6 @@ export default function PendingPoliciesPage() {
       </Layout.Content>
     );
   }
-
-  // Handle form submit
-  const handleFormSubmit = (formData) => {
-    // Separate API filters from client-side filters
-    const apiFilters = {};
-    const clientFilters = {};
-
-    if (formData.archive_status !== undefined) {
-      apiFilters.archive_status = formData.archive_status;
-    }
-    if (formData.provider_id !== undefined) {
-      apiFilters.provider_id = formData.provider_id;
-    }
-    if (formData.validation_status !== undefined) {
-      clientFilters.validation_status = formData.validation_status;
-    }
-    if (formData.product_name !== undefined) {
-      clientFilters.product_name = formData.product_name;
-    }
-
-    // Apply API filters (triggers refetch)
-    if (Object.keys(apiFilters).length > 0) {
-      applyApiFilters(apiFilters);
-    }
-
-    // Apply client filters
-    if (Object.keys(clientFilters).length > 0) {
-      updateFilters(clientFilters);
-    }
-  };
-
-  // Handle clear filters
-  const handleClearFilters = () => {
-    clearFilters();
-  };
 
   // Get validation status config
   const getValidationStatusConfig = (status) => {
@@ -307,38 +281,13 @@ export default function PendingPoliciesPage() {
     },
   ];
 
-  // Search fields
+  // Search fields - Simple search for visible table data
   const searchFields = [
     {
-      name: "product_name",
-      label: "Tên sản phẩm",
+      name: "searchText",
+      label: "Tìm kiếm",
       type: "input",
-      placeholder: "Tìm kiếm theo tên hoặc mã...",
-      value: filters.product_name,
-    },
-    {
-      name: "provider_id",
-      label: "Nhà bảo hiểm",
-      type: "combobox",
-      placeholder: "Chọn nhà bảo hiểm",
-      options: filterOptions.providers,
-      value: filters.provider_id,
-    },
-    {
-      name: "validation_status",
-      label: "Trạng thái validation",
-      type: "combobox",
-      placeholder: "Chọn trạng thái",
-      options: filterOptions.validationStatuses,
-      value: filters.validation_status,
-    },
-    {
-      name: "archive_status",
-      label: "Trạng thái lưu trữ",
-      type: "combobox",
-      placeholder: "Chọn trạng thái",
-      options: filterOptions.archiveStatuses,
-      value: filters.archive_status,
+      placeholder: "Tìm theo tên sản phẩm, mã sản phẩm, nhà bảo hiểm...",
     },
     {
       name: "searchButton",
@@ -443,7 +392,7 @@ export default function PendingPoliciesPage() {
                     <div className="space-y-4">
                       <CustomForm
                         fields={searchFields}
-                        gridColumns="1fr 1fr 1fr 1fr 1fr 1fr"
+                        gridColumns="1fr auto auto"
                         gap="16px"
                         onSubmit={handleFormSubmit}
                       />

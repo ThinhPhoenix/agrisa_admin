@@ -10,7 +10,6 @@ import {
   CheckCircleOutlined,
   ClockCircleOutlined,
   CloseCircleOutlined,
-  FilePdfOutlined,
   InfoCircleOutlined,
   RobotOutlined,
   SettingOutlined,
@@ -18,7 +17,6 @@ import {
   WarningOutlined,
 } from "@ant-design/icons";
 import {
-  Alert,
   Badge,
   Button,
   Card,
@@ -245,84 +243,74 @@ export default function PolicyDetailPage() {
           mode={validationModalMode}
         />
 
-        {/* Validation Actions */}
-        {validationStatus === "passed_ai" && (
-          <Alert
-            message="Kết quả xác thực AI"
-            description={
-              <div>
-                <Paragraph>
-                  AI đã hoàn thành xác thực. Vui lòng xem xét kết quả và chấp
-                  nhận hoặc yêu cầu review thủ công.
-                </Paragraph>
-                <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
-                  <Button type="primary" onClick={handleAcceptAI}>
-                    Chấp nhận kết quả AI
-                  </Button>
-                  <Button onClick={() => handleManualValidate("review")}>
-                    Review thủ công
-                  </Button>
-                </div>
-              </div>
-            }
-            type="info"
-            showIcon
-            icon={<CheckCircleOutlined />}
-            style={{ marginBottom: "24px" }}
-          />
-        )}
-
-        {validationStatus === "pending" && (
-          <Alert
-            message="Chờ xác thực"
-            description={
-              <div>
-                <Paragraph>Chính sách này đang chờ xác thực.</Paragraph>
-                <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
-                  <Button
-                    type="primary"
-                    onClick={() => handleManualValidate("approve")}
-                  >
-                    Xác thực thủ công
-                  </Button>
-                </div>
-              </div>
-            }
-            type="warning"
-            showIcon
-            style={{ marginBottom: "24px" }}
-          />
-        )}
-
-        {validationStatus === "failed" && latestValidation && (
-          <Alert
-            message="Xác thực thất bại"
-            description={
-              <div>
-                <Paragraph>
-                  Chính sách có {latestValidation.failed_checks} lỗi cần được xử
-                  lý.
-                </Paragraph>
-                <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
+        {/* Validation Actions - Simplified */}
+        <Card
+          size="small"
+          style={{
+            marginBottom: "24px",
+            background: "#f6ffed",
+            borderColor: "#b7eb8f",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <div>
+              <Text strong style={{ fontSize: "14px" }}>
+                <InfoCircleOutlined
+                  style={{ marginRight: "8px", color: "#52c41a" }}
+                />
+                Xác thực đơn bảo hiểm
+              </Text>
+              <br />
+              <Text type="secondary" style={{ fontSize: "12px" }}>
+                {validationStatus === "passed_ai" &&
+                  "AI đã xác thực. Vui lòng xem xét và duyệt đơn."}
+                {validationStatus === "pending" &&
+                  "Đơn đang chờ xác thực thủ công."}
+                {validationStatus === "failed" &&
+                  latestValidation &&
+                  `Phát hiện ${latestValidation.failed_checks} lỗi cần xử lý.`}
+                {validationStatus === "passed" &&
+                  "Đơn đã được duyệt và kích hoạt."}
+              </Text>
+            </div>
+            <div style={{ display: "flex", gap: "8px" }}>
+              {(validationStatus === "passed_ai" ||
+                validationStatus === "pending") && (
+                <Button
+                  type="primary"
+                  icon={<CheckCircleOutlined />}
+                  onClick={() => handleManualValidate("approve")}
+                >
+                  Duyệt đơn
+                </Button>
+              )}
+              {validationStatus === "failed" && (
+                <>
                   <Button
                     type="primary"
                     danger
+                    icon={<CloseCircleOutlined />}
                     onClick={() => handleManualValidate("fix")}
                   >
-                    Yêu cầu sửa lỗi
+                    Yêu cầu sửa
                   </Button>
-                  <Button onClick={() => handleManualValidate("override")}>
-                    Ghi đè thủ công
+                  <Button
+                    icon={<CheckCircleOutlined />}
+                    onClick={() => handleManualValidate("override")}
+                  >
+                    Ghi đè duyệt
                   </Button>
-                </div>
-              </div>
-            }
-            type="error"
-            showIcon
-            icon={<CloseCircleOutlined />}
-            style={{ marginBottom: "24px" }}
-          />
-        )}
+                </>
+              )}
+            </div>
+          </div>
+        </Card>
 
         {/* Tabs for detailed information */}
         <Tabs
@@ -349,7 +337,7 @@ export default function PolicyDetailPage() {
               key: "configuration",
               label: (
                 <span>
-                  <SettingOutlined /> Cấu hình Trigger
+                  <SettingOutlined /> Cấu hình và điều kiện
                 </span>
               ),
               children: (
@@ -363,7 +351,7 @@ export default function PolicyDetailPage() {
               key: "tags",
               label: (
                 <span>
-                  <TagOutlined /> Thẻ & Metadata
+                  <TagOutlined /> Trường thông tin
                 </span>
               ),
               children: <TagsInfoTab basePolicy={basePolicy} />,
@@ -387,43 +375,6 @@ export default function PolicyDetailPage() {
                   getSeverityBadge={getSeverityBadge}
                   getValidationStatusConfig={getValidationStatusConfig}
                 />
-              ),
-            },
-            {
-              key: "document",
-              label: (
-                <span>
-                  <FilePdfOutlined /> Tài liệu
-                </span>
-              ),
-              children: (
-                <Card title="Tài liệu chính sách" bordered={false}>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "12px",
-                    }}
-                  >
-                    <FilePdfOutlined
-                      style={{ fontSize: "24px", color: "#ff4d4f" }}
-                    />
-                    <div style={{ flex: 1 }}>
-                      <Text strong>Tài liệu PDF chính sách</Text>
-                      <br />
-                      <Text type="secondary">
-                        {basePolicy.template_document_url}
-                      </Text>
-                    </div>
-                    <Button
-                      type="primary"
-                      icon={<FilePdfOutlined />}
-                      onClick={handleDownloadPDF}
-                    >
-                      Xem PDF
-                    </Button>
-                  </div>
-                </Card>
               ),
             },
           ]}

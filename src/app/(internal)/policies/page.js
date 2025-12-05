@@ -12,7 +12,6 @@ import {
   CloseCircleOutlined,
   DollarOutlined,
   DownloadOutlined,
-  EditOutlined,
   EyeOutlined,
   FileProtectOutlined,
   FilterOutlined,
@@ -89,13 +88,41 @@ export default function PoliciesPage() {
   // Get policy status config
   const getPolicyStatusConfig = (status) => {
     const configs = {
-      draft: { color: "default", icon: <ClockCircleOutlined />, text: policyMessage.status.draft },
-      pending_review: { color: "orange", icon: <ClockCircleOutlined />, text: policyMessage.status.pending_review },
-      pending_payment: { color: "cyan", icon: <DollarOutlined />, text: policyMessage.status.pending_payment },
-      active: { color: "green", icon: <CheckCircleOutlined />, text: policyMessage.status.active },
-      expired: { color: "red", icon: <CloseCircleOutlined />, text: policyMessage.status.expired },
-      cancelled: { color: "default", icon: <CloseCircleOutlined />, text: policyMessage.status.cancelled },
-      rejected: { color: "red", icon: <CloseCircleOutlined />, text: policyMessage.status.rejected },
+      draft: {
+        color: "default",
+        icon: <ClockCircleOutlined />,
+        text: policyMessage.status.draft,
+      },
+      pending_review: {
+        color: "orange",
+        icon: <ClockCircleOutlined />,
+        text: policyMessage.status.pending_review,
+      },
+      pending_payment: {
+        color: "cyan",
+        icon: <DollarOutlined />,
+        text: policyMessage.status.pending_payment,
+      },
+      active: {
+        color: "green",
+        icon: <CheckCircleOutlined />,
+        text: policyMessage.status.active,
+      },
+      expired: {
+        color: "red",
+        icon: <CloseCircleOutlined />,
+        text: policyMessage.status.expired,
+      },
+      cancelled: {
+        color: "default",
+        icon: <CloseCircleOutlined />,
+        text: policyMessage.status.cancelled,
+      },
+      rejected: {
+        color: "red",
+        icon: <CloseCircleOutlined />,
+        text: policyMessage.status.rejected,
+      },
     };
     return configs[status] || configs.draft;
   };
@@ -103,9 +130,21 @@ export default function PoliciesPage() {
   // Get underwriting status config
   const getUnderwritingStatusConfig = (status) => {
     const configs = {
-      pending: { color: "orange", icon: <ClockCircleOutlined />, text: policyMessage.underwritingStatus.pending },
-      approved: { color: "green", icon: <CheckCircleOutlined />, text: policyMessage.underwritingStatus.approved },
-      rejected: { color: "red", icon: <CloseCircleOutlined />, text: policyMessage.underwritingStatus.rejected },
+      pending: {
+        color: "orange",
+        icon: <ClockCircleOutlined />,
+        text: policyMessage.underwritingStatus.pending,
+      },
+      approved: {
+        color: "green",
+        icon: <CheckCircleOutlined />,
+        text: policyMessage.underwritingStatus.approved,
+      },
+      rejected: {
+        color: "red",
+        icon: <CloseCircleOutlined />,
+        text: policyMessage.underwritingStatus.rejected,
+      },
     };
     return configs[status] || configs.pending;
   };
@@ -232,16 +271,6 @@ export default function PoliciesPage() {
               title={policyMessage.actions.viewDetail}
             >
               <EyeOutlined />
-            </Button>
-          </Link>
-          <Link href={`/policies/${record.id}/edit`}>
-            <Button
-              type="dashed"
-              size="small"
-              className="policy-action-btn !bg-green-100 !border-green-200 !text-green-800 hover:!bg-green-200"
-              title={policyMessage.actions.updateStatus}
-            >
-              <EditOutlined />
             </Button>
           </Link>
         </div>

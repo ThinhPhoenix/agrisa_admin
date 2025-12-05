@@ -18,6 +18,7 @@ import {
   SearchOutlined,
 } from "@ant-design/icons";
 import { Button, Collapse, Layout, Space, Spin, Tag, Typography } from "antd";
+import { WalletCards } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import "./page.css";
@@ -297,8 +298,8 @@ export default function ClaimsPage() {
         <div className="claim-header">
           <div>
             <Title level={2} className="claim-title">
-              <DollarOutlined className="claim-icon" />
-              Quản lý bồi thường
+              <WalletCards className="claim-icon" />
+              Quản lý yêu cầu chi trả
             </Title>
             <Text className="claim-subtitle">
               Quản lý và theo dõi các yêu cầu bồi thường bảo hiểm nông nghiệp

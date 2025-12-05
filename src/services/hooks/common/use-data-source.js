@@ -20,39 +20,45 @@ const useDataSource = () => {
       return null;
     }
 
-    const token = localStorage.getItem("token");
-
     try {
-      const response = await axiosInstance.get(
-        endpoints.dataSources.detail(dataSourceId),
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const url = endpoints.policy.data_tier.data_source.get_one(dataSourceId);
+      const response = await axiosInstance.get(url);
 
-      if (response.data?.success && response.data?.data) {
-        const source = response.data.data;
+      // Handle response structure like use-sources.js
+      let sourceData = response.data;
+      if (
+        response.data &&
+        typeof response.data === "object" &&
+        response.data.data
+      ) {
+        sourceData = Array.isArray(response.data.data)
+          ? response.data.data[0]
+          : response.data.data;
+      }
+
+      if (sourceData) {
         // Transform to match the structure used in create policy
-        return {
-          id: source.id || source.data_source_id || dataSourceId,
-          label: source.display_name_vi || source.parameter_name,
-          parameterName: source.parameter_name,
-          unit: source.unit,
-          description: source.description_vi || source.parameter_name,
-          baseCost: source.base_cost,
-          data_tier_id: source.data_tier_id,
-          data_provider: source.data_provider,
-          parameter_type: source.parameter_type,
-          min_value: source.min_value,
-          max_value: source.max_value,
-          update_frequency: source.update_frequency,
-          spatial_resolution: source.spatial_resolution,
-          accuracy_rating: source.accuracy_rating,
-          api_endpoint: source.api_endpoint,
-          ...source,
+        const transformed = {
+          id: sourceData.id || sourceData.data_source_id || dataSourceId,
+          label: sourceData.display_name_vi || sourceData.parameter_name,
+          display_name_vi: sourceData.display_name_vi,
+          parameterName: sourceData.parameter_name,
+          parameter_name: sourceData.parameter_name,
+          unit: sourceData.unit,
+          description: sourceData.description_vi || sourceData.parameter_name,
+          baseCost: sourceData.base_cost,
+          data_tier_id: sourceData.data_tier_id,
+          data_provider: sourceData.data_provider,
+          parameter_type: sourceData.parameter_type,
+          min_value: sourceData.min_value,
+          max_value: sourceData.max_value,
+          update_frequency: sourceData.update_frequency,
+          spatial_resolution: sourceData.spatial_resolution,
+          accuracy_rating: sourceData.accuracy_rating,
+          api_endpoint: sourceData.api_endpoint,
+          ...sourceData,
         };
+        return transformed;
       }
       return null;
     } catch (error) {
@@ -86,9 +92,7 @@ const useDataSource = () => {
         setDataSourceLoading(false);
         return dataSources;
       } catch (error) {
-        setDataSourceError(
-          error.message || "Failed to fetch data sources"
-        );
+        setDataSourceError(error.message || "Failed to fetch data sources");
         setDataSourceLoading(false);
         return [];
       }

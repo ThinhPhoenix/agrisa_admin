@@ -6,17 +6,17 @@ export const sidebarMenuItems = [
     children: [
       { key: "accounts/general", label: "Quản lí chung" },
       { key: "accounts/partner", label: "Quản lí đối tác" },
-      { key: "accounts/farmer", label: "Quản lí nông dân" },
+      // { key: "accounts/farmer", label: "Quản lí nông dân" },
     ],
   },
-  {
-    key: "permissions",
-    label: "Quản lí quyền hạn",
-  },
-  {
-    key: "roles",
-    label: "Quản lí vai trò",
-  },
+  // {
+  //   key: "permissions",
+  //   label: "Quản lí quyền hạn",
+  // },
+  // {
+  //   key: "roles",
+  //   label: "Quản lí vai trò",
+  // },
   {
     key: "pending-policies",
     label: "Chính sách đang chờ duyệt",
@@ -27,7 +27,7 @@ export const sidebarMenuItems = [
   },
   {
     key: "claims",
-    label: "Quản lý bồi thường",
+    label: "Quản lý yêu cầu chi trả",
   },
   {
     key: "data",
@@ -38,10 +38,10 @@ export const sidebarMenuItems = [
       { key: "data/sources", label: "Nguồn dữ liệu" },
     ],
   },
-  {
-    key: "configuration",
-    label: "Cấu hình hệ thống",
-  },
+  // {
+  //   key: "configuration",
+  //   label: "Cấu hình hệ thống",
+  // },
 ];
 
 export const labelTranslations = {

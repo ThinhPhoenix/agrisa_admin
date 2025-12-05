@@ -10,7 +10,6 @@ import {
   MinusCircleOutlined,
   PlusOutlined,
   SettingOutlined,
-  UserOutlined,
   WarningOutlined,
 } from "@ant-design/icons";
 import {
@@ -117,10 +116,12 @@ export default function ValidationFormModal({
         let validationStatus = latestValidation.validation_status;
         let validationNotes = latestValidation.validation_notes || "";
 
+        // Always set to "passed" - admin confirmation triggers auto-commit
+        validationStatus = "passed";
+
         if (mode === "accept_ai") {
           // When accepting AI result, set status to "passed" (manual confirmation)
           // This triggers auto-commit as per spec
-          validationStatus = "passed";
           validationNotes = validationNotes
             ? `${validationNotes}\n\nAdmin đã chấp nhận kết quả AI và xác nhận thủ công.`
             : "Admin đã chấp nhận kết quả AI và xác nhận thủ công. Kết quả AI được coi là chính xác.";
@@ -137,8 +138,6 @@ export default function ValidationFormModal({
         }
 
         const initialValues = {
-          validation_status: validationStatus,
-          validated_by: validatedBy,
           total_checks: latestValidation.total_checks || 0,
           passed_checks: latestValidation.passed_checks || 0,
           failed_checks: latestValidation.failed_checks || 0,
@@ -164,8 +163,6 @@ export default function ValidationFormModal({
         console.log("📋 No AI validation data, using defaults");
         // Set defaults for new validation
         const defaultValues = {
-          validation_status: "pending",
-          validated_by: validatedBy,
           total_checks: 0,
           passed_checks: 0,
           failed_checks: 0,
@@ -231,8 +228,8 @@ export default function ValidationFormModal({
       // Build payload according to ValidatePolicyRequest spec
       const payload = {
         base_policy_id: basePolicyId,
-        validation_status: values.validation_status,
-        validated_by: values.validated_by,
+        validation_status: "passed", // Always send "passed"
+        validated_by: "agrisa.admin@gmail.com", // Hardcoded
         total_checks: values.total_checks || 0,
         passed_checks: values.passed_checks || 0,
         failed_checks: values.failed_checks || 0,
@@ -287,59 +284,6 @@ export default function ValidationFormModal({
 
   // Define form fields configuration
   const fields = [
-    // Header Section - Validation Status and Validated By
-    {
-      type: "select",
-      name: "validation_status",
-      label: (
-        <span style={{ fontWeight: 600 }}>
-          <InfoCircleOutlined style={{ marginRight: "4px" }} />
-          Trạng thái xác thực
-        </span>
-      ),
-      placeholder: "Chọn trạng thái xác thực",
-      gridColumn: "span 1",
-      rules: [{ required: true, message: "Vui lòng chọn trạng thái" }],
-      options: [
-        {
-          value: "pending",
-          label: <Badge status="default" text="Chờ duyệt" />,
-        },
-        {
-          value: "passed",
-          label: <Badge status="success" text="Đã duyệt" />,
-        },
-        {
-          value: "passed_ai",
-          label: <Badge status="processing" text="Đã duyệt (AI)" />,
-        },
-        {
-          value: "failed",
-          label: <Badge status="error" text="Thất bại" />,
-        },
-        {
-          value: "warning",
-          label: <Badge status="warning" text="Cảnh báo" />,
-        },
-      ],
-    },
-    {
-      type: "input",
-      name: "validated_by",
-      label: (
-        <span style={{ fontWeight: 600 }}>
-          <UserOutlined style={{ marginRight: "4px" }} />
-          Người xác thực
-        </span>
-      ),
-      placeholder: "admin@example.com",
-      gridColumn: "span 1",
-      rules: [
-        { required: true, message: "Vui lòng nhập email người xác thực" },
-        { type: "email", message: "Email không hợp lệ" },
-      ],
-    },
-
     // Statistics Section
     {
       type: "number",
@@ -431,17 +375,26 @@ export default function ValidationFormModal({
       ],
     },
 
-    // Extraction Parameters
+    // Extraction Parameters - Slider
     {
-      type: "number",
+      type: "slider",
       name: "extraction_confidence",
-      label: <span style={{ fontWeight: 500 }}>Độ tin cậy trích xuất</span>,
-      placeholder: "0.95",
+      label: <span style={{ fontWeight: 500 }}>Độ tin cậy trích xuất (%)</span>,
+      gridColumn: "span 2",
       min: 0,
       max: 1,
       step: 0.01,
-      gridColumn: "span 1",
-      rules: [],
+      marks: {
+        0: "0%",
+        0.5: "50%",
+        0.75: "75%",
+        0.95: "95%",
+        1: "100%",
+      },
+      sliderTooltip: {
+        formatter: (value) => `${(value * 100).toFixed(0)}%`,
+      },
+      tooltip: "Mức độ chính xác khi AI trích xuất thông tin từ tài liệu PDF",
     },
     {
       type: "number",
@@ -948,6 +901,111 @@ export default function ValidationFormModal({
           </Form>
         </Card>
       )}
+
+      {/* FAQ Section */}
+      <Card
+        title={
+          <span style={{ fontWeight: 600 }}>
+            <InfoCircleOutlined
+              style={{ marginRight: "8px", color: "#1890ff" }}
+            />
+            Câu hỏi thường gặp
+          </span>
+        }
+        size="small"
+        style={{ marginTop: "16px", background: "#f0f7ff" }}
+      >
+        <div style={{ fontSize: "13px", lineHeight: "1.8" }}>
+          <div style={{ marginBottom: "16px" }}>
+            <Text strong style={{ color: "#1890ff", fontSize: "14px" }}>
+              <CheckCircleOutlined style={{ marginRight: "6px" }} />
+              Khi tôi duyệt đơn thì điều gì sẽ xảy ra?
+            </Text>
+            <br />
+            <Text type="secondary">
+              Đơn bảo hiểm sẽ được kích hoạt ngay lập tức và chính thức có hiệu
+              lực. Nông dân sẽ nhận được thông báo xác nhận và có thể tra cứu
+              thông tin đơn bảo hiểm của mình.
+            </Text>
+          </div>
+
+          <div style={{ marginBottom: "16px" }}>
+            <Text strong style={{ color: "#ff4d4f", fontSize: "14px" }}>
+              <CloseCircleOutlined style={{ marginRight: "6px" }} />
+              Nếu tôi không duyệt đơn thì sao?
+            </Text>
+            <br />
+            <Text type="secondary">
+              <span style={{ color: "#d4380d" }}>⚠️ Lưu ý quan trọng:</span> Nếu
+              bạn không thực hiện duyệt đơn, đơn đăng ký sẽ{" "}
+              <strong>tự động bị hủy</strong> sau 24h. Đối tác sẽ cần đăng ký
+              lại từ đầu nếu muốn tiếp tục.
+            </Text>
+          </div>
+
+          <div style={{ marginBottom: "16px" }}>
+            <Text strong style={{ color: "#52c41a", fontSize: "14px" }}>
+              <BulbOutlined style={{ marginRight: "6px" }} />
+              Các thông số trong form có ý nghĩa gì?
+            </Text>
+            <br />
+            <div style={{ marginLeft: "20px", marginTop: "8px" }}>
+              <div style={{ marginBottom: "6px" }}>
+                <Text strong>• Độ tin cậy trích xuất:</Text>
+                <Text type="secondary">
+                  {" "}
+                  Phản ánh mức độ chính xác khi AI đọc và trích xuất thông tin
+                  từ file PDF. Càng cao (95-100%) thì thông tin càng đáng tin
+                  cậy.
+                </Text>
+              </div>
+              <div style={{ marginBottom: "6px" }}>
+                <Text strong>• Tổng số kiểm tra:</Text>
+                <Text type="secondary">
+                  {" "}
+                  Tổng số mục thông tin đã được AI kiểm tra (ví dụ: giá bảo
+                  hiểm, thời hạn, điều kiện...).
+                </Text>
+              </div>
+              <div style={{ marginBottom: "6px" }}>
+                <Text strong>• Số kiểm tra đạt/lỗi:</Text>
+                <Text type="secondary">
+                  {" "}
+                  Số mục thông tin khớp chính xác giữa PDF và dữ liệu hệ thống,
+                  và số mục có sai lệch cần xem xét.
+                </Text>
+              </div>
+              <div>
+                <Text strong>• Ghi chú xác thực:</Text>
+                <Text type="secondary">
+                  {" "}
+                  Ghi chú của bạn về quyết định duyệt/từ chối, hoặc các vấn đề
+                  cần lưu ý cho lần kiểm tra sau.
+                </Text>
+              </div>
+            </div>
+          </div>
+
+          <div
+            style={{
+              padding: "12px",
+              background: "#fff",
+              borderRadius: "4px",
+              border: "1px solid #d9d9d9",
+            }}
+          >
+            <Text strong style={{ color: "#1890ff" }}>
+              <InfoCircleOutlined style={{ marginRight: "6px" }} />
+              Mẹo hữu ích
+            </Text>
+            <br />
+            <Text type="secondary" style={{ fontSize: "12px" }}>
+              Nếu độ tin cậy trích xuất dưới 80% hoặc có nhiều lỗi, hãy xem xét
+              kỹ file PDF trước khi duyệt để đảm bảo thông tin chính xác.
+            </Text>
+          </div>
+        </div>
+      </Card>
     </Modal>
   );
 }
