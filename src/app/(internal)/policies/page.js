@@ -48,7 +48,14 @@ export default function PoliciesPage() {
   ]);
 
   // Frontend table data hook
-  const tableData = useTableData(data, {
+  const {
+    paginatedData,
+    handleFormSubmit,
+    handleClearFilters: clearTableFilters,
+    paginationConfig,
+    searchText,
+    filters: tableFilters,
+  } = useTableData(data, {
     searchFields: [
       "policy_number",
       "farmer_id",
@@ -74,12 +81,8 @@ export default function PoliciesPage() {
     );
   }
 
-  const handleFormSubmit = (formData) => {
-    tableData.handleFormSubmit(formData);
-  };
-
   const handleClearFilters = () => {
-    tableData.handleClearFilters();
+    clearTableFilters();
     clearFilters();
   };
 
@@ -252,7 +255,6 @@ export default function PoliciesPage() {
       label: policyMessage.filter.search,
       type: "input",
       placeholder: policyMessage.filter.policyNumber,
-      value: tableData.searchText,
     },
     {
       name: "status",
@@ -263,7 +265,6 @@ export default function PoliciesPage() {
         { label: policyMessage.filter.allStatus, value: "" },
         ...filterOptions.statusOptions,
       ],
-      value: tableData.filters.status,
     },
     {
       name: "underwriting_status",
@@ -274,7 +275,6 @@ export default function PoliciesPage() {
         { label: policyMessage.filter.allUnderwriting, value: "" },
         ...filterOptions.underwritingOptions,
       ],
-      value: tableData.filters.underwriting_status,
     },
     {
       name: "insurance_provider_id",
@@ -285,7 +285,6 @@ export default function PoliciesPage() {
         { label: "Tất cả nhà cung cấp", value: "" },
         ...filterOptions.providers,
       ],
-      value: tableData.filters.insurance_provider_id,
     },
     {
       name: "spacer",
@@ -418,11 +417,11 @@ export default function PoliciesPage() {
         <div className="policy-table-wrapper">
           <CustomTable
             columns={columns}
-            dataSource={tableData.paginatedData}
+            dataSource={paginatedData}
             visibleColumns={visibleColumns}
             rowKey="id"
             scroll={{ x: 1800 }}
-            pagination={tableData.paginationConfig}
+            pagination={paginationConfig}
           />
         </div>
       </div>

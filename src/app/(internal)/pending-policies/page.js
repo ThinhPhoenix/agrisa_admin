@@ -57,7 +57,10 @@ export default function PendingPoliciesPage() {
   }));
 
   // Frontend table data hook - use RAW data instead of filteredData
-  const tableData = useTableData(flattenedData, {
+  const {
+    paginatedData,
+    paginationConfig,
+  } = useTableData(flattenedData, {
     searchFields: ["product_name", "product_code", "insurance_provider_id"],
     defaultFilters: {},
     pageSize: 10,
@@ -463,11 +466,11 @@ export default function PendingPoliciesPage() {
 
         <CustomTable
           columns={columns}
-          dataSource={tableData.paginatedData}
+          dataSource={paginatedData}
           visibleColumns={visibleColumns}
           rowKey={(record) => record.base_policy?.id || Math.random()}
           scroll={{ x: 1400 }}
-          pagination={tableData.paginationConfig}
+          pagination={paginationConfig}
         />
       </div>
     </Layout.Content>

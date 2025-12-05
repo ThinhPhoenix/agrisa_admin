@@ -53,7 +53,14 @@ export default function AccountsPage() {
   ]);
 
   // Frontend table data hook - use RAW data instead of filteredData
-  const tableData = useTableData(data, {
+  const {
+    paginatedData,
+    handleFormSubmit,
+    handleClearFilters,
+    paginationConfig,
+    searchText,
+    filters: tableFilters,
+  } = useTableData(data, {
     searchFields: ["username", "full_name", "email"],
     defaultFilters: {
       role: "",
@@ -72,16 +79,6 @@ export default function AccountsPage() {
       </Layout.Content>
     );
   }
-
-  // Handle form submit - use tableData handlers instead of hook's updateFilters
-  const handleFormSubmit = (formData) => {
-    tableData.handleFormSubmit(formData);
-  };
-
-  // Handle clear filters - use tableData handlers instead of hook's clearFilters
-  const handleClearFilters = () => {
-    tableData.handleClearFilters();
-  };
 
   // Get status color
   const getStatusColor = (status) => {
@@ -221,7 +218,6 @@ export default function AccountsPage() {
       label: "Tìm kiếm",
       type: "input",
       placeholder: "Tìm kiếm theo tên đăng kí, họ tên, email...",
-      value: tableData.searchText,
     },
     {
       name: "role",
@@ -229,7 +225,6 @@ export default function AccountsPage() {
       type: "combobox",
       placeholder: "Chọn vai trò",
       options: filterOptions.roles,
-      value: tableData.filters.role,
     },
     {
       name: "status",
@@ -237,7 +232,6 @@ export default function AccountsPage() {
       type: "combobox",
       placeholder: "Chọn trạng thái",
       options: filterOptions.statuses,
-      value: tableData.filters.status,
     },
     // Second row - Additional filters and actions (2 buttons)
     {
@@ -371,11 +365,11 @@ export default function AccountsPage() {
 
         <CustomTable
           columns={columns}
-          dataSource={tableData.paginatedData}
+          dataSource={paginatedData}
           visibleColumns={visibleColumns}
           rowKey="id"
           scroll={{ x: 1200 }}
-          pagination={tableData.paginationConfig}
+          pagination={paginationConfig}
         />
       </div>
     </Layout.Content>

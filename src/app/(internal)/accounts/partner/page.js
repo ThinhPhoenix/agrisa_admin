@@ -44,7 +44,14 @@ export default function PartnersPage() {
   ]);
 
   // Frontend table data hook - use RAW data instead of filteredData
-  const tableData = useTableData(data, {
+  const {
+    paginatedData,
+    handleFormSubmit,
+    handleClearFilters,
+    paginationConfig,
+    searchText,
+    filters: tableFilters,
+  } = useTableData(data, {
     searchFields: ['partner_display_name', 'partner_phone', 'partner_official_email', 'hotline', 'province_name'],
     defaultFilters: {
       province_name: '',
@@ -61,14 +68,6 @@ export default function PartnersPage() {
       </Layout.Content>
     );
   }
-
-  const handleFormSubmit = (formData) => {
-    tableData.handleFormSubmit(formData);
-  };
-
-  const handleClearFilters = () => {
-    tableData.handleClearFilters();
-  };
 
   const columns = [
     {
@@ -168,7 +167,6 @@ export default function PartnersPage() {
       label: "Tìm kiếm",
       type: "input",
       placeholder: "Tìm kiếm theo tên, email, điện thoại...",
-      value: tableData.searchText,
     },
     {
       name: "province_name",
@@ -176,7 +174,6 @@ export default function PartnersPage() {
       type: "combobox",
       placeholder: "Chọn tỉnh/thành phố",
       options: filterOptions.provinces,
-      value: tableData.filters.province_name,
     },
     {
       name: "spacer",
@@ -294,11 +291,11 @@ export default function PartnersPage() {
 
         <CustomTable
           columns={columns}
-          dataSource={tableData.paginatedData}
+          dataSource={paginatedData}
           visibleColumns={visibleColumns}
           rowKey="partner_id"
           scroll={{ x: 1400 }}
-          pagination={tableData.paginationConfig}
+          pagination={paginationConfig}
         />
       </div>
     </Layout.Content>

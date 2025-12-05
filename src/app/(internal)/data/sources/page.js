@@ -4,6 +4,7 @@ import SelectedColumn from "@/components/column-selector";
 import { CustomForm } from "@/components/custom-form";
 import CustomTable from "@/components/custom-table";
 import { useSources } from "@/services/hooks/data/use-sources";
+import { useTableData } from "@/services/hooks/common/use-table-data";
 import {
   CheckCircleOutlined,
   DeleteOutlined,
@@ -25,7 +26,7 @@ import {
   Typography,
 } from "antd";
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import "../data.css";
 
 const { Title, Text } = Typography;
@@ -33,15 +34,47 @@ const { confirm } = Modal;
 
 export default function SourcesPage() {
   const {
-    filteredData,
+    data: rawData,
     filterOptions,
-    summaryStats,
-    filters,
-    updateFilters,
-    clearFilters,
     loading,
     deleteSource,
   } = useSources();
+
+  // Setup useTableData hook for client-side filtering
+  const {
+    paginatedData,
+    handleFormSubmit,
+    handleClearFilters,
+    paginationConfig,
+  } = useTableData(rawData || [], {
+    searchFields: ["display_name_vi", "parameter_name", "data_provider"],
+    defaultFilters: {
+      searchText: "",
+      type: "all",
+      status: "all",
+    },
+    pageSize: 10,
+    filterHandlers: {
+      searchText: (item, value) => {
+        if (!value || value === "") return true;
+        const searchLower = value.toLowerCase();
+        return (
+          item.display_name_vi?.toLowerCase().includes(searchLower) ||
+          item.parameter_name?.toLowerCase().includes(searchLower) ||
+          item.data_provider?.toLowerCase().includes(searchLower)
+        );
+      },
+      type: (item, value) => {
+        if (!value || value === "" || value === "all") return true;
+        return item.data_source === value;
+      },
+      status: (item, value) => {
+        if (!value || value === "" || value === "all") return true;
+        const isActive = value === "active";
+        return item.is_active === isActive;
+      },
+    },
+  });
 
   // Visible columns state
   const [visibleColumns, setVisibleColumns] = useState([
@@ -54,6 +87,21 @@ export default function SourcesPage() {
     "is_active",
     "created_at",
   ]);
+
+  // Calculate summary stats from paginated data
+  const summaryStats = useMemo(() => {
+    const allData = rawData || [];
+    const totalItems = allData.length;
+    const activeItems = allData.filter((item) => item.is_active).length;
+    const totalCost = allData.reduce((sum, item) => sum + (item.base_cost || 0), 0);
+    const averageCost = totalItems > 0 ? (totalCost / totalItems).toFixed(2) : 0;
+
+    return {
+      totalItems,
+      activeItems,
+      averageCost,
+    };
+  }, [rawData]);
 
   // Handle delete
   const handleDelete = (record) => {
@@ -83,16 +131,6 @@ export default function SourcesPage() {
       </Layout.Content>
     );
   }
-
-  // Handle form submit
-  const handleFormSubmit = (formData) => {
-    updateFilters(formData);
-  };
-
-  // Handle clear filters
-  const handleClearFilters = () => {
-    clearFilters();
-  };
 
   // Get status color
   const getStatusColor = (status) => {
@@ -252,11 +290,10 @@ export default function SourcesPage() {
   // Search fields
   const searchFields = [
     {
-      name: "name",
-      label: "Tên tham số",
+      name: "searchText",
+      label: "Tìm kiếm",
       type: "input",
-      placeholder: "Tìm kiếm theo tên...",
-      value: filters.name,
+      placeholder: "Tìm theo tên tham số, parameter, nhà cung cấp...",
     },
     {
       name: "type",
@@ -264,7 +301,6 @@ export default function SourcesPage() {
       type: "combobox",
       placeholder: "Chọn nguồn",
       options: filterOptions.types,
-      value: filters.type,
     },
     {
       name: "status",
@@ -272,7 +308,6 @@ export default function SourcesPage() {
       type: "combobox",
       placeholder: "Chọn trạng thái",
       options: filterOptions.statuses,
-      value: filters.status,
     },
     {
       name: "searchButton",
@@ -393,18 +428,11 @@ export default function SourcesPage() {
 
         <CustomTable
           columns={columns}
-          dataSource={filteredData}
+          dataSource={paginatedData}
           visibleColumns={visibleColumns}
           rowKey="id"
           scroll={{ x: 1200 }}
-          pagination={{
-            total: filteredData.length,
-            pageSize: 10,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total, range) =>
-              `${range[0]}-${range[1]} của ${total} nguồn`,
-          }}
+          pagination={paginationConfig}
         />
       </div>
     </Layout.Content>

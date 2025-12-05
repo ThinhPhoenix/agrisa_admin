@@ -46,7 +46,14 @@ export default function ClaimsPage() {
   ]);
 
   // Frontend table data hook
-  const tableData = useTableData(data, {
+  const {
+    paginatedData,
+    handleFormSubmit,
+    handleClearFilters: clearTableFilters,
+    paginationConfig,
+    searchText,
+    filters: tableFilters,
+  } = useTableData(data, {
     searchFields: ["claim_number", "registered_policy_id", "farm_id"],
     defaultFilters: {
       status: "",
@@ -64,12 +71,8 @@ export default function ClaimsPage() {
     );
   }
 
-  const handleFormSubmit = (formData) => {
-    tableData.handleFormSubmit(formData);
-  };
-
   const handleClearFilters = () => {
-    tableData.handleClearFilters();
+    clearTableFilters();
     clearFilters();
   };
 
@@ -251,7 +254,6 @@ export default function ClaimsPage() {
       label: "Tìm kiếm...",
       type: "input",
       placeholder: "Mã bồi thường",
-      value: tableData.searchText,
     },
     {
       name: "status",
@@ -262,7 +264,6 @@ export default function ClaimsPage() {
         { label: "Tất cả trạng thái", value: "" },
         ...filterOptions.statusOptions,
       ],
-      value: tableData.filters.status,
     },
     {
       name: "spacer",
@@ -404,11 +405,11 @@ export default function ClaimsPage() {
         <div className="claim-table-wrapper">
           <CustomTable
             columns={columns}
-            dataSource={tableData.paginatedData}
+            dataSource={paginatedData}
             visibleColumns={visibleColumns}
             rowKey="id"
             scroll={{ x: 1400 }}
-            pagination={tableData.paginationConfig}
+            pagination={paginationConfig}
           />
         </div>
       </div>

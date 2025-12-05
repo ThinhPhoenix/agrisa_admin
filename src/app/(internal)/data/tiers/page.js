@@ -1,10 +1,11 @@
 "use client";
 
-import mockData from "@/app/(internal)/data/mock.json";
 import SelectedColumn from "@/components/column-selector";
 import { CustomForm } from "@/components/custom-form";
 import CustomTable from "@/components/custom-table";
 import { useTiers } from "@/services/hooks/data/use-tiers";
+import { useTableData } from "@/services/hooks/common/use-table-data";
+import { useCategories } from "@/services/hooks/data/use-categories";
 import {
   CheckCircleOutlined,
   DeleteOutlined,
@@ -26,22 +27,47 @@ import {
   Typography,
 } from "antd";
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import "../data.css";
 
 const { Title, Text } = Typography;
 
 export default function TiersPage() {
   const {
-    filteredData,
+    data: rawData,
     filterOptions,
-    summaryStats,
-    filters,
-    updateFilters,
-    clearFilters,
     loading,
     deleteTier,
   } = useTiers();
+
+  // Fetch categories for lookup
+  const { data: categoriesData } = useCategories();
+
+  // Setup useTableData hook for client-side filtering
+  const {
+    paginatedData,
+    handleFormSubmit,
+    handleClearFilters,
+    paginationConfig,
+  } = useTableData(rawData || [], {
+    searchFields: ["tier_name"],
+    defaultFilters: {
+      searchText: "",
+      category: "all",
+    },
+    pageSize: 10,
+    filterHandlers: {
+      searchText: (item, value) => {
+        if (!value || value === "") return true;
+        const searchLower = value.toLowerCase();
+        return item.tier_name?.toLowerCase().includes(searchLower);
+      },
+      category: (item, value) => {
+        if (!value || value === "" || value === "all") return true;
+        return item.data_tier_category_id === value;
+      },
+    },
+  });
 
   // Visible columns state
   const [visibleColumns, setVisibleColumns] = useState([
@@ -51,6 +77,25 @@ export default function TiersPage() {
     "data_tier_category_id",
     "created_at",
   ]);
+
+  // Calculate summary stats
+  const summaryStats = useMemo(() => {
+    const allData = rawData || [];
+    const totalItems = allData.length;
+    const highestLevel = Math.max(...allData.map((item) => item.tier_level || 0), 0);
+    const totalMultiplier = allData.reduce(
+      (sum, item) => sum + (item.data_tier_multiplier || 0),
+      0
+    );
+    const averageMultiplier =
+      totalItems > 0 ? (totalMultiplier / totalItems).toFixed(2) : 0;
+
+    return {
+      totalItems,
+      highestLevel,
+      averageMultiplier,
+    };
+  }, [rawData]);
 
   // Delete confirmation state
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
@@ -66,16 +111,6 @@ export default function TiersPage() {
       </Layout.Content>
     );
   }
-
-  // Handle form submit
-  const handleFormSubmit = (formData) => {
-    updateFilters(formData);
-  };
-
-  // Handle clear filters
-  const handleClearFilters = () => {
-    clearFilters();
-  };
 
   // Handle delete tier
   const handleDeleteTier = (tier) => {
@@ -169,7 +204,7 @@ export default function TiersPage() {
       key: "data_tier_category_id",
       width: 150,
       render: (_, record) => {
-        const category = mockData.dataTierCategories?.find(
+        const category = categoriesData?.find(
           (cat) => cat.id === record.data_tier_category_id
         );
         return (
@@ -239,11 +274,10 @@ export default function TiersPage() {
   // Search fields
   const searchFields = [
     {
-      name: "name",
-      label: "Tên cấp độ",
+      name: "searchText",
+      label: "Tìm kiếm",
       type: "input",
-      placeholder: "Tìm kiếm theo tên...",
-      value: filters.name,
+      placeholder: "Tìm theo tên cấp độ...",
     },
     {
       name: "category",
@@ -251,7 +285,6 @@ export default function TiersPage() {
       type: "combobox",
       placeholder: "Chọn danh mục",
       options: filterOptions.categories,
-      value: filters.category,
     },
     {
       name: "searchButton",
@@ -374,18 +407,11 @@ export default function TiersPage() {
 
         <CustomTable
           columns={columns}
-          dataSource={filteredData}
+          dataSource={paginatedData}
           visibleColumns={visibleColumns}
           rowKey="id"
           scroll={{ x: 1200 }}
-          pagination={{
-            total: filteredData.length,
-            pageSize: 10,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total, range) =>
-              `${range[0]}-${range[1]} của ${total} cấp độ`,
-          }}
+          pagination={paginationConfig}
         />
 
         {/* Delete Confirmation Modal */}

@@ -4,6 +4,7 @@ import SelectedColumn from "@/components/column-selector";
 import { CustomForm } from "@/components/custom-form";
 import CustomTable from "@/components/custom-table";
 import { useCategories } from "@/services/hooks/data/use-categories";
+import { useTableData } from "@/services/hooks/common/use-table-data";
 import {
   CheckCircleOutlined,
   DeleteOutlined,
@@ -25,24 +26,44 @@ import {
   Typography,
 } from "antd";
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import "../data.css";
 
 const { Title, Text } = Typography;
 
 export default function CategoriesPage() {
   const {
-    filteredData,
+    data: rawData,
     filterOptions,
-    summaryStats,
-    filters,
-    updateFilters,
-    clearFilters,
     loading,
     error,
     lastUpdated,
     deleteCategory,
   } = useCategories();
+
+  // Setup useTableData hook for client-side filtering
+  const {
+    paginatedData,
+    handleFormSubmit,
+    handleClearFilters,
+    paginationConfig,
+  } = useTableData(rawData || [], {
+    searchFields: ["category_name", "category_description"],
+    defaultFilters: {
+      searchText: "",
+    },
+    pageSize: 10,
+    filterHandlers: {
+      searchText: (item, value) => {
+        if (!value || value === "") return true;
+        const searchLower = value.toLowerCase();
+        return (
+          item.category_name?.toLowerCase().includes(searchLower) ||
+          item.category_description?.toLowerCase().includes(searchLower)
+        );
+      },
+    },
+  });
 
   // Visible columns state
   const [visibleColumns, setVisibleColumns] = useState([
@@ -51,6 +72,23 @@ export default function CategoriesPage() {
     "category_cost_multiplier",
     "created_at",
   ]);
+
+  // Calculate summary stats
+  const summaryStats = useMemo(() => {
+    const allData = rawData || [];
+    const totalItems = allData.length;
+    const totalMultiplier = allData.reduce(
+      (sum, item) => sum + (item.category_cost_multiplier || 0),
+      0
+    );
+    const averageMultiplier =
+      totalItems > 0 ? (totalMultiplier / totalItems).toFixed(2) : 0;
+
+    return {
+      totalItems,
+      averageMultiplier,
+    };
+  }, [rawData]);
 
   // Delete confirmation state
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
@@ -79,16 +117,6 @@ export default function CategoriesPage() {
       </Layout.Content>
     );
   }
-
-  // Handle form submit
-  const handleFormSubmit = (formData) => {
-    updateFilters(formData);
-  };
-
-  // Handle clear filters
-  const handleClearFilters = () => {
-    clearFilters();
-  };
 
   // Handle delete category
   const handleDeleteCategory = (category) => {
@@ -205,11 +233,10 @@ export default function CategoriesPage() {
   // Search fields
   const searchFields = [
     {
-      name: "name",
-      label: "Tên danh mục",
+      name: "searchText",
+      label: "Tìm kiếm",
       type: "input",
-      placeholder: "Tìm kiếm theo tên...",
-      value: filters.name,
+      placeholder: "Tìm theo tên danh mục, mô tả...",
     },
     {
       name: "searchButton",
@@ -340,18 +367,11 @@ export default function CategoriesPage() {
 
         <CustomTable
           columns={columns}
-          dataSource={filteredData}
+          dataSource={paginatedData}
           visibleColumns={visibleColumns}
           rowKey="id"
           scroll={{ x: 1200 }}
-          pagination={{
-            total: filteredData.length,
-            pageSize: 10,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total, range) =>
-              `${range[0]}-${range[1]} của ${total} danh mục`,
-          }}
+          pagination={paginationConfig}
         />
 
         {/* Delete Confirmation Modal */}
