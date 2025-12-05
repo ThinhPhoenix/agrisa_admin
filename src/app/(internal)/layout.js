@@ -2,9 +2,8 @@
 import AuthLoading from "@/components/auth-loading";
 import CustomHeader from "@/components/custom-header";
 import CustomSidebar from "@/components/custom-sidebar";
-import { getErrorMessage } from "@/libs/message/common-message";
+import { getSignInError } from "@/libs/message/auth-message";
 import { useAuthStore } from "@/stores/auth-store";
-import { message } from "antd";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
@@ -39,10 +38,9 @@ export default function InternalLayoutFlexbox({ children }) {
 
       // If no token at all, redirect immediately
       if (!storedToken) {
-        if (!hasShownErrorRef.current && !isManualLogout) {
-          message.error(getErrorMessage("SESSION_EXPIRED"));
-          hasShownErrorRef.current = true;
-        }
+        // Don't show error message to user - they'll see sign-in page
+        // Only log for debugging
+        console.log("No token found, redirecting to sign-in");
         router.push("/sign-in");
         return;
       }

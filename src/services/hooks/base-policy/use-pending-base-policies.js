@@ -80,8 +80,24 @@ export function usePendingPolicies() {
       setError(null);
     } catch (err) {
       setError(err);
-      console.error("Error fetching pending policies:", err);
-      message.error("Lỗi khi tải dữ liệu policy: " + err.message);
+      // Log English error for debugging only
+      console.error("❌ Error fetching pending policies:", err.message);
+      console.error("❌ Error details:", err.response?.data);
+
+      // Show Vietnamese error to user based on status code
+      const status = err.response?.status;
+      if (status === 401) {
+        message.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!");
+      } else if (status === 403) {
+        message.error("Bạn không có quyền truy cập dữ liệu này!");
+      } else if (status === 404) {
+        message.error("Không tìm thấy dữ liệu policy!");
+      } else if (status >= 500) {
+        message.error("Lỗi máy chủ. Vui lòng thử lại sau!");
+      } else {
+        message.error("Lỗi khi tải dữ liệu policy. Vui lòng thử lại!");
+      }
+
       setData([]);
     } finally {
       setLoading(false);
@@ -212,13 +228,26 @@ export function usePendingPolicies() {
       if (result.policies && result.policies.length > 0) {
         return result.policies[0];
       }
+      // Log English error for debugging
+      console.error("❌ Policy not found:", policyId);
       throw new Error("Policy not found");
     } catch (err) {
-      console.error("Error fetching policy detail:", err);
-      message.error(
-        "Lỗi khi tải chi tiết policy: " +
-          (err.response?.data?.message || err.message)
-      );
+      // Log English error for debugging only
+      console.error("❌ Error fetching policy detail:", err.message);
+      console.error("❌ Error details:", err.response?.data);
+
+      // Show Vietnamese error to user
+      const status = err.response?.status;
+      if (status === 401) {
+        message.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!");
+      } else if (status === 404) {
+        message.error("Không tìm thấy policy này!");
+      } else if (status >= 500) {
+        message.error("Lỗi máy chủ. Vui lòng thử lại sau!");
+      } else {
+        message.error("Lỗi khi tải chi tiết policy. Vui lòng thử lại!");
+      }
+
       throw err;
     }
   }, []);
@@ -240,35 +269,52 @@ export function usePendingPolicies() {
 
       return response.data;
     } catch (err) {
-      console.error("Error submitting validation:", err);
+      // Log English error for debugging only
+      console.error("❌ Error submitting validation:", err.message);
+      console.error("❌ Error details:", err.response?.data);
 
-      // Parse error message for better user experience
+      // Parse error message for Vietnamese user experience
       let errorMessage = "Lỗi khi gửi validation";
+      const status = err.response?.status;
       const backendError =
         err.response?.data?.error?.message ||
         err.response?.data?.message ||
         err.message;
 
-      if (backendError) {
-        // Check for duplicate key error
+      // Handle specific error types
+      if (status === 401) {
+        errorMessage = "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!";
+      } else if (status === 403) {
+        errorMessage = "Bạn không có quyền thực hiện validation này!";
+      } else if (backendError) {
+        // Check for duplicate key error (English from backend)
         if (
           backendError.includes("duplicate key") &&
           backendError.includes("product_code")
         ) {
           errorMessage =
-            "Lỗi: Mã sản phẩm (product_code) đã tồn tại trong hệ thống. Policy này có thể đã được commit trước đó hoặc trùng với policy khác.";
+            "Mã sản phẩm (product_code) đã tồn tại trong hệ thống. Policy này có thể đã được commit trước đó hoặc trùng với policy khác.";
         }
-        // Check for commit failed error
+        // Check for commit failed error (English from backend)
         else if (backendError.includes("commit temp policy data failed")) {
           errorMessage =
             "Lỗi khi commit policy: Policy này có thể đã được lưu vào database hoặc có xung đột dữ liệu. Vui lòng kiểm tra lại hoặc liên hệ admin.";
         }
-        // Generic error
+        // Check for validation errors (English from backend)
+        else if (backendError.toLowerCase().includes("validation")) {
+          errorMessage = "Dữ liệu validation không hợp lệ. Vui lòng kiểm tra lại!";
+        }
+        // Generic server error
+        else if (status >= 500) {
+          errorMessage = "Lỗi máy chủ khi gửi validation. Vui lòng thử lại sau!";
+        }
+        // Other errors - don't expose backend English error to user
         else {
-          errorMessage = `Lỗi: ${backendError}`;
+          errorMessage = "Lỗi khi gửi validation. Vui lòng thử lại!";
         }
       }
 
+      // Show Vietnamese error to user
       message.error(errorMessage, 8); // Show for 8 seconds
       throw err;
     }

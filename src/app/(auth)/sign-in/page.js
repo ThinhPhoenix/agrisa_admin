@@ -2,7 +2,7 @@
 import Assets from "@/assets";
 import AuthLoading from "@/components/auth-loading";
 import CustomForm from "@/components/custom-form";
-import { getSignInValidation } from "@/libs/message";
+import { getSignInValidation, getSignInSuccess, getSignInError } from "@/libs/message/auth-message";
 import { useSignIn } from "@/services/hooks/auth/use-auth";
 import { useAuthStore } from "@/stores/auth-store";
 import { message, Typography } from "antd";
@@ -48,11 +48,10 @@ const SigninPage = () => {
     });
 
     if (result.success) {
-      message.success(result.message);
+      // Success message is already shown by the hook
       router.push("/accounts/general");
-    } else {
-      message.error(result.message);
     }
+    // Error messages are already shown by the hook in Vietnamese
   };
 
   const fields = [

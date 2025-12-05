@@ -1,18 +1,17 @@
 import axiosInstance from "@/libs/axios-instance";
 import {
-  getErrorMessage,
   getRegisterSuccess,
   getRegisterValidation,
   getSignInError,
   getSignInSuccess,
   getSignInValidation,
   parseBackendError,
-  mapBackendSuccessMessage,
-} from "@/libs/message";
+} from "@/libs/message/auth-message";
 import signInRequestSchema from "@/schemas/sign-in-request-schema";
 import signUpRequestSchema from "@/schemas/sign-up-request-schema";
 import { endpoints } from "@/services/endpoints";
 import { useAuthStore } from "@/stores/auth-store";
+import { message } from "antd";
 import { useCallback, useState } from "react";
 
 const handleError = (error, context = "general") => {
@@ -35,8 +34,10 @@ export const useSignIn = () => {
       if (!validation.success) {
         const validationError =
           validation.error.issues[0]?.message ||
-          getSignInValidation("INVALID_CREDENTIALS");
+          getSignInValidation("IDENTIFIER_REQUIRED");
         setError(validationError);
+        // Show Vietnamese validation error to user
+        message.error(validationError);
         return { success: false, message: validationError };
       }
 
@@ -45,11 +46,8 @@ export const useSignIn = () => {
       setError(null);
 
       try {
+        // Log API call for debugging (not shown to user)
         console.log("🚀 Calling API:", endpoints.auth.sign_in);
-        console.log("📤 Request data:", {
-          email: validation.data.email,
-          password: validation.data.password,
-        });
 
         const response = await axiosInstance.post(
           endpoints.auth.sign_in,
@@ -61,8 +59,6 @@ export const useSignIn = () => {
             withCredentials: false,
           }
         );
-
-        console.log("📥 Response:", response.data);
 
         if (response.data.success) {
           // Map the API response to the expected user data structure
@@ -78,22 +74,34 @@ export const useSignIn = () => {
           };
 
           setUser(userData);
+
+          // Show Vietnamese success message to user
+          const successMessage = getSignInSuccess("LOGIN_SUCCESS");
+          message.success(successMessage);
+
           return {
             success: true,
-            message: getSignInSuccess("LOGIN_SUCCESS"),
+            message: successMessage,
             data: userData,
           };
         } else {
-          throw new Error(
-            response.data.message || getSignInError("INVALID_CREDENTIALS")
-          );
+          // Log English error for debugging
+          console.error("❌ Login failed:", response.data.message);
+          throw new Error(response.data.message || "Login failed");
         }
       } catch (error) {
-        console.error("❌ API Error:", error);
-        console.error("❌ Error response:", error.response?.data);
+        // Log English error for debugging only
+        console.error("❌ Sign-in error:", error.message);
+        console.error("❌ Error details:", error.response?.data);
+
+        // Parse error to Vietnamese message for user
         const errorMessage = handleError(error, "signin");
         setError(errorMessage);
         setStoreError(errorMessage);
+
+        // Show Vietnamese error message to user
+        message.error(errorMessage);
+
         return { success: false, message: errorMessage };
       } finally {
         setLoading(false);
@@ -116,8 +124,10 @@ export const useSignUp = () => {
       if (!validation.success) {
         const validationError =
           validation.error.issues[0]?.message ||
-          getRegisterValidation("INVALID_DATA");
+          getRegisterValidation("FULL_NAME_REQUIRED");
         setError(validationError);
+        // Show Vietnamese validation error to user
+        message.error(validationError);
         return { success: false, message: validationError };
       }
 
@@ -132,18 +142,33 @@ export const useSignUp = () => {
         );
 
         if (response.data.success) {
+          const successMessage = getRegisterSuccess("REGISTER_SUCCESS");
+          // Show Vietnamese success message to user
+          message.success(successMessage);
+
           return {
             success: true,
-            message: getRegisterSuccess("REGISTER_SUCCESS"),
+            message: successMessage,
             data: response.data.data,
           };
         } else {
+          // Log English error for debugging
+          console.error("❌ Registration failed:", response.data.message);
           throw new Error(response.data.message || "Registration failed");
         }
       } catch (error) {
+        // Log English error for debugging only
+        console.error("❌ Sign-up error:", error.message);
+        console.error("❌ Error details:", error.response?.data);
+
+        // Parse error to Vietnamese message for user
         const errorMessage = handleError(error, "register");
         setError(errorMessage);
         setStoreError(errorMessage);
+
+        // Show Vietnamese error message to user
+        message.error(errorMessage);
+
         return { success: false, message: errorMessage };
       } finally {
         setLoading(false);
@@ -167,7 +192,9 @@ export const useAuthMe = () => {
   const authMe = useCallback(async () => {
     const token = localStorage.getItem("token");
     if (!token) {
-      const noTokenError = getSignInError("NO_TOKEN");
+      // Log for debugging, don't show to user
+      console.log("No token found for auth/me");
+      const noTokenError = getSignInError("SESSION_EXPIRED");
       setError(noTokenError);
       return { success: false, message: noTokenError };
     }
@@ -187,12 +214,21 @@ export const useAuthMe = () => {
           data: response.data.data,
         };
       } else {
-        throw new Error(response.data.message || getSignInError("AUTH_FAILED"));
+        // Log English error for debugging
+        console.error("❌ Auth/me failed:", response.data.message);
+        throw new Error(response.data.message || "Auth verification failed");
       }
     } catch (error) {
-      const errorMessage = handleError(error);
+      // Log English error for debugging only
+      console.error("❌ Auth/me error:", error.message);
+      console.error("❌ Error details:", error.response?.data);
+
+      // Parse error to Vietnamese message
+      const errorMessage = handleError(error, "signin");
       setError(errorMessage);
       setStoreError(errorMessage);
+
+      // Don't show message.error here - let interceptor handle it
       return { success: false, message: errorMessage };
     } finally {
       setLoading(false);
@@ -211,16 +247,21 @@ export const useSignOut = () => {
     try {
       await axiosInstance.post(endpoints.auth.sign_out);
     } catch (error) {
-      console.warn("Sign-out API failed:", error.message);
+      // Log English error for debugging only, don't show to user
+      console.warn("❌ Sign-out API failed:", error.message);
       // Continue anyway - clear local data
     } finally {
       clearUser();
       setLoading(false);
     }
 
+    const successMessage = getSignInSuccess("LOGOUT_SUCCESS");
+    // Show Vietnamese success message to user
+    message.success(successMessage);
+
     return {
       success: true,
-      message: getSignInSuccess("LOGOUT_SUCCESS"),
+      message: successMessage,
     };
   }, [clearUser, setLoading]);
 

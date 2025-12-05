@@ -86,8 +86,7 @@ export const endpoints = {
     create: "/profile/protected/api/v1/insurance-partners",
   },
   address: {
-    provinces: "https://production.cas.so/address-kit/2025-07-01/provinces",
-    communes: (provinceCode) =>
-      `https://production.cas.so/address-kit/2025-07-01/provinces/${provinceCode}/communes`,
+    provinces: "https://provinces.open-api.vn/api/p/",
+    wards: (provinceCode) => `https://provinces.open-api.vn/api/w/?province=${provinceCode}`,
   },
 };

@@ -19,7 +19,7 @@ export function usePartners(partnerId = null) {
 
   // Address data
   const [provinces, setProvinces] = useState([]);
-  const [communes, setCommunes] = useState([]);
+  const [wards, setWards] = useState([]);
 
   // Fetch partners list
   const fetchPartners = async () => {
@@ -84,31 +84,31 @@ export function usePartners(partnerId = null) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      if (data?.provinces) {
-        setProvinces(data.provinces);
+      if (Array.isArray(data)) {
+        setProvinces(data);
       }
     } catch (err) {
       console.error("Error fetching provinces:", err);
     }
   }, []);
 
-  // Fetch communes by province code
-  const fetchCommunes = useCallback(async (provinceCode) => {
+  // Fetch wards by province code
+  const fetchWards = useCallback(async (provinceCode) => {
     if (!provinceCode) {
-      setCommunes([]);
+      setWards([]);
       return;
     }
     try {
-      const response = await fetch(endpoints.address.communes(provinceCode));
+      const response = await fetch(endpoints.address.wards(provinceCode));
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      if (data?.communes) {
-        setCommunes(data.communes);
+      if (Array.isArray(data)) {
+        setWards(data);
       }
     } catch (err) {
-      console.error("Error fetching communes:", err);
+      console.error("Error fetching wards:", err);
     }
   }, []);
 
@@ -347,8 +347,9 @@ export function usePartners(partnerId = null) {
   // Filter options - use provinces from API instead of data
   const filterOptions = useMemo(() => {
     const provinceOptions = provinces.map((province) => ({
-      label: province.name || province.province_name,
-      value: province.name || province.province_name, // Use name for filtering
+      label: province.name,
+      value: province.name, // Use name for filtering
+      code: province.code,
     }));
 
     return {
@@ -443,7 +444,7 @@ export function usePartners(partnerId = null) {
     createPartnerAccount,
     // Address data
     provinces,
-    communes,
-    fetchCommunes,
+    wards,
+    fetchWards,
   };
 }
