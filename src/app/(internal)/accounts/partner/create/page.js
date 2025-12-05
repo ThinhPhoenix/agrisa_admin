@@ -11,7 +11,7 @@ import "../partner.css";
 const { Title } = Typography;
 
 export default function CreatePartnerPage() {
-  const { createPartner, provinces, communes, fetchCommunes } = usePartners();
+  const { createPartner, provinces, wards, fetchWards } = usePartners();
   const router = useRouter();
   const formRef = useRef();
   const [submitting, setSubmitting] = useState(false);
@@ -124,10 +124,10 @@ export default function CreatePartnerPage() {
     value: province.code,
   }));
 
-  // Commune options for dropdown
-  const communeOptions = communes.map((commune) => ({
-    label: commune.name,
-    value: commune.code,
+  // Ward options for dropdown
+  const wardOptions = wards.map((ward) => ({
+    label: ward.name,
+    value: ward.code,
   }));
 
   // Company type options
@@ -399,7 +399,7 @@ export default function CreatePartnerPage() {
       options: provinceOptions,
       showSearch: true,
       onChange: (value) => {
-        fetchCommunes(value);
+        fetchWards(value);
         setSelectedProvince(value);
         setProvinceName(provinces.find((p) => p.code === value)?.name || "");
       },
@@ -410,11 +410,11 @@ export default function CreatePartnerPage() {
       type: "select",
       placeholder: "Chọn phường/xã...",
       required: true,
-      options: communeOptions,
+      options: wardOptions,
       showSearch: true,
       disabled: !selectedProvince,
       onChange: (value) => {
-        setWardName(communes.find((c) => c.code === value)?.name || "");
+        setWardName(wards.find((w) => w.code === value)?.name || "");
       },
     },
     {
