@@ -5,6 +5,7 @@ export const endpoints = {
     sign_in: `/auth/public/login`,
     sign_out: `${prefix}/auth/sign-out`,
     sign_up: `${prefix}/auth/sign-up`,
+    register: `/auth/public/register`,
   },
   user: {
     find: `${prefix}/users`,

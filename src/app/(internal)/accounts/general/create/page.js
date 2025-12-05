@@ -1,51 +1,82 @@
 "use client";
 
 import { CustomForm } from "@/components/custom-form";
+import { getRegisterValidation } from "@/libs/message/auth-message";
+import { useCreateAccount } from "@/services/hooks/accounts/use-create-account";
 import { ArrowLeftOutlined, SaveOutlined } from "@ant-design/icons";
-import { Button, Layout, message, Space, Typography } from "antd";
+import { Button, Layout, Space, Typography } from "antd";
+import dayjs from "dayjs";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 
 const { Title, Text } = Typography;
 
 export default function CreateAccountPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const { createAccount, loading } = useCreateAccount();
 
   // Handle form submit
   const handleFormSubmit = async (formData) => {
-    setLoading(true);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Transform form data to API format
+      const registerData = {
+        phone: formData.phone,
+        email: formData.email,
+        password: formData.password,
+        national_id: formData.national_id,
+        user_profile: {
+          full_name: formData.full_name,
+          // Convert date to ISO 8601 format (YYYY-MM-DD)
+          date_of_birth: formData.date_of_birth
+            ? formData.date_of_birth.format("YYYY-MM-DD")
+            : "",
+          gender: formData.gender,
+          address: formData.address,
+        },
+      };
 
-      // In a real app, you would send this data to your API
-      console.log("Creating account:", formData);
+      // Call API to create account
+      const result = await createAccount(registerData);
 
-      message.success("Tạo tài khoản thành công!");
-      router.push("/accounts/general");
+      // If successful, redirect to accounts list
+      if (result.success) {
+        router.push("/accounts/general");
+      }
     } catch (error) {
-      message.error("Có lỗi xảy ra khi tạo tài khoản!");
-    } finally {
-      setLoading(false);
+      console.error("Error in form submission:", error);
     }
   };
 
-  // Form fields
+  // Form fields - following API requirements from REGISTER_API_VALIDATION.md
   const formFields = [
+    // Row 1: Full Name, Phone, Email
     {
-      name: "username",
-      label: "Tên đăng nhập",
+      name: "full_name",
+      label: "Họ và tên",
       type: "input",
-      placeholder: "Nhập tên đăng nhập",
+      placeholder: "Nhập họ và tên đầy đủ",
       required: true,
       rules: [
-        { required: true, message: "Vui lòng nhập tên đăng nhập" },
-        { min: 3, message: "Tên đăng nhập phải có ít nhất 3 ký tự" },
+        { required: true, message: "Vui lòng nhập họ và tên!" },
+        { min: 2, message: "Họ và tên phải có ít nhất 2 ký tự!" },
         {
-          pattern: /^[a-zA-Z0-9_]+$/,
-          message: "Tên đăng nhập chỉ được chứa chữ cái, số và dấu gạch dưới",
+          pattern: /^[a-zA-ZÀ-ỹ\s]+$/,
+          message: "Họ và tên chỉ được chứa chữ cái và khoảng trắng!",
+        },
+      ],
+    },
+    {
+      name: "phone",
+      label: "Số điện thoại",
+      type: "input",
+      placeholder: "VD: 0987654321 hoặc +84987654321",
+      required: true,
+      rules: [
+        { required: true, message: "Vui lòng nhập số điện thoại!" },
+        { min: 10, message: "Số điện thoại phải có ít nhất 10 ký tự!" },
+        {
+          pattern: /^(\+84|0)[3|5|7|8|9][0-9]{8}$/,
+          message: "Số điện thoại không hợp lệ! (VD: 0987654321 hoặc +84987654321)",
         },
       ],
     },
@@ -56,45 +87,99 @@ export default function CreateAccountPage() {
       placeholder: "Nhập địa chỉ email",
       required: true,
       rules: [
-        { required: true, message: "Vui lòng nhập email" },
-        { type: "email", message: "Email không hợp lệ" },
+        { required: true, message: "Vui lòng nhập email!" },
+        { type: "email", message: "Email không hợp lệ!" },
+        { min: 5, message: "Email phải có ít nhất 5 ký tự!" },
       ],
     },
+
+    // Row 2: National ID, Date of Birth, Gender
     {
-      name: "full_name",
-      label: "Họ và tên",
+      name: "national_id",
+      label: "Số CCCD/CMND",
       type: "input",
-      placeholder: "Nhập họ và tên đầy đủ",
+      placeholder: "Nhập số CCCD/CMND (9 hoặc 12 chữ số)",
       required: true,
       rules: [
-        { required: true, message: "Vui lòng nhập họ và tên" },
-        { min: 2, message: "Họ và tên phải có ít nhất 2 ký tự" },
+        { required: true, message: "Vui lòng nhập số CCCD/CMND!" },
+        {
+          pattern: /^\d{9}(\d{3})?$/,
+          message: "Số CCCD/CMND không hợp lệ! (9 hoặc 12 chữ số)",
+        },
       ],
     },
     {
-      name: "role",
-      label: "Vai trò",
+      name: "date_of_birth",
+      label: "Ngày sinh",
+      type: "datepicker",
+      placeholder: "Chọn ngày sinh",
+      required: true,
+      rules: [
+        { required: true, message: getRegisterValidation("DATE_OF_BIRTH_REQUIRED") },
+        {
+          validator: (_, value) => {
+            if (!value) {
+              return Promise.resolve();
+            }
+
+            const today = dayjs();
+            const birthDate = dayjs(value);
+            const age = today.diff(birthDate, "year");
+
+            // Age must be between 18 and 80
+            if (age < 18) {
+              return Promise.reject(
+                new Error(getRegisterValidation("DATE_OF_BIRTH_TOO_YOUNG"))
+              );
+            }
+            if (age > 80) {
+              return Promise.reject(
+                new Error(getRegisterValidation("DATE_OF_BIRTH_TOO_OLD"))
+              );
+            }
+
+            return Promise.resolve();
+          },
+        },
+      ],
+    },
+    {
+      name: "gender",
+      label: "Giới tính",
       type: "combobox",
-      placeholder: "Chọn vai trò",
+      placeholder: "Chọn giới tính",
       required: true,
       options: [
-        { label: "Super Admin", value: "Super Admin" },
-        { label: "Admin", value: "Admin" },
-        { label: "Manager", value: "Manager" },
-        { label: "Staff", value: "Staff" },
-        { label: "Viewer", value: "Viewer" },
+        { label: "Nam", value: "male" },
+        { label: "Nữ", value: "female" },
+        { label: "Khác", value: "other" },
       ],
-      rules: [{ required: true, message: "Vui lòng chọn vai trò" }],
+      rules: [{ required: true, message: "Vui lòng chọn giới tính!" }],
     },
+
+    // Row 3: Address (full width)
+    {
+      name: "address",
+      label: "Địa chỉ",
+      type: "input",
+      placeholder: "Nhập địa chỉ đầy đủ",
+      required: true,
+      rules: [
+        { required: true, message: "Vui lòng nhập địa chỉ!" },
+        { min: 10, message: "Địa chỉ phải có ít nhất 10 ký tự!" },
+      ],
+    },
+
+    // Row 4: Password, Confirm Password
     {
       name: "password",
       label: "Mật khẩu",
       type: "password",
-      placeholder: "Nhập mật khẩu",
+      placeholder: "Nhập mật khẩu (tối thiểu 8 ký tự)",
       required: true,
       rules: [
-        { required: true, message: "Vui lòng nhập mật khẩu" },
-        { min: 8, message: "Mật khẩu phải có ít nhất 8 ký tự" },
+        { required: true, message: "Vui lòng nhập mật khẩu!" },
+        { min: 8, message: "Mật khẩu phải có ít nhất 8 ký tự!" },
       ],
     },
     {
@@ -104,7 +189,7 @@ export default function CreateAccountPage() {
       placeholder: "Nhập lại mật khẩu",
       required: true,
       rules: [
-        { required: true, message: "Vui lòng xác nhận mật khẩu" },
+        { required: true, message: "Vui lòng xác nhận mật khẩu!" },
         ({ getFieldValue }) => ({
           validator(_, value) {
             if (!value || getFieldValue("password") === value) {
@@ -115,18 +200,13 @@ export default function CreateAccountPage() {
         }),
       ],
     },
+
+    // Row 5: Action buttons
     {
-      name: "status",
-      label: "Trạng thái",
-      type: "combobox",
-      placeholder: "Chọn trạng thái",
-      required: true,
-      options: [
-        { label: "Hoạt động", value: "Hoạt động" },
-        { label: "Tạm khóa", value: "Tạm khóa" },
-        { label: "Khóa", value: "Khóa" },
-      ],
-      rules: [{ required: true, message: "Vui lòng chọn trạng thái" }],
+      name: "spacer",
+      type: "custom",
+      label: "",
+      render: () => <div />,
     },
     {
       name: "cancelButton",

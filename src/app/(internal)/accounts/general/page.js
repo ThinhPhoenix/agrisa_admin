@@ -142,20 +142,20 @@ export default function AccountsPage() {
         </Tag>
       ),
     },
-    {
-      title: "Trạng thái",
-      dataIndex: "status",
-      key: "status",
-      width: 130,
-      render: (_, record) => (
-        <Tag
-          color={getStatusColor(record.status)}
-          className="accounts-status-tag"
-        >
-          {record.status}
-        </Tag>
-      ),
-    },
+    // {
+    //   title: "Trạng thái",
+    //   dataIndex: "status",
+    //   key: "status",
+    //   width: 130,
+    //   render: (_, record) => (
+    //     <Tag
+    //       color={getStatusColor(record.status)}
+    //       className="accounts-status-tag"
+    //     >
+    //       {record.status}
+    //     </Tag>
+    //   ),
+    // },
     {
       title: "Đăng nhập cuối",
       dataIndex: "last_login",

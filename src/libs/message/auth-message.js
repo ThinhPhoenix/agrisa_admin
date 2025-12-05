@@ -64,7 +64,12 @@ export const AUTH_MESSAGES = {
       PASSWORD_TOO_WEAK:
         "Mật khẩu quá yếu. Phải chứa chữ hoa, chữ thường và số!",
       DATE_OF_BIRTH_INVALID: "Ngày sinh không hợp lệ!",
+      DATE_OF_BIRTH_TOO_YOUNG: "Người dùng phải từ 18 tuổi trở lên!",
+      DATE_OF_BIRTH_TOO_OLD: "Người dùng phải dưới 80 tuổi!",
+      AGE_NOT_IN_RANGE: "Độ tuổi phải từ 18 đến 80 tuổi!",
       FULL_NAME_INVALID: "Họ và tên chỉ được chứa chữ cái và khoảng trắng!",
+      NATIONAL_ID_REQUIRED: "Vui lòng nhập số CCCD/CMND!",
+      NATIONAL_ID_INVALID: "Số CCCD/CMND không hợp lệ! (9 hoặc 12 chữ số)",
     },
 
     INFO: {
@@ -476,8 +481,26 @@ export const mapBackendErrorMessage = (errorMessage, context = "general") => {
   if (lowerMessage.includes("national id is required")) {
     return "Vui lòng nhập số CCCD/CMND!";
   }
+  if (lowerMessage.includes("national id") && lowerMessage.includes("format")) {
+    return "Số CCCD/CMND không hợp lệ!";
+  }
   if (lowerMessage.includes("cccd format")) {
     return "Số CCCD/CMND không hợp lệ!";
+  }
+  if (lowerMessage.includes("full name is required") || lowerMessage.includes("full_name is required")) {
+    return AUTH_MESSAGES.REGISTER.VALIDATION.FULL_NAME_REQUIRED;
+  }
+  if (lowerMessage.includes("gender is required")) {
+    return AUTH_MESSAGES.REGISTER.VALIDATION.GENDER_REQUIRED;
+  }
+  if (lowerMessage.includes("address is required")) {
+    return AUTH_MESSAGES.REGISTER.VALIDATION.ADDRESS_REQUIRED;
+  }
+  if (lowerMessage.includes("date of birth") && lowerMessage.includes("required")) {
+    return AUTH_MESSAGES.REGISTER.VALIDATION.DATE_OF_BIRTH_REQUIRED;
+  }
+  if (lowerMessage.includes("date of birth") && lowerMessage.includes("invalid")) {
+    return AUTH_MESSAGES.REGISTER.VALIDATION.DATE_OF_BIRTH_INVALID;
   }
 
   // Generic errors
