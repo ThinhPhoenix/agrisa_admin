@@ -79,9 +79,13 @@ export function usePartners(partnerId = null) {
   // Fetch provinces
   const fetchProvinces = useCallback(async () => {
     try {
-      const response = await axiosInstance.get(endpoints.address.provinces);
-      if (response.data?.provinces) {
-        setProvinces(response.data.provinces);
+      const response = await fetch(endpoints.address.provinces);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      if (data?.provinces) {
+        setProvinces(data.provinces);
       }
     } catch (err) {
       console.error("Error fetching provinces:", err);
@@ -95,11 +99,13 @@ export function usePartners(partnerId = null) {
       return;
     }
     try {
-      const response = await axiosInstance.get(
-        endpoints.address.communes(provinceCode)
-      );
-      if (response.data?.communes) {
-        setCommunes(response.data.communes);
+      const response = await fetch(endpoints.address.communes(provinceCode));
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      if (data?.communes) {
+        setCommunes(data.communes);
       }
     } catch (err) {
       console.error("Error fetching communes:", err);
