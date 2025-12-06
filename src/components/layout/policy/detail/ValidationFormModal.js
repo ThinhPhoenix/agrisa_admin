@@ -13,6 +13,7 @@ import {
   WarningOutlined,
 } from "@ant-design/icons";
 import {
+  Alert,
   Badge,
   Button,
   Card,
@@ -138,6 +139,7 @@ export default function ValidationFormModal({
         }
 
         const initialValues = {
+          validation_status: validationStatus || "pending",
           total_checks: latestValidation.total_checks || 0,
           passed_checks: latestValidation.passed_checks || 0,
           failed_checks: latestValidation.failed_checks || 0,
@@ -146,10 +148,14 @@ export default function ValidationFormModal({
           warnings: warningsArray,
           recommendations: recommendationsArray,
           extraction_confidence:
-            latestValidation.extracted_parameters?.extraction_confidence ||
-            0.95,
+            (latestValidation.extracted_parameters?.extraction_confidence ||
+              0.95) * 100,
           parameters_found:
             latestValidation.extracted_parameters?.parameters_found || 0,
+          document_version:
+            latestValidation.extracted_parameters?.document_version || "",
+          extraction_method:
+            latestValidation.extracted_parameters?.extraction_method || "",
           validation_notes: validationNotes,
         };
 
@@ -163,6 +169,7 @@ export default function ValidationFormModal({
         console.log("📋 No AI validation data, using defaults");
         // Set defaults for new validation
         const defaultValues = {
+          validation_status: "pending",
           total_checks: 0,
           passed_checks: 0,
           failed_checks: 0,
@@ -170,8 +177,10 @@ export default function ValidationFormModal({
           mismatches: [],
           warnings: [],
           recommendations: [],
-          extraction_confidence: 0.95,
+          extraction_confidence: 95,
           parameters_found: 0,
+          document_version: "",
+          extraction_method: "",
           validation_notes: "",
         };
 
@@ -228,7 +237,7 @@ export default function ValidationFormModal({
       // Build payload according to ValidatePolicyRequest spec
       const payload = {
         base_policy_id: basePolicyId,
-        validation_status: "passed", // Always send "passed"
+        validation_status: values.validation_status || "pending", // Use form value
         validated_by: "agrisa.admin@gmail.com", // Hardcoded
         total_checks: values.total_checks || 0,
         passed_checks: values.passed_checks || 0,
@@ -237,29 +246,38 @@ export default function ValidationFormModal({
         validation_notes: values.validation_notes || "",
       };
 
-      // Only add mismatches/warnings/recommendations for modes that need them
-      const shouldIncludeDetails =
-        mode === "review" || mode === "override" || mode === "manual";
-
-      if (shouldIncludeDetails) {
-        // Add optional JSONB fields only if they have content
-        if (Object.keys(mismatchesObject).length > 0) {
-          payload.mismatches = mismatchesObject;
-        }
-        if (Object.keys(warningsObject).length > 0) {
-          payload.warnings = warningsObject;
-        }
-        if (Object.keys(recommendationsObject).length > 0) {
-          payload.recommendations = recommendationsObject;
-        }
+      // Always add optional JSONB fields only if they have content
+      if (Object.keys(mismatchesObject).length > 0) {
+        payload.mismatches = mismatchesObject;
+      }
+      if (Object.keys(warningsObject).length > 0) {
+        payload.warnings = warningsObject;
+      }
+      if (Object.keys(recommendationsObject).length > 0) {
+        payload.recommendations = recommendationsObject;
       }
 
-      // Add extracted_parameters if provided
-      if (values.extraction_confidence || values.parameters_found) {
+      // Add extracted_parameters if any field is provided
+      if (
+        values.extraction_confidence ||
+        values.parameters_found ||
+        values.document_version ||
+        values.extraction_method
+      ) {
         payload.extracted_parameters = {
-          extraction_confidence: values.extraction_confidence || 0,
+          extraction_confidence: (values.extraction_confidence || 0) / 100,
           parameters_found: values.parameters_found || 0,
         };
+
+        // Add optional string fields if provided
+        if (values.document_version) {
+          payload.extracted_parameters.document_version =
+            values.document_version;
+        }
+        if (values.extraction_method) {
+          payload.extracted_parameters.extraction_method =
+            values.extraction_method;
+        }
       }
 
       console.log("🚀 Validation payload being sent:", payload);
@@ -284,6 +302,32 @@ export default function ValidationFormModal({
 
   // Define form fields configuration
   const fields = [
+    // Validation Status - Required field (moved to top)
+    {
+      type: "select",
+      name: "validation_status",
+      label: <span style={{ fontWeight: 600 }}>Trạng thái xác thực</span>,
+      placeholder: "Chọn trạng thái xác thực",
+      gridColumn: "span 2",
+      options: [
+        {
+          label: "Đang chờ",
+          value: "pending",
+        },
+        {
+          label: "AI đã duyệt",
+          value: "passed_ai",
+        },
+        {
+          label: "Cảnh báo",
+          value: "warning",
+        },
+      ],
+      rules: [{ required: true, message: "Vui lòng chọn trạng thái xác thực" }],
+      tooltip:
+        "Chỉ đơn có trạng thái 'AI đã duyệt' mới được kích hoạt. Cảnh báo là khi hợp đồng hợp lệ nhưng có rủi ro cho bên bảo hiểm.",
+    },
+
     // Statistics Section
     {
       type: "number",
@@ -375,26 +419,21 @@ export default function ValidationFormModal({
       ],
     },
 
-    // Extraction Parameters - Slider
+    // Extraction Parameters - Changed to number input
     {
-      type: "slider",
+      type: "number",
       name: "extraction_confidence",
       label: <span style={{ fontWeight: 500 }}>Độ tin cậy trích xuất (%)</span>,
-      gridColumn: "span 2",
+      gridColumn: "span 1",
       min: 0,
-      max: 1,
-      step: 0.01,
-      marks: {
-        0: "0%",
-        0.5: "50%",
-        0.75: "75%",
-        0.95: "95%",
-        1: "100%",
-      },
-      sliderTooltip: {
-        formatter: (value) => `${(value * 100).toFixed(0)}%`,
-      },
-      tooltip: "Mức độ chính xác khi AI trích xuất thông tin từ tài liệu PDF",
+      max: 100,
+      step: 0.1,
+      placeholder: "95",
+      tooltip:
+        "Mức độ chính xác khi AI trích xuất thông tin từ tài liệu PDF (0-100)",
+      rules: [
+        { type: "number", min: 0, max: 100, message: "Phải từ 0 đến 100" },
+      ],
     },
     {
       type: "number",
@@ -522,6 +561,40 @@ export default function ValidationFormModal({
         </div>
       </Card>
 
+      {/* Validation Status Info Alert */}
+      <Alert
+        message="Lưu ý về trạng thái xác thực"
+        description={
+          <div style={{ fontSize: "13px" }}>
+            <div style={{ marginBottom: "8px" }}>
+              <InfoCircleOutlined
+                style={{ color: "#1890ff", marginRight: "6px" }}
+              />
+              <Text strong>Đang chờ (Pending):</Text> Đơn đang chờ xác thực,
+              chưa được xử lý.
+            </div>
+            <div style={{ marginBottom: "8px" }}>
+              <CheckCircleOutlined
+                style={{ color: "#52c41a", marginRight: "6px" }}
+              />
+              <Text strong>AI đã duyệt (Passed AI):</Text> AI đã xác thực và
+              đánh giá đơn hợp lệ. Cần xác nhận của admin để kích hoạt.
+            </div>
+            <div>
+              <WarningOutlined
+                style={{ color: "#faad14", marginRight: "6px" }}
+              />
+              <Text strong>Cảnh báo (Warning):</Text> Hợp đồng hợp lệ nhưng có
+              cách tính tiền có thể gây rủi ro cho bên bảo hiểm. Cần xác nhận kỹ
+              trước khi duyệt.
+            </div>
+          </div>
+        }
+        type="info"
+        showIcon
+        style={{ marginBottom: "16px" }}
+      />
+
       {/* Main Form - Basic Fields */}
       <Card
         title={
@@ -561,61 +634,44 @@ export default function ValidationFormModal({
         </div>
       </Card>
 
-      {/* Mismatches Section - Only show for review/override modes */}
-      {(mode === "review" || mode === "override" || mode === "manual") && (
-        <Card
-          title={
-            <span style={{ fontWeight: 600 }}>
-              <CloseCircleOutlined
-                style={{ marginRight: "8px", color: "#ff4d4f" }}
-              />
-              Sai khác (Mismatches)
-            </span>
-          }
-          size="small"
-          style={{ marginBottom: "16px" }}
-        >
+      {/* Combined Details Section */}
+      <Card
+        title={
+          <span style={{ fontWeight: 600 }}>
+            <InfoCircleOutlined
+              style={{ marginRight: "8px", color: "#1890ff" }}
+            />
+            Chi tiết xác thực
+          </span>
+        }
+        size="small"
+        style={{ marginBottom: "16px" }}
+      >
+        {/* Mismatches Section */}
+        <div style={{ marginBottom: "24px" }}>
+          <div
+            style={{
+              marginBottom: "12px",
+              fontWeight: 600,
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+            }}
+          >
+            <CloseCircleOutlined style={{ color: "#ff4d4f" }} />
+            Lỗi sai
+          </div>
           <Form form={formRef.current?.getForm()} component={false}>
             <Form.List name="mismatches">
               {(fields, { add, remove }) => (
                 <>
-                  {fields.map(({ key, name, ...restField }) => (
-                    <Card
-                      key={key}
-                      size="small"
-                      style={{
-                        marginBottom: "8px",
-                        borderLeft: `4px solid ${
-                          formRef.current
-                            ?.getForm()
-                            ?.getFieldValue([
-                              "mismatches",
-                              name,
-                              "severity",
-                            ]) === "critical"
-                            ? "#ff4d4f"
-                            : formRef.current
-                                ?.getForm()
-                                ?.getFieldValue([
-                                  "mismatches",
-                                  name,
-                                  "severity",
-                                ]) === "high"
-                            ? "#faad14"
-                            : formRef.current
-                                ?.getForm()
-                                ?.getFieldValue([
-                                  "mismatches",
-                                  name,
-                                  "severity",
-                                ]) === "medium"
-                            ? "#fa8c16"
-                            : "#52c41a"
-                        }`,
-                      }}
-                      bodyStyle={{ padding: "12px" }}
-                    >
-                      <Row gutter={12} align="middle">
+                  {fields.map(({ key, name, ...restField }, index) => (
+                    <div key={key}>
+                      <Row
+                        gutter={12}
+                        align="middle"
+                        style={{ padding: "12px 0" }}
+                      >
                         <Col span={6}>
                           <Form.Item
                             {...restField}
@@ -675,8 +731,14 @@ export default function ValidationFormModal({
                               <Option value="high">
                                 <Badge status="error" text="Cao" />
                               </Option>
+                              <Option value="important">
+                                <Badge status="error" text="Quan trọng" />
+                              </Option>
                               <Option value="critical">
                                 <Badge status="error" text="Nghiêm trọng" />
+                              </Option>
+                              <Option value="metadata">
+                                <Badge status="default" text="Metadata" />
                               </Option>
                             </Select>
                           </Form.Item>
@@ -691,7 +753,16 @@ export default function ValidationFormModal({
                           />
                         </Col>
                       </Row>
-                    </Card>
+                      {index < fields.length - 1 && (
+                        <div
+                          style={{
+                            height: "1px",
+                            background: "#f0f0f0",
+                            margin: "8px 0",
+                          }}
+                        />
+                      )}
+                    </div>
                   ))}
                   <Form.Item>
                     <Button
@@ -708,38 +779,38 @@ export default function ValidationFormModal({
               )}
             </Form.List>
           </Form>
-        </Card>
-      )}
+        </div>
 
-      {/* Warnings Section - Only show for review/override modes */}
-      {(mode === "review" || mode === "override" || mode === "manual") && (
-        <Card
-          title={
-            <span style={{ fontWeight: 600 }}>
-              <WarningOutlined
-                style={{ marginRight: "8px", color: "#faad14" }}
-              />
-              Cảnh báo (Warnings)
-            </span>
-          }
-          size="small"
-          style={{ marginBottom: "16px" }}
-        >
+        {/* Divider */}
+        <div
+          style={{ height: "1px", background: "#e8e8e8", margin: "16px 0" }}
+        />
+
+        {/* Warnings Section */}
+        <div style={{ marginBottom: "24px" }}>
+          <div
+            style={{
+              marginBottom: "12px",
+              fontWeight: 600,
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+            }}
+          >
+            <WarningOutlined style={{ color: "#faad14" }} />
+            Cảnh báo
+          </div>
           <Form form={formRef.current?.getForm()} component={false}>
             <Form.List name="warnings">
               {(fields, { add, remove }) => (
                 <>
-                  {fields.map(({ key, name, ...restField }) => (
-                    <Card
-                      key={key}
-                      size="small"
-                      style={{
-                        marginBottom: "8px",
-                        borderLeft: "4px solid #faad14",
-                      }}
-                      bodyStyle={{ padding: "12px" }}
-                    >
-                      <Row gutter={12} align="middle">
+                  {fields.map(({ key, name, ...restField }, index) => (
+                    <div key={key}>
+                      <Row
+                        gutter={12}
+                        align="middle"
+                        style={{ padding: "12px 0" }}
+                      >
                         <Col span={8}>
                           <Form.Item
                             {...restField}
@@ -795,7 +866,16 @@ export default function ValidationFormModal({
                           />
                         </Col>
                       </Row>
-                    </Card>
+                      {index < fields.length - 1 && (
+                        <div
+                          style={{
+                            height: "1px",
+                            background: "#f0f0f0",
+                            margin: "8px 0",
+                          }}
+                        />
+                      )}
+                    </div>
                   ))}
                   <Form.Item>
                     <Button
@@ -812,36 +892,38 @@ export default function ValidationFormModal({
               )}
             </Form.List>
           </Form>
-        </Card>
-      )}
+        </div>
 
-      {/* Recommendations Section - Only show for review/override modes */}
-      {(mode === "review" || mode === "override" || mode === "manual") && (
-        <Card
-          title={
-            <span style={{ fontWeight: 600 }}>
-              <BulbOutlined style={{ marginRight: "8px", color: "#1890ff" }} />
-              Đề xuất (Recommendations)
-            </span>
-          }
-          size="small"
-          style={{ marginBottom: "16px" }}
-        >
+        {/* Divider */}
+        <div
+          style={{ height: "1px", background: "#e8e8e8", margin: "16px 0" }}
+        />
+
+        {/* Recommendations Section */}
+        <div style={{ marginBottom: "24px" }}>
+          <div
+            style={{
+              marginBottom: "12px",
+              fontWeight: 600,
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+            }}
+          >
+            <BulbOutlined style={{ color: "#1890ff" }} />
+            Đề xuất
+          </div>
           <Form form={formRef.current?.getForm()} component={false}>
             <Form.List name="recommendations">
               {(fields, { add, remove }) => (
                 <>
-                  {fields.map(({ key, name, ...restField }) => (
-                    <Card
-                      key={key}
-                      size="small"
-                      style={{
-                        marginBottom: "8px",
-                        borderLeft: "4px solid #1890ff",
-                      }}
-                      bodyStyle={{ padding: "12px" }}
-                    >
-                      <Row gutter={12} align="middle">
+                  {fields.map(({ key, name, ...restField }, index) => (
+                    <div key={key}>
+                      <Row
+                        gutter={12}
+                        align="middle"
+                        style={{ padding: "12px 0" }}
+                      >
                         <Col span={8}>
                           <Form.Item
                             {...restField}
@@ -882,7 +964,16 @@ export default function ValidationFormModal({
                           />
                         </Col>
                       </Row>
-                    </Card>
+                      {index < fields.length - 1 && (
+                        <div
+                          style={{
+                            height: "1px",
+                            background: "#f0f0f0",
+                            margin: "8px 0",
+                          }}
+                        />
+                      )}
+                    </div>
                   ))}
                   <Form.Item>
                     <Button
@@ -899,8 +990,51 @@ export default function ValidationFormModal({
               )}
             </Form.List>
           </Form>
-        </Card>
-      )}
+        </div>
+
+        {/* Divider */}
+        <div
+          style={{ height: "1px", background: "#e8e8e8", margin: "16px 0" }}
+        />
+
+        {/* Extracted Parameters Section */}
+        <div>
+          <div
+            style={{
+              marginBottom: "12px",
+              fontWeight: 600,
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+            }}
+          >
+            <InfoCircleOutlined style={{ color: "#1890ff" }} />
+            Tham số trích xuất
+          </div>
+          <Form form={formRef.current?.getForm()} component={false}>
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  name="document_version"
+                  label="Phiên bản tài liệu"
+                  style={{ marginBottom: "12px" }}
+                >
+                  <Input placeholder="v2.1" />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  name="extraction_method"
+                  label="Phương thức trích xuất"
+                  style={{ marginBottom: "0px" }}
+                >
+                  <Input placeholder="AI-OCR" />
+                </Form.Item>
+              </Col>
+            </Row>
+          </Form>
+        </div>
+      </Card>
 
       {/* FAQ Section */}
       <Card
