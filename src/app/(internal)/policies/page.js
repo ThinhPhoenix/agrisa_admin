@@ -351,7 +351,7 @@ export default function PoliciesPage() {
               {policyMessage.title.list}
             </Title>
             <Text className="policy-subtitle">
-              Quản lý và giám sát các đơn bảo hiểm nông nghiệp
+              Quản lý và giám sát các hợp đồng bảo hiểm nông nghiệp
             </Text>
           </div>
         </div>

@@ -19,11 +19,11 @@ export const sidebarMenuItems = [
   // },
   {
     key: "pending-policies",
-    label: "Chính sách đang chờ duyệt",
+    label: "Hợp đồng mẫu chờ duyệt",
   },
   {
     key: "policies",
-    label: "Quản lý đơn bảo hiểm",
+    label: "Quản lý hợp đồng",
   },
   {
     key: "claims",

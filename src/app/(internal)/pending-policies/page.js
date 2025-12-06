@@ -23,11 +23,7 @@ import "./policy.css";
 const { Title, Text } = Typography;
 
 export default function PendingPoliciesPage() {
-  const {
-    data,
-    summaryStats,
-    loading,
-  } = usePendingPolicies();
+  const { data, summaryStats, loading } = usePendingPolicies();
 
   // Visible columns state
   const [visibleColumns, setVisibleColumns] = useState([
@@ -316,11 +312,8 @@ export default function PendingPoliciesPage() {
         <div className="policy-header">
           <div>
             <Title level={2} className="policy-title">
-              Quản lý Policy chờ duyệt
+              Quản lý hợp đồng mẫu chờ duyệt
             </Title>
-            <Text className="policy-subtitle">
-              Danh sách base policy draft đang chờ validation
-            </Text>
           </div>
         </div>
 
@@ -334,7 +327,9 @@ export default function PendingPoliciesPage() {
               <div className="policy-summary-value-compact">
                 {summaryStats.totalPolicies}
               </div>
-              <div className="policy-summary-label-compact">Tổng policy</div>
+              <div className="policy-summary-label-compact">
+                Tổng hợp đồng mẫu
+              </div>
             </div>
           </div>
 

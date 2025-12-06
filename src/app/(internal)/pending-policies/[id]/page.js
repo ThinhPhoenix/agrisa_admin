@@ -192,7 +192,7 @@ export default function PolicyDetailPage() {
     return (
       <Layout.Content className="policy-content">
         <div className="policy-loading">
-          <Title level={4}>Không tìm thấy policy</Title>
+          <Title level={4}>Không tìm thấy hợp đồng mẫu</Title>
         </div>
       </Layout.Content>
     );
@@ -264,7 +264,7 @@ export default function PolicyDetailPage() {
                 <InfoCircleOutlined
                   style={{ marginRight: "8px", color: "#52c41a" }}
                 />
-                Xác thực đơn bảo hiểm
+                Xác thực hợp đồng gốc
               </Text>
               <br />
               <Text type="secondary" style={{ fontSize: "12px" }}>
@@ -287,7 +287,7 @@ export default function PolicyDetailPage() {
                   icon={<CheckCircleOutlined />}
                   onClick={() => handleManualValidate("approve")}
                 >
-                  Duyệt đơn
+                  Duyệt
                 </Button>
               )}
               {validationStatus === "failed" && (
