@@ -1,5 +1,6 @@
 "use client";
 
+import { parseTimestamp } from "@/libs/datetime";
 import { useSources } from "@/services/hooks/data/use-sources";
 import {
   Button,
@@ -198,12 +199,18 @@ export default function SourceDetailPage() {
               </Descriptions.Item>
               <Descriptions.Item label="Ngày tạo">
                 {source.created_at
-                  ? new Date(source.created_at).toLocaleString("vi-VN")
+                  ? (() => {
+                      const dateTime = parseTimestamp(source.created_at);
+                      return `${dateTime.date} ${dateTime.time}`;
+                    })()
                   : "N/A"}
               </Descriptions.Item>
               <Descriptions.Item label="Ngày cập nhật">
                 {source.updated_at
-                  ? new Date(source.updated_at).toLocaleString("vi-VN")
+                  ? (() => {
+                      const dateTime = parseTimestamp(source.updated_at);
+                      return `${dateTime.date} ${dateTime.time}`;
+                    })()
                   : "N/A"}
               </Descriptions.Item>
             </Descriptions>

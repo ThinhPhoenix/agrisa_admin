@@ -3,8 +3,9 @@
 import SelectedColumn from "@/components/column-selector";
 import { CustomForm } from "@/components/custom-form";
 import CustomTable from "@/components/custom-table";
-import { useCategories } from "@/services/hooks/data/use-categories";
+import { parseTimestamp } from "@/libs/datetime";
 import { useTableData } from "@/services/hooks/common/use-table-data";
+import { useCategories } from "@/services/hooks/data/use-categories";
 import {
   CheckCircleOutlined,
   DeleteOutlined,
@@ -187,19 +188,15 @@ export default function CategoriesPage() {
       dataIndex: "created_at",
       key: "created_at",
       width: 160,
-      render: (_, record) => (
-        <div className="data-created-at">
-          <div className="data-date">
-            {new Date(record.created_at).toLocaleDateString("vi-VN")}
+      render: (_, record) => {
+        const dateTime = parseTimestamp(record.created_at);
+        return (
+          <div className="data-created-at">
+            <div className="data-date">{dateTime.date}</div>
+            <div className="data-time">{dateTime.time}</div>
           </div>
-          <div className="data-time">
-            {new Date(record.created_at).toLocaleTimeString("vi-VN", {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </div>
-        </div>
-      ),
+        );
+      },
     },
     {
       title: "Hành động",

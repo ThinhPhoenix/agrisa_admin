@@ -1,4 +1,5 @@
 import axiosInstance from "@/libs/axios-instance";
+import { PARTNER_MESSAGES } from "@/libs/message";
 import { endpoints } from "@/services/endpoints";
 import { message } from "antd";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -112,55 +113,6 @@ export function usePartners(partnerId = null) {
     }
   }, []);
 
-  // Validate payload before sending
-  const validatePayload = (values) => {
-    const errors = [];
-
-    // Required fields validation
-    if (!values.user_id) errors.push("User ID là bắt buộc");
-    // role_id is always set to "admin" in payload, no need to validate
-    if (!values.full_name) errors.push("Họ và tên là bắt buộc");
-    if (!values.nationality) errors.push("Quốc tịch là bắt buộc");
-    if (!values.primary_phone) errors.push("Số điện thoại là bắt buộc");
-
-    // Email validation (regex chuẩn)
-    if (values.email) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(values.email)) {
-        errors.push("Email không hợp lệ");
-      }
-    }
-
-    // Phone validation (Vietnamese pattern)
-    if (values.primary_phone) {
-      const phoneRegex = /^(\+84|84|0)(3|5|7|8|9)[0-9]{8}$/;
-      if (!phoneRegex.test(values.primary_phone.replace(/\s/g, ""))) {
-        errors.push("Số điện thoại không đúng định dạng Việt Nam");
-      }
-    }
-
-    // Date of birth validation (18-65 tuổi)
-    if (values.date_of_birth) {
-      const dob = new Date(values.date_of_birth);
-      const today = new Date();
-      const age = today.getFullYear() - dob.getFullYear();
-      const monthDiff = today.getMonth() - dob.getMonth();
-      const actualAge =
-        monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())
-          ? age - 1
-          : age;
-
-      if (actualAge < 18) {
-        errors.push("Người dùng phải từ 18 tuổi trở lên");
-      }
-      if (actualAge > 65) {
-        errors.push("Người dùng phải dưới 65 tuổi");
-      }
-    }
-
-    return errors;
-  };
-
   // Create insurance partner
   const createPartner = useCallback(async (values) => {
     try {
@@ -235,78 +187,68 @@ export function usePartners(partnerId = null) {
   }, []);
 
   // Create user account for partner
-  const createPartnerAccount = useCallback(async (values, partnerId) => {
-    try {
-      // Validate before creating payload
-      const validationErrors = validatePayload(values);
-      if (validationErrors.length > 0) {
-        message.error(validationErrors.join(", "));
-        throw new Error(validationErrors.join(", "));
-      }
+  const createPartnerAccount = useCallback(
+    async (values, userId, partnerId) => {
+      try {
+        // Validate required fields
+        if (!userId) {
+          message.error(PARTNER_MESSAGES.VALIDATION.USER_ID_INVALID_FORMAT);
+          throw new Error(PARTNER_MESSAGES.VALIDATION.USER_ID_INVALID_FORMAT);
+        }
 
-      const payload = {
-        user_id: values.user_id,
-        role_id: "admin", // Always set to admin for partner accounts
-        partner_id: partnerId,
-        full_name: values.full_name,
-        display_name: values.display_name || values.full_name,
-        date_of_birth: values.date_of_birth
-          ? values.date_of_birth.format("YYYY-MM-DD")
-          : "",
-        gender: values.gender || "M",
-        nationality: values.nationality,
-        email: values.email || "",
-        primary_phone: values.primary_phone,
-        alternate_phone: values.alternate_phone || "",
-        permanent_address: values.permanent_address || "",
-        current_address:
-          values.current_address || values.permanent_address || "",
-        province_code: values.province_code || "",
-        province_name: values.province_name || "",
-        district_code: values.district_code || "",
-        district_name: values.district_name || "",
-        ward_code: values.ward_code || "",
-        ward_name: values.ward_name || "",
-        postal_code: values.postal_code || "",
-        profile_image_url: values.profile_image_url || "",
-        verification_status: "pending",
-        kyc_status: "pending",
-      };
+        if (!partnerId) {
+          message.error(PARTNER_MESSAGES.VALIDATION.PARTNER_ID_REQUIRED);
+          throw new Error(PARTNER_MESSAGES.VALIDATION.PARTNER_ID_REQUIRED);
+        }
 
-      const response = await axiosInstance.post(
-        "/profile/protected/api/v1/users",
-        payload
-      );
+        // Prepare payload with only partner_id
+        const payload = {
+          partner_id: partnerId,
+        };
 
-      message.success("Chỉ định tài khoản thành công!");
-      return response.data;
-    } catch (err) {
-      console.error("Xảy ra lỗi khi tạo:", err);
+        // Call PUT endpoint to assign partner to user
+        const response = await axiosInstance.put(
+          endpoints.partner.assign_user(userId),
+          payload
+        );
 
-      // Handle specific errors
-      const errorCode = err.response?.data?.error?.code;
-      const errorMessage =
-        err.response?.data?.error?.message || err.response?.data?.message;
+        message.success(PARTNER_MESSAGES.SUCCESS.ASSIGN_SUCCESS);
+        return response.data;
+      } catch (err) {
+        console.error("Xảy ra lỗi khi chỉ định tài khoản:", err);
 
-      // Check for duplicate user_id error
-      if (
-        errorCode === "CONFLICT" &&
-        (errorMessage?.includes(
-          "duplicate key value violates unique constraint"
-        ) ||
-          errorMessage?.includes("unique_user_id"))
-      ) {
-        message.error("Người dùng này đã được chỉ định vai trò trước đó!");
-      } else {
-        // Generic error message
+        // Handle specific errors based on error code
+        const errorCode = err.response?.data?.error?.code;
+        const errorMessage = err.response?.data?.error?.message;
+
+        // Map error codes to user-friendly Vietnamese messages
+        const errorMap = {
+          INVALID_USER_ID_FORMAT:
+            PARTNER_MESSAGES.VALIDATION.USER_ID_INVALID_FORMAT,
+          USER_NOT_FOUND: PARTNER_MESSAGES.VALIDATION.USER_NOT_FOUND,
+          INVALID_PARTNER_ID_FORMAT:
+            PARTNER_MESSAGES.VALIDATION.PARTNER_ID_INVALID_FORMAT,
+          PARTNER_NOT_FOUND: PARTNER_MESSAGES.VALIDATION.PARTNER_NOT_FOUND,
+          PARTNER_ALREADY_ASSIGNED:
+            PARTNER_MESSAGES.VALIDATION.PARTNER_ALREADY_ASSIGNED,
+          INVALID_PARTNER_STATUS: PARTNER_MESSAGES.VALIDATION.PARTNER_INACTIVE,
+          USER_DEACTIVATED: PARTNER_MESSAGES.VALIDATION.USER_DEACTIVATED,
+          UNAUTHORIZED: PARTNER_MESSAGES.AUTH.UNAUTHORIZED,
+          TOKEN_EXPIRED: PARTNER_MESSAGES.AUTH.TOKEN_EXPIRED,
+          FORBIDDEN: PARTNER_MESSAGES.AUTH.FORBIDDEN,
+          CONFLICT: PARTNER_MESSAGES.BUSINESS.CONCURRENT_UPDATE,
+          INVALID_OPERATION: PARTNER_MESSAGES.BUSINESS.INVALID_OPERATION,
+        };
+
         const displayMessage =
-          errorMessage || err.message || "Lỗi khi tạo tài khoản";
+          errorMap[errorCode] || PARTNER_MESSAGES.NETWORK.GENERIC_ERROR;
         message.error(displayMessage);
-      }
 
-      throw err;
-    }
-  }, []);
+        throw err;
+      }
+    },
+    []
+  );
 
   // Refetch partners list
   const refetchData = useCallback(async () => {

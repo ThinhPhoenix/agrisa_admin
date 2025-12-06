@@ -3,8 +3,9 @@
 import SelectedColumn from "@/components/column-selector";
 import { CustomForm } from "@/components/custom-form";
 import CustomTable from "@/components/custom-table";
-import { useSources } from "@/services/hooks/data/use-sources";
+import { parseTimestamp } from "@/libs/datetime";
 import { useTableData } from "@/services/hooks/common/use-table-data";
+import { useSources } from "@/services/hooks/data/use-sources";
 import {
   CheckCircleOutlined,
   DeleteOutlined,
@@ -33,12 +34,7 @@ const { Title, Text } = Typography;
 const { confirm } = Modal;
 
 export default function SourcesPage() {
-  const {
-    data: rawData,
-    filterOptions,
-    loading,
-    deleteSource,
-  } = useSources();
+  const { data: rawData, filterOptions, loading, deleteSource } = useSources();
 
   // Setup useTableData hook for client-side filtering
   const {
@@ -93,8 +89,12 @@ export default function SourcesPage() {
     const allData = rawData || [];
     const totalItems = allData.length;
     const activeItems = allData.filter((item) => item.is_active).length;
-    const totalCost = allData.reduce((sum, item) => sum + (item.base_cost || 0), 0);
-    const averageCost = totalItems > 0 ? (totalCost / totalItems).toFixed(2) : 0;
+    const totalCost = allData.reduce(
+      (sum, item) => sum + (item.base_cost || 0),
+      0
+    );
+    const averageCost =
+      totalItems > 0 ? (totalCost / totalItems).toFixed(2) : 0;
 
     return {
       totalItems,
@@ -234,19 +234,15 @@ export default function SourcesPage() {
       dataIndex: "created_at",
       key: "created_at",
       width: 160,
-      render: (_, record) => (
-        <div className="data-created-at">
-          <div className="data-date">
-            {new Date(record.created_at).toLocaleDateString("vi-VN")}
+      render: (_, record) => {
+        const dateTime = parseTimestamp(record.created_at);
+        return (
+          <div className="data-created-at">
+            <div className="data-date">{dateTime.date}</div>
+            <div className="data-time">{dateTime.time}</div>
           </div>
-          <div className="data-time">
-            {new Date(record.created_at).toLocaleTimeString("vi-VN", {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </div>
-        </div>
-      ),
+        );
+      },
     },
     {
       title: "Hành động",

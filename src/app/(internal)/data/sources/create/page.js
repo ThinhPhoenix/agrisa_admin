@@ -93,14 +93,6 @@ export default function CreateSourcePage() {
     { label: "Phân loại (Categorical)", value: "categorical" },
   ];
 
-  // Update frequency options
-  const updateFrequencyOptions = [
-    { label: "Theo ngày (Daily)", value: "daily" },
-    { label: "Theo tuần (Weekly)", value: "weekly" },
-    { label: "Theo tháng (Monthly)", value: "monthly" },
-    { label: "Theo năm (Yearly)", value: "yearly" },
-  ];
-
   // Form fields
   const formFields = [
     {
@@ -168,10 +160,10 @@ export default function CreateSourcePage() {
     {
       name: "update_frequency",
       label: "Tần suất cập nhật",
-      type: "select",
-      placeholder: "Chọn tần suất cập nhật...",
+      type: "input",
+      placeholder: "Ví dụ: Theo ngày, Theo tuần, Theo tháng, Theo năm...",
       required: true,
-      options: updateFrequencyOptions,
+      maxLength: 100,
     },
     {
       name: "spatial_resolution",

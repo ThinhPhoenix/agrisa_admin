@@ -84,9 +84,12 @@ export const endpoints = {
     list: "/profile/public/api/v1/insurance-partners",
     get_one: (id) => `/profile/public/api/v1/insurance-partners/${id}`,
     create: "/profile/protected/api/v1/insurance-partners",
+    assign_user: (user_id) =>
+      `/profile/protected/api/v1/users/admin/${user_id}`,
   },
   address: {
     provinces: "https://provinces.open-api.vn/api/p/",
-    wards: (provinceCode) => `https://provinces.open-api.vn/api/w/?province=${provinceCode}`,
+    wards: (provinceCode) =>
+      `https://provinces.open-api.vn/api/w/?province=${provinceCode}`,
   },
 };
