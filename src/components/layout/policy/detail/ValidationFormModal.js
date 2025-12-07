@@ -207,6 +207,66 @@ export default function ValidationFormModal({
     }
   }, [open, latestValidation, validatedBy, mode, useAIData]);
 
+  // Auto-generate mismatch and warning fields based on failed_checks and warning_count
+  useEffect(() => {
+    if (!form) return;
+
+    const currentMismatches = form.getFieldValue("mismatches") || [];
+    const currentWarnings = form.getFieldValue("warnings") || [];
+
+    const failedCount = formValues.failed_checks || 0;
+    const warningCount = formValues.warning_count || 0;
+
+    // Only auto-generate when NOT using AI data
+    if (!useAIData) {
+      // Auto-generate mismatch fields
+      if (currentMismatches.length < failedCount) {
+        // Add empty fields
+        const newMismatches = [...currentMismatches];
+        for (let i = currentMismatches.length; i < failedCount; i++) {
+          newMismatches.push({
+            field: "",
+            expected: "",
+            actual: "",
+            severity: "low",
+            impact: "",
+            field_type: "",
+          });
+        }
+        form.setFieldValue("mismatches", newMismatches);
+      } else if (currentMismatches.length > failedCount) {
+        // Remove extra fields - even if failedCount is 0
+        if (failedCount === 0) {
+          form.setFieldValue("mismatches", []);
+        } else {
+          const newMismatches = currentMismatches.slice(0, failedCount);
+          form.setFieldValue("mismatches", newMismatches);
+        }
+      }
+
+      // Auto-generate warning fields
+      if (currentWarnings.length < warningCount) {
+        // Add empty fields
+        const newWarnings = [...currentWarnings];
+        for (let i = currentWarnings.length; i < warningCount; i++) {
+          newWarnings.push({
+            field: "",
+            message: "",
+            recommendation: "",
+          });
+        }
+        form.setFieldValue("warnings", newWarnings);
+      } else if (currentWarnings.length > warningCount) {
+        // Remove extra fields - even if warningCount is 0
+        if (warningCount === 0) {
+          form.setFieldValue("warnings", []);
+        } else {
+          const newWarnings = currentWarnings.slice(0, warningCount);
+          form.setFieldValue("warnings", newWarnings);
+        }
+      }
+    }
+  }, [formValues.failed_checks, formValues.warning_count, form, useAIData]);
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
@@ -711,6 +771,9 @@ export default function ValidationFormModal({
           >
             <CloseCircleOutlined style={{ color: "#ff4d4f" }} />
             Lỗi sai
+            <span style={{ fontSize: "12px", color: "#999", fontWeight: 400 }}>
+              ({formValues.failed_checks || 0} lỗi)
+            </span>
           </div>
           {/* Column Headers */}
           <Row
@@ -727,11 +790,10 @@ export default function ValidationFormModal({
             <Col span={4}>Thực tế</Col>
             <Col span={6}>Tác động</Col>
             <Col span={4}>Mức độ</Col>
-            <Col span={2}></Col>
           </Row>
           <Form form={form} component={false}>
             <Form.List name="mismatches">
-              {(fields, { add, remove }) => (
+              {(fields) => (
                 <>
                   {fields.map(({ key, name, ...restField }, index) => (
                     <div key={key}>
@@ -747,7 +809,10 @@ export default function ValidationFormModal({
                             rules={[{ required: true, message: "Bắt buộc" }]}
                             style={{ marginBottom: 0 }}
                           >
-                            <Input placeholder="Tên trường" />
+                            <Input
+                              placeholder="Tên trường"
+                              disabled={useAIData}
+                            />
                           </Form.Item>
                         </Col>
                         <Col span={4}>
@@ -764,7 +829,10 @@ export default function ValidationFormModal({
                               rules={[{ required: true, message: "Bắt buộc" }]}
                               style={{ marginBottom: 0 }}
                             >
-                              <Input placeholder="Giá trị mong đợi" />
+                              <Input
+                                placeholder="Giá trị mong đợi"
+                                disabled={useAIData}
+                              />
                             </Form.Item>
                           </Tooltip>
                         </Col>
@@ -782,7 +850,10 @@ export default function ValidationFormModal({
                               rules={[{ required: true, message: "Bắt buộc" }]}
                               style={{ marginBottom: 0 }}
                             >
-                              <Input placeholder="Giá trị thực tế" />
+                              <Input
+                                placeholder="Giá trị thực tế"
+                                disabled={useAIData}
+                              />
                             </Form.Item>
                           </Tooltip>
                         </Col>
@@ -810,7 +881,7 @@ export default function ValidationFormModal({
                             rules={[{ required: true, message: "Bắt buộc" }]}
                             style={{ marginBottom: 0 }}
                           >
-                            <Select placeholder="Mức độ">
+                            <Select placeholder="Mức độ" disabled={useAIData}>
                               <Option value="low">
                                 <Badge status="success" text="Thấp" />
                               </Option>
@@ -853,17 +924,32 @@ export default function ValidationFormModal({
                       )}
                     </div>
                   ))}
-                  <Form.Item>
-                    <Button
-                      type="dashed"
-                      onClick={() => add()}
-                      block
-                      icon={<PlusOutlined />}
-                      style={{ marginTop: "8px" }}
+                  {fields.length === 0 && (
+                    <div
+                      style={{
+                        padding: "16px",
+                        textAlign: "center",
+                        color: "#999",
+                      }}
                     >
-                      Thêm sai khác
-                    </Button>
-                  </Form.Item>
+                      Không có lỗi sai nào được báo cáo
+                    </div>
+                  )}
+                  {fields.length < (formValues.failed_checks || 0) &&
+                    !useAIData && (
+                      <Alert
+                        message={`Cảnh báo: Bạn đã nhập ${
+                          formValues.failed_checks
+                        } lỗi nhưng chỉ có ${
+                          fields.length
+                        } trường. Vui lòng thêm ${
+                          formValues.failed_checks - fields.length
+                        } trường nữa.`}
+                        type="warning"
+                        showIcon
+                        style={{ marginTop: "12px" }}
+                      />
+                    )}
                 </>
               )}
             </Form.List>
@@ -888,10 +974,13 @@ export default function ValidationFormModal({
           >
             <WarningOutlined style={{ color: "#faad14" }} />
             Cảnh báo
+            <span style={{ fontSize: "12px", color: "#999", fontWeight: 400 }}>
+              ({formValues.warning_count || 0} cảnh báo)
+            </span>
           </div>
           <Form form={form} component={false}>
             <Form.List name="warnings">
-              {(fields, { add, remove }) => (
+              {(fields) => (
                 <>
                   {fields.map(({ key, name, ...restField }, index) => (
                     <div key={key}>
@@ -907,7 +996,10 @@ export default function ValidationFormModal({
                             rules={[{ required: true, message: "Bắt buộc" }]}
                             style={{ marginBottom: 0 }}
                           >
-                            <Input placeholder="Tên trường" />
+                            <Input
+                              placeholder="Tên trường"
+                              disabled={useAIData}
+                            />
                           </Form.Item>
                         </Col>
                         <Col span={8}>
@@ -927,6 +1019,7 @@ export default function ValidationFormModal({
                               <Input.TextArea
                                 placeholder="Nội dung cảnh báo"
                                 autoSize={{ minRows: 2, maxRows: 4 }}
+                                disabled={useAIData}
                               />
                             </Form.Item>
                           </Tooltip>
@@ -951,15 +1044,6 @@ export default function ValidationFormModal({
                             </Form.Item>
                           </Tooltip>
                         </Col>
-                        <Col span={2}>
-                          <Button
-                            type="text"
-                            danger
-                            icon={<MinusCircleOutlined />}
-                            onClick={() => remove(name)}
-                            size="small"
-                          />
-                        </Col>
                       </Row>
                       {index < fields.length - 1 && (
                         <div
@@ -972,17 +1056,32 @@ export default function ValidationFormModal({
                       )}
                     </div>
                   ))}
-                  <Form.Item>
-                    <Button
-                      type="dashed"
-                      onClick={() => add()}
-                      block
-                      icon={<PlusOutlined />}
-                      style={{ marginTop: "8px" }}
+                  {fields.length === 0 && (
+                    <div
+                      style={{
+                        padding: "16px",
+                        textAlign: "center",
+                        color: "#999",
+                      }}
                     >
-                      Thêm cảnh báo
-                    </Button>
-                  </Form.Item>
+                      Không có cảnh báo nào
+                    </div>
+                  )}
+                  {fields.length < (formValues.warning_count || 0) &&
+                    !useAIData && (
+                      <Alert
+                        message={`Cảnh báo: Bạn đã nhập ${
+                          formValues.warning_count
+                        } cảnh báo nhưng chỉ có ${
+                          fields.length
+                        } trường. Vui lòng thêm ${
+                          formValues.warning_count - fields.length
+                        } trường nữa.`}
+                        type="warning"
+                        showIcon
+                        style={{ marginTop: "12px" }}
+                      />
+                    )}
                 </>
               )}
             </Form.List>
