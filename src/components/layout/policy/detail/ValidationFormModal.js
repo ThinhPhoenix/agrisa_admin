@@ -24,11 +24,12 @@ import {
   Progress,
   Row,
   Select,
+  Switch,
   Tag,
   Tooltip,
   Typography,
 } from "antd";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 const { Text } = Typography;
 const { Option } = Select;
@@ -42,166 +43,193 @@ export default function ValidationFormModal({
   validatedBy = "admin@example.com",
   mode = "manual", // "manual", "accept_ai", "override"
 }) {
-  const formRef = useRef();
+  const [form] = Form.useForm();
   const [submitting, setSubmitting] = useState(false);
   const [formValues, setFormValues] = useState({});
+  const [useAIData, setUseAIData] = useState(false);
+  const [recommendationsData, setRecommendationsData] = useState([]);
+  const [mismatchesData, setMismatchesData] = useState([]);
+  const [warningsData, setWarningsData] = useState([]);
 
   // Pre-fill form with AI validation data if available
   useEffect(() => {
     // Wait for modal to open and form to be ready
     if (!open) return;
 
-    // Use setTimeout to ensure formRef is ready after modal opens
-    const timer = setTimeout(() => {
-      if (latestValidation) {
-        console.log(
-          "🔍 Pre-filling form with AI validation data:",
-          latestValidation
-        );
+    if (useAIData && latestValidation) {
+      console.log(
+        "🔍 Pre-filling form with AI validation data:",
+        latestValidation
+      );
 
-        // Convert mismatches object to array for form display
-        const mismatchesArray = latestValidation.mismatches
-          ? Object.entries(latestValidation.mismatches).map(([key, value]) => ({
-              field: key,
-              expected:
-                typeof value.pdf_value !== "undefined"
-                  ? String(value.pdf_value)
-                  : String(value.expected || ""),
-              actual:
-                typeof value.json_value !== "undefined"
-                  ? String(value.json_value)
-                  : String(value.actual || ""),
-              severity: value.severity || "low",
-            }))
-          : [];
+      // Convert mismatches object to array for form display
+      const mismatchesArray = latestValidation.mismatches
+        ? Object.entries(latestValidation.mismatches).map(([key, value]) => ({
+            field: key,
+            expected:
+              typeof value.pdf_value !== "undefined"
+                ? String(value.pdf_value)
+                : String(value.expected || ""),
+            actual:
+              typeof value.json_value !== "undefined"
+                ? String(value.json_value)
+                : String(value.actual || ""),
+            severity: value.severity || "low",
+            impact: value.impact || "",
+            field_type: value.field_type || "",
+          }))
+        : [];
 
-        console.log("📝 Mismatches array:", mismatchesArray);
-
-        // Convert warnings object to array for form display
-        const warningsArray = latestValidation.warnings
-          ? Object.entries(latestValidation.warnings).map(([key, value]) => ({
-              field: key,
-              message:
-                value.message ||
-                value.pdf_context ||
-                value.details ||
-                value.impact ||
-                "",
-              recommendation: value.recommendation || "",
-            }))
-          : [];
-
-        console.log("⚠️ Warnings array:", warningsArray);
-
-        // Convert recommendations object to array for form display
-        const recommendationsArray = latestValidation.recommendations
-          ? Object.entries(latestValidation.recommendations).map(
-              ([key, value]) => ({
-                category: key,
-                suggestion:
-                  value.suggestion ||
-                  (value.affected_fields
-                    ? `Priority: ${value.priority || "N/A"} | Fields: ${
-                        Array.isArray(value.affected_fields)
-                          ? value.affected_fields.join(", ")
-                          : value.affected_fields
-                      }`
-                    : ""),
-              })
-            )
-          : [];
-
-        console.log("💡 Recommendations array:", recommendationsArray);
-
-        // Determine validation status based on mode
-        let validationStatus = latestValidation.validation_status;
-        let validationNotes = latestValidation.validation_notes || "";
-
-        // Always set to "passed" - admin confirmation triggers auto-commit
-        validationStatus = "passed";
-
-        if (mode === "accept_ai") {
-          // When accepting AI result, set status to "passed" (manual confirmation)
-          // This triggers auto-commit as per spec
-          validationNotes = validationNotes
-            ? `${validationNotes}\n\nAdmin đã chấp nhận kết quả AI và xác nhận thủ công.`
-            : "Admin đã chấp nhận kết quả AI và xác nhận thủ công. Kết quả AI được coi là chính xác.";
-        } else if (mode === "override") {
-          // Override mode - admin manually sets to passed despite errors
-          validationStatus = "passed";
-          validationNotes = validationNotes
-            ? `${validationNotes}\n\nAdmin ghi đè thủ công: chấp nhận policy mặc dù có lỗi.`
-            : "Admin ghi đè thủ công: chấp nhận policy mặc dù có lỗi.";
-        } else if (mode === "review" || mode === "fix") {
-          // Review/fix mode - set to warning or failed
-          validationStatus =
-            latestValidation.failed_checks > 0 ? "failed" : "warning";
-        }
-
-        const initialValues = {
-          validation_status: validationStatus || "pending",
-          total_checks: latestValidation.total_checks || 0,
-          passed_checks: latestValidation.passed_checks || 0,
-          failed_checks: latestValidation.failed_checks || 0,
-          warning_count: latestValidation.warning_count || 0,
-          mismatches: mismatchesArray,
-          warnings: warningsArray,
-          recommendations: recommendationsArray,
-          extraction_confidence:
-            (latestValidation.extracted_parameters?.extraction_confidence ||
-              0.95) * 100,
-          parameters_found:
-            latestValidation.extracted_parameters?.parameters_found || 0,
-          document_version:
-            latestValidation.extracted_parameters?.document_version || "",
-          extraction_method:
-            latestValidation.extracted_parameters?.extraction_method || "",
-          validation_notes: validationNotes,
-        };
-
-        console.log("✅ Setting form values:", initialValues);
-
-        if (formRef.current) {
-          formRef.current.setFieldsValue(initialValues);
-          setFormValues(initialValues);
-        }
-      } else {
-        console.log("📋 No AI validation data, using defaults");
-        // Set defaults for new validation
-        const defaultValues = {
-          validation_status: "pending",
-          total_checks: 0,
-          passed_checks: 0,
-          failed_checks: 0,
-          warning_count: 0,
-          mismatches: [],
-          warnings: [],
-          recommendations: [],
-          extraction_confidence: 95,
-          parameters_found: 0,
-          document_version: "",
-          extraction_method: "",
-          validation_notes: "",
-        };
-
-        if (formRef.current) {
-          formRef.current.setFieldsValue(defaultValues);
-          setFormValues(defaultValues);
-        }
+      // Set form mismatch data for editing
+      if (form && mismatchesArray.length > 0) {
+        form.setFieldValue("mismatches", mismatchesArray);
       }
-    }, 100); // Small delay to ensure form is mounted
 
-    return () => clearTimeout(timer);
-  }, [open, latestValidation, validatedBy, mode]);
+      console.log("📝 Mismatches array:", mismatchesArray);
+
+      // Convert warnings object to array for form display
+      const warningsArray = latestValidation.warnings
+        ? Object.entries(latestValidation.warnings).map(([key, value]) => ({
+            field: key,
+            message:
+              value.message ||
+              value.pdf_context ||
+              value.details ||
+              value.impact ||
+              "",
+            recommendation: value.recommendation || "",
+          }))
+        : [];
+
+      console.log("⚠️ Warnings array:", warningsArray);
+
+      // Convert recommendations object to array for form display
+      const recommendationsArray = latestValidation.recommendations
+        ? Object.entries(latestValidation.recommendations).map(
+            ([key, value]) => ({
+              category: key,
+              suggestion:
+                value.suggestion ||
+                (value.affected_fields
+                  ? `Priority: ${value.priority || "N/A"} | Fields: ${
+                      Array.isArray(value.affected_fields)
+                        ? value.affected_fields.join(", ")
+                        : value.affected_fields
+                    }`
+                  : ""),
+            })
+          )
+        : [];
+
+      console.log("💡 Recommendations array:", recommendationsArray);
+
+      // Determine validation status based on mode
+      let validationStatus = latestValidation.validation_status;
+      let validationNotes = latestValidation.validation_notes || "";
+
+      // Always set to "passed" - admin confirmation triggers auto-commit
+      validationStatus = "passed";
+
+      if (mode === "accept_ai") {
+        // When accepting AI result, set status to "passed" (manual confirmation)
+        // This triggers auto-commit as per spec
+        validationNotes = validationNotes
+          ? `${validationNotes}\n\nAdmin đã chấp nhận kết quả AI và xác nhận thủ công.`
+          : "Admin đã chấp nhận kết quả AI và xác nhận thủ công. Kết quả AI được coi là chính xác.";
+      } else if (mode === "override") {
+        // Override mode - admin manually sets to passed despite errors
+        validationStatus = "passed";
+        validationNotes = validationNotes
+          ? `${validationNotes}\n\nAdmin ghi đè thủ công: chấp nhận policy mặc dù có lỗi.`
+          : "Admin ghi đè thủ công: chấp nhận policy mặc dù có lỗi.";
+      } else if (mode === "review" || mode === "fix") {
+        // Review/fix mode - set to warning or failed
+        validationStatus =
+          latestValidation.failed_checks > 0 ? "failed" : "warning";
+      }
+
+      const initialValues = {
+        validation_status: validationStatus || "pending",
+        total_checks: latestValidation.total_checks || 0,
+        passed_checks: latestValidation.passed_checks || 0,
+        failed_checks: latestValidation.failed_checks || 0,
+        warning_count: latestValidation.warning_count || 0,
+        extraction_confidence:
+          (latestValidation.extracted_parameters?.extraction_confidence ||
+            0.95) * 100,
+        parameters_found:
+          latestValidation.extracted_parameters?.parameters_found || 0,
+        document_version:
+          latestValidation.extracted_parameters?.document_version || "",
+        extraction_method:
+          latestValidation.extracted_parameters?.extraction_method || "",
+        validation_notes: validationNotes,
+        mismatches: mismatchesArray,
+        warnings: warningsArray,
+        recommendations: recommendationsArray,
+      };
+
+      console.log("✅ Setting form values:", initialValues);
+
+      if (form) {
+        form.setFieldsValue(initialValues);
+        setFormValues(initialValues);
+      }
+      setRecommendationsData(recommendationsArray);
+      setMismatchesData(mismatchesArray);
+      setWarningsData(warningsArray);
+    } else {
+      console.log("📋 Form empty or no AI data");
+      // Set defaults for empty form
+      const defaultValues = {
+        validation_status: "pending",
+        total_checks: 0,
+        passed_checks: 0,
+        failed_checks: 0,
+        warning_count: 0,
+        extraction_confidence: 95,
+        parameters_found: 0,
+        document_version: "",
+        extraction_method: "",
+        validation_notes: "",
+        mismatches: [],
+        warnings: [],
+        recommendations: [],
+      };
+
+      if (form) {
+        form.setFieldsValue(defaultValues);
+        setFormValues(defaultValues);
+      }
+      setRecommendationsData([]);
+      setMismatchesData([]);
+      setWarningsData([]);
+    }
+  }, [open, latestValidation, validatedBy, mode, useAIData]);
 
   const handleSubmit = async () => {
     try {
-      const values = await formRef.current?.validateFields();
+      const values = await form.validateFields();
       setSubmitting(true);
 
       // Convert arrays to objects (map) as expected by backend API spec
       // Backend expects: map[string]any (object), not array
-      const mismatchesArray = values.mismatches || [];
+      let mismatchesArray = [];
+      let warningsArray = [];
+      let recommendationsArray = [];
+
+      if (useAIData) {
+        // Use state data when AI data is enabled
+        mismatchesArray = mismatchesData;
+        warningsArray = warningsData;
+        recommendationsArray = recommendationsData;
+      } else {
+        // Use form data when manual entry
+        mismatchesArray = values.mismatches || [];
+        warningsArray = values.warnings || [];
+        recommendationsArray = values.recommendations || [];
+      }
+
       const mismatchesObject = {};
       mismatchesArray.forEach((item) => {
         if (item.field) {
@@ -209,11 +237,12 @@ export default function ValidationFormModal({
             expected: item.expected,
             actual: item.actual,
             severity: item.severity,
+            impact: item.impact,
+            field_type: item.field_type,
           };
         }
       });
 
-      const warningsArray = values.warnings || [];
       const warningsObject = {};
       warningsArray.forEach((item) => {
         if (item.field) {
@@ -224,12 +253,13 @@ export default function ValidationFormModal({
         }
       });
 
-      const recommendationsArray = values.recommendations || [];
       const recommendationsObject = {};
       recommendationsArray.forEach((item) => {
         if (item.category) {
           recommendationsObject[item.category] = {
             suggestion: item.suggestion,
+            priority: item.priority,
+            affected_fields: item.affected_fields,
           };
         }
       });
@@ -283,7 +313,7 @@ export default function ValidationFormModal({
       console.log("🚀 Validation payload being sent:", payload);
 
       await onSubmit(payload);
-      formRef.current?.resetFields();
+      form.resetFields();
       setSubmitting(false);
     } catch (err) {
       console.error("Form validation error:", err);
@@ -292,7 +322,7 @@ export default function ValidationFormModal({
   };
 
   const handleCancel = () => {
-    formRef.current?.resetFields();
+    form.resetFields();
     onCancel();
   };
 
@@ -459,7 +489,7 @@ export default function ValidationFormModal({
       ),
       placeholder:
         "Đã hoàn thành xem xét thủ công. Các sai lệch nhỏ đã được ghi nhận nhưng có thể chấp nhận được.",
-      rows: 4,
+      autoSize: { minRows: 4, maxRows: 20 },
       rules: [],
     },
   ];
@@ -549,12 +579,33 @@ export default function ValidationFormModal({
           {latestValidation && (
             <>
               <br />
+              <div
+                style={{
+                  marginTop: "8px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                }}
+              >
+                <Text type="secondary" style={{ fontSize: "12px" }}>
+                  Sử dụng dữ liệu từ AI:
+                </Text>
+                <Switch
+                  checked={useAIData}
+                  onChange={setUseAIData}
+                  checkedChildren="Bật"
+                  unCheckedChildren="Tắt"
+                  size="small"
+                />
+              </div>
               <Text
                 type="secondary"
                 style={{ fontSize: "11px", marginTop: "4px", display: "block" }}
               >
-                Dữ liệu từ AI đã được điền sẵn vào form. Bạn có thể điều chỉnh
-                trước khi submit.
+                {useAIData
+                  ? "Form đã được điền sẵn dữ liệu từ AI. Bạn có thể điều chỉnh trước khi submit."
+                  : "Form trống. Nhập dữ liệu xác thực thủ công."}
               </Text>
             </>
           )}
@@ -607,7 +658,7 @@ export default function ValidationFormModal({
         style={{ marginBottom: "16px" }}
       >
         <CustomForm
-          ref={formRef}
+          form={form}
           fields={fields}
           onValuesChange={handleValuesChange}
           gridColumns="repeat(2, 1fr)"
@@ -661,7 +712,24 @@ export default function ValidationFormModal({
             <CloseCircleOutlined style={{ color: "#ff4d4f" }} />
             Lỗi sai
           </div>
-          <Form form={formRef.current?.getForm()} component={false}>
+          {/* Column Headers */}
+          <Row
+            gutter={12}
+            style={{
+              marginBottom: "8px",
+              fontWeight: 500,
+              fontSize: "12px",
+              color: "#666",
+            }}
+          >
+            <Col span={4}>Trường</Col>
+            <Col span={4}>Kỳ vọng</Col>
+            <Col span={4}>Thực tế</Col>
+            <Col span={6}>Tác động</Col>
+            <Col span={4}>Mức độ</Col>
+            <Col span={2}></Col>
+          </Row>
+          <Form form={form} component={false}>
             <Form.List name="mismatches">
               {(fields, { add, remove }) => (
                 <>
@@ -672,7 +740,7 @@ export default function ValidationFormModal({
                         align="middle"
                         style={{ padding: "12px 0" }}
                       >
-                        <Col span={6}>
+                        <Col span={4}>
                           <Form.Item
                             {...restField}
                             name={[name, "field"]}
@@ -682,11 +750,13 @@ export default function ValidationFormModal({
                             <Input placeholder="Tên trường" />
                           </Form.Item>
                         </Col>
-                        <Col span={6}>
+                        <Col span={4}>
                           <Tooltip
-                            title={formRef.current
-                              ?.getForm()
-                              ?.getFieldValue(["mismatches", name, "expected"])}
+                            title={form?.getFieldValue([
+                              "mismatches",
+                              name,
+                              "expected",
+                            ])}
                           >
                             <Form.Item
                               {...restField}
@@ -698,11 +768,13 @@ export default function ValidationFormModal({
                             </Form.Item>
                           </Tooltip>
                         </Col>
-                        <Col span={6}>
+                        <Col span={4}>
                           <Tooltip
-                            title={formRef.current
-                              ?.getForm()
-                              ?.getFieldValue(["mismatches", name, "actual"])}
+                            title={form?.getFieldValue([
+                              "mismatches",
+                              name,
+                              "actual",
+                            ])}
                           >
                             <Form.Item
                               {...restField}
@@ -711,6 +783,23 @@ export default function ValidationFormModal({
                               style={{ marginBottom: 0 }}
                             >
                               <Input placeholder="Giá trị thực tế" />
+                            </Form.Item>
+                          </Tooltip>
+                        </Col>
+                        <Col span={6}>
+                          <Tooltip
+                            title={form?.getFieldValue([
+                              "mismatches",
+                              name,
+                              "impact",
+                            ])}
+                          >
+                            <Form.Item
+                              {...restField}
+                              name={[name, "impact"]}
+                              style={{ marginBottom: 0 }}
+                            >
+                              <Input placeholder="Tác động" />
                             </Form.Item>
                           </Tooltip>
                         </Col>
@@ -800,7 +889,7 @@ export default function ValidationFormModal({
             <WarningOutlined style={{ color: "#faad14" }} />
             Cảnh báo
           </div>
-          <Form form={formRef.current?.getForm()} component={false}>
+          <Form form={form} component={false}>
             <Form.List name="warnings">
               {(fields, { add, remove }) => (
                 <>
@@ -808,7 +897,7 @@ export default function ValidationFormModal({
                     <div key={key}>
                       <Row
                         gutter={12}
-                        align="middle"
+                        align="top"
                         style={{ padding: "12px 0" }}
                       >
                         <Col span={8}>
@@ -823,9 +912,11 @@ export default function ValidationFormModal({
                         </Col>
                         <Col span={8}>
                           <Tooltip
-                            title={formRef.current
-                              ?.getForm()
-                              ?.getFieldValue(["warnings", name, "message"])}
+                            title={form?.getFieldValue([
+                              "warnings",
+                              name,
+                              "message",
+                            ])}
                           >
                             <Form.Item
                               {...restField}
@@ -833,26 +924,30 @@ export default function ValidationFormModal({
                               rules={[{ required: true, message: "Bắt buộc" }]}
                               style={{ marginBottom: 0 }}
                             >
-                              <Input placeholder="Nội dung cảnh báo" />
+                              <Input.TextArea
+                                placeholder="Nội dung cảnh báo"
+                                autoSize={{ minRows: 2, maxRows: 4 }}
+                              />
                             </Form.Item>
                           </Tooltip>
                         </Col>
                         <Col span={6}>
                           <Tooltip
-                            title={formRef.current
-                              ?.getForm()
-                              ?.getFieldValue([
-                                "warnings",
-                                name,
-                                "recommendation",
-                              ])}
+                            title={form?.getFieldValue([
+                              "warnings",
+                              name,
+                              "recommendation",
+                            ])}
                           >
                             <Form.Item
                               {...restField}
                               name={[name, "recommendation"]}
                               style={{ marginBottom: 0 }}
                             >
-                              <Input placeholder="Đề xuất" />
+                              <Input.TextArea
+                                placeholder="Đề xuất"
+                                autoSize={{ minRows: 2, maxRows: 4 }}
+                              />
                             </Form.Item>
                           </Tooltip>
                         </Col>
@@ -913,7 +1008,7 @@ export default function ValidationFormModal({
             <BulbOutlined style={{ color: "#1890ff" }} />
             Đề xuất
           </div>
-          <Form form={formRef.current?.getForm()} component={false}>
+          <Form form={form} component={false}>
             <Form.List name="recommendations">
               {(fields, { add, remove }) => (
                 <>
@@ -936,13 +1031,11 @@ export default function ValidationFormModal({
                         </Col>
                         <Col span={14}>
                           <Tooltip
-                            title={formRef.current
-                              ?.getForm()
-                              ?.getFieldValue([
-                                "recommendations",
-                                name,
-                                "suggestion",
-                              ])}
+                            title={form?.getFieldValue([
+                              "recommendations",
+                              name,
+                              "suggestion",
+                            ])}
                           >
                             <Form.Item
                               {...restField}
@@ -950,7 +1043,10 @@ export default function ValidationFormModal({
                               rules={[{ required: true, message: "Bắt buộc" }]}
                               style={{ marginBottom: 0 }}
                             >
-                              <Input placeholder="Nội dung đề xuất" />
+                              <Input.TextArea
+                                placeholder="Nội dung đề xuất"
+                                autoSize={{ minRows: 2, maxRows: 4 }}
+                              />
                             </Form.Item>
                           </Tooltip>
                         </Col>
@@ -1011,7 +1107,7 @@ export default function ValidationFormModal({
             <InfoCircleOutlined style={{ color: "#1890ff" }} />
             Tham số trích xuất
           </div>
-          <Form form={formRef.current?.getForm()} component={false}>
+          <Form form={form} component={false}>
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item
