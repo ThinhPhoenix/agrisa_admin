@@ -36,6 +36,8 @@ export default function ValidationFormModal(props) {
     handleValuesChange,
     fields,
     successPercent,
+    handleCompositionStart,
+    handleCompositionEnd,
   } = useValidationForm({
     open,
     latestValidation,
@@ -112,6 +114,9 @@ export default function ValidationFormModal(props) {
         handleValuesChange={handleValuesChange}
         formValues={formValues}
         successPercent={successPercent}
+        useAIData={useAIData}
+        handleCompositionStart={handleCompositionStart}
+        handleCompositionEnd={handleCompositionEnd}
       />
       <DetailsCard form={form} useAIData={useAIData} formValues={formValues} />
       <FAQCard />

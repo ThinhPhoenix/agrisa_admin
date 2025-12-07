@@ -1,5 +1,5 @@
 import { Form } from "antd";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function useValidationForm({
   open,
@@ -17,6 +17,7 @@ export default function useValidationForm({
   const [recommendationsData, setRecommendationsData] = useState([]);
   const [mismatchesData, setMismatchesData] = useState([]);
   const [warningsData, setWarningsData] = useState([]);
+  const isComposingRef = useRef(false);
 
   useEffect(() => {
     if (!open) return;
@@ -147,7 +148,7 @@ export default function useValidationForm({
   }, [open, latestValidation, validatedBy, mode, useAIData]);
 
   useEffect(() => {
-    if (!form) return;
+    if (!form || !formValues) return;
 
     const currentMismatches = form.getFieldValue("mismatches") || [];
     const currentWarnings = form.getFieldValue("warnings") || [];
@@ -193,7 +194,7 @@ export default function useValidationForm({
         }
       }
     }
-  }, [formValues.failed_checks, formValues.warning_count, form, useAIData]);
+  }, [formValues?.failed_checks, formValues?.warning_count, form, useAIData]);
 
   const handleSubmit = async () => {
     try {
@@ -250,38 +251,147 @@ export default function useValidationForm({
 
       const payload = {
         base_policy_id: basePolicyId,
-        validation_status: values.validation_status || "pending",
-        validated_by: "agrisa.admin@gmail.com",
-        total_checks: values.total_checks || 0,
-        passed_checks: values.passed_checks || 0,
-        failed_checks: values.failed_checks || 0,
-        warning_count: values.warning_count || 0,
-        validation_notes: values.validation_notes || "",
+        validation_status:
+          formValues.validation_status || values.validation_status || "pending",
+        validation_notes:
+          formValues.validation_notes || values.validation_notes || "",
       };
 
-      if (Object.keys(mismatchesObject).length > 0)
-        payload.mismatches = mismatchesObject;
-      if (Object.keys(warningsObject).length > 0)
-        payload.warnings = warningsObject;
-      if (Object.keys(recommendationsObject).length > 0)
-        payload.recommendations = recommendationsObject;
+      console.log("DEBUG: Form values:", values);
+      console.log("DEBUG: FormValues state:", formValues);
+      console.log(
+        "DEBUG: Payload validation_status:",
+        payload.validation_status
+      );
 
-      if (
-        values.extraction_confidence ||
-        values.parameters_found ||
-        values.document_version ||
-        values.extraction_method
-      ) {
-        payload.extracted_parameters = {
-          extraction_confidence: (values.extraction_confidence || 0) / 100,
-          parameters_found: values.parameters_found || 0,
-        };
-        if (values.document_version)
-          payload.extracted_parameters.document_version =
-            values.document_version;
-        if (values.extraction_method)
-          payload.extracted_parameters.extraction_method =
-            values.extraction_method;
+      if (useAIData) {
+        // Khi dùng dữ liệu AI, giữ nguyên tất cả thông số từ AI
+        payload.total_checks = latestValidation?.total_checks || 0;
+        payload.passed_checks = latestValidation?.passed_checks || 0;
+        payload.failed_checks = latestValidation?.failed_checks || 0;
+        payload.warning_count = latestValidation?.warning_count || 0;
+
+        // Add mismatches as object/map
+        if (mismatchesArray.length > 0) {
+          payload.mismatches = {};
+          mismatchesArray.forEach((item) => {
+            if (item.field) {
+              payload.mismatches[item.field] = {
+                expected: item.expected,
+                actual: item.actual,
+                severity: item.severity || "low",
+              };
+            }
+          });
+        }
+
+        // Add warnings as object/map
+        if (warningsArray.length > 0) {
+          payload.warnings = {};
+          warningsArray.forEach((item) => {
+            if (item.field) {
+              payload.warnings[item.field] = {
+                message: item.message,
+                recommendation: item.recommendation || "",
+              };
+            }
+          });
+        }
+
+        // Add recommendations as object/map
+        if (recommendationsArray.length > 0) {
+          payload.recommendations = {};
+          recommendationsArray.forEach((item) => {
+            if (item.category) {
+              payload.recommendations[item.category] = {
+                suggestion: item.suggestion,
+              };
+            }
+          });
+        }
+
+        // Add extracted parameters từ AI data
+        if (latestValidation?.extracted_parameters) {
+          payload.extracted_parameters = {
+            extraction_confidence:
+              latestValidation.extracted_parameters.extraction_confidence ||
+              0.95,
+            parameters_found:
+              latestValidation.extracted_parameters.parameters_found || 0,
+          };
+          if (latestValidation.extracted_parameters.document_version) {
+            payload.extracted_parameters.document_version =
+              latestValidation.extracted_parameters.document_version;
+          }
+          if (latestValidation.extracted_parameters.extraction_method) {
+            payload.extracted_parameters.extraction_method =
+              latestValidation.extracted_parameters.extraction_method;
+          }
+        }
+      } else {
+        // Khi nhập thủ công, lấy từ form values
+        payload.total_checks = values.total_checks || 0;
+        payload.passed_checks = values.passed_checks || 0;
+        payload.failed_checks = values.failed_checks || 0;
+        payload.warning_count = values.warning_count || 0;
+
+        // Add mismatches as object/map
+        if (mismatchesArray.length > 0) {
+          payload.mismatches = {};
+          mismatchesArray.forEach((item) => {
+            if (item.field) {
+              payload.mismatches[item.field] = {
+                expected: item.expected,
+                actual: item.actual,
+                severity: item.severity || "low",
+              };
+            }
+          });
+        }
+
+        // Add warnings as object/map
+        if (warningsArray.length > 0) {
+          payload.warnings = {};
+          warningsArray.forEach((item) => {
+            if (item.field) {
+              payload.warnings[item.field] = {
+                message: item.message,
+                recommendation: item.recommendation || "",
+              };
+            }
+          });
+        }
+
+        // Add recommendations as object/map
+        if (recommendationsArray.length > 0) {
+          payload.recommendations = {};
+          recommendationsArray.forEach((item) => {
+            if (item.category) {
+              payload.recommendations[item.category] = {
+                suggestion: item.suggestion,
+              };
+            }
+          });
+        }
+
+        // Add extracted parameters
+        if (
+          values.extraction_confidence ||
+          values.parameters_found ||
+          values.document_version ||
+          values.extraction_method
+        ) {
+          payload.extracted_parameters = {
+            extraction_confidence: (values.extraction_confidence || 95) / 100,
+            parameters_found: values.parameters_found || 0,
+          };
+          if (values.document_version)
+            payload.extracted_parameters.document_version =
+              values.document_version;
+          if (values.extraction_method)
+            payload.extracted_parameters.extraction_method =
+              values.extraction_method;
+        }
       }
 
       await onSubmit(payload);
@@ -298,8 +408,46 @@ export default function useValidationForm({
     onCancel();
   };
 
-  const handleValuesChange = (allValues) => {
-    setFormValues(allValues);
+  const handleValuesChange = (changedValues, allValues) => {
+    // Skip updates during IME composition
+    if (isComposingRef.current) return;
+
+    // Khi dùng AI data, chỉ cập nhật validation_status và validation_notes
+    // Không thay đổi các thông số AI (total_checks, passed_checks, etc.)
+    if (useAIData) {
+      setFormValues((prev) => {
+        const updated = { ...prev };
+        if ("validation_status" in changedValues) {
+          updated.validation_status = changedValues.validation_status;
+        }
+        if ("validation_notes" in changedValues) {
+          updated.validation_notes = changedValues.validation_notes;
+        }
+        return updated;
+      });
+    } else {
+      // Khi manual, cập nhật tất cả
+      setFormValues(allValues);
+    }
+  };
+
+  const handleCompositionStart = () => {
+    isComposingRef.current = true;
+  };
+
+  const handleCompositionEnd = (e) => {
+    isComposingRef.current = false;
+    // Trigger change after composition ends
+    if (useAIData) {
+      const inputValue = e.target.value;
+      const fieldName = e.target.name;
+      if (fieldName === "validation_notes") {
+        setFormValues((prev) => ({
+          ...prev,
+          validation_notes: inputValue,
+        }));
+      }
+    }
   };
 
   const fields = [
@@ -310,11 +458,13 @@ export default function useValidationForm({
       placeholder: "Chọn trạng thái xác thực",
       gridColumn: "span 2",
       options: [
-        { label: "Đang chờ", value: "pending" },
-        { label: "AI đã duyệt", value: "passed_ai" },
+        { label: "Chờ duyệt", value: "pending" },
+        { label: "Đã duyệt", value: "passed" },
         { label: "Cảnh báo", value: "warning" },
+        // { label: "Thất bại", value: "failed" },
       ],
       rules: [{ required: true, message: "Vui lòng chọn trạng thái xác thực" }],
+      disabled: false,
     },
     {
       type: "number",
@@ -323,6 +473,7 @@ export default function useValidationForm({
       placeholder: "0",
       min: 0,
       gridColumn: "span 1",
+      disabled: useAIData,
       rules: [
         { required: true, message: "Bắt buộc" },
         { type: "number", min: 0, message: "Phải >= 0" },
@@ -335,6 +486,7 @@ export default function useValidationForm({
       placeholder: "0",
       min: 0,
       gridColumn: "span 1",
+      disabled: useAIData,
       rules: [
         { required: true, message: "Bắt buộc" },
         { type: "number", min: 0, message: "Phải >= 0" },
@@ -347,6 +499,7 @@ export default function useValidationForm({
       placeholder: "0",
       min: 0,
       gridColumn: "span 1",
+      disabled: useAIData,
       rules: [
         { required: true, message: "Bắt buộc" },
         { type: "number", min: 0, message: "Phải >= 0" },
@@ -376,6 +529,7 @@ export default function useValidationForm({
       placeholder: "0",
       min: 0,
       gridColumn: "span 1",
+      disabled: useAIData,
       rules: [
         { required: true, message: "Bắt buộc" },
         { type: "number", min: 0, message: "Phải >= 0" },
@@ -390,6 +544,7 @@ export default function useValidationForm({
       max: 100,
       step: 0.1,
       placeholder: "95",
+      disabled: useAIData,
       rules: [
         { type: "number", min: 0, max: 100, message: "Phải từ 0 đến 100" },
       ],
@@ -401,6 +556,7 @@ export default function useValidationForm({
       placeholder: "0",
       min: 0,
       gridColumn: "span 1",
+      disabled: useAIData,
       rules: [],
     },
     {
@@ -410,13 +566,14 @@ export default function useValidationForm({
       placeholder:
         "Đã hoàn thành xem xét thủ công. Các sai lệch nhỏ đã được ghi nhận nhưng có thể chấp nhận được.",
       autoSize: { minRows: 4, maxRows: 20 },
+      disabled: false,
       rules: [],
     },
   ];
 
   const successPercent =
-    formValues.total_checks > 0
-      ? Math.round((formValues.passed_checks / formValues.total_checks) * 100)
+    formValues?.total_checks > 0
+      ? Math.round((formValues?.passed_checks / formValues?.total_checks) * 100)
       : 0;
 
   return {
@@ -437,5 +594,7 @@ export default function useValidationForm({
     setMismatchesData,
     setWarningsData,
     latestValidation,
+    handleCompositionStart,
+    handleCompositionEnd,
   };
 }

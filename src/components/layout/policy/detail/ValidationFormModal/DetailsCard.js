@@ -19,6 +19,158 @@ import {
 } from "antd";
 
 export default function DetailsCard({ form, useAIData, formValues }) {
+  if (useAIData) {
+    // Show read-only summary when using AI data
+    const mismatches = form.getFieldValue("mismatches") || [];
+    const warnings = form.getFieldValue("warnings") || [];
+    const recommendations = form.getFieldValue("recommendations") || [];
+
+    return (
+      <Card
+        title={
+          <span style={{ fontWeight: 600 }}>
+            <CloseCircleOutlined style={{ color: "#ff4d4f" }} />
+            Chi tiết xác thực từ AI (Chỉ xem)
+          </span>
+        }
+        size="small"
+        style={{ marginBottom: "16px" }}
+      >
+        {/* Mismatches Summary */}
+        {mismatches.length > 0 && (
+          <div style={{ marginBottom: "16px" }}>
+            <div
+              style={{
+                fontWeight: 600,
+                fontSize: "14px",
+                color: "#ff4d4f",
+                marginBottom: "8px",
+              }}
+            >
+              <CloseCircleOutlined /> Lỗi sai ({mismatches.length})
+            </div>
+            <div style={{ marginTop: "8px" }}>
+              {mismatches.slice(0, 3).map((item, index) => (
+                <Alert
+                  key={index}
+                  message={item.field}
+                  description={
+                    <div>
+                      <div>
+                        <span style={{ color: "#888" }}>Kỳ vọng: </span>
+                        <code
+                          style={{ background: "#f5f5f5", padding: "2px 6px" }}
+                        >
+                          {item.expected}
+                        </code>
+                      </div>
+                      <div style={{ marginTop: 4 }}>
+                        <span style={{ color: "#888" }}>Thực tế: </span>
+                        <code
+                          style={{ background: "#f5f5f5", padding: "2px 6px" }}
+                        >
+                          {item.actual}
+                        </code>
+                      </div>
+                      {item.impact && (
+                        <div
+                          style={{
+                            marginTop: 4,
+                            fontSize: "12px",
+                            color: "#666",
+                          }}
+                        >
+                          {item.impact}
+                        </div>
+                      )}
+                    </div>
+                  }
+                  type="error"
+                  showIcon
+                  style={{ marginBottom: 8 }}
+                />
+              ))}
+              {mismatches.length > 3 && (
+                <div style={{ fontSize: "12px", color: "#888" }}>
+                  ... và {mismatches.length - 3} lỗi khác
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Warnings Summary */}
+        {warnings.length > 0 && (
+          <div style={{ marginBottom: "16px" }}>
+            <div
+              style={{
+                fontWeight: 600,
+                fontSize: "14px",
+                color: "#faad14",
+                marginBottom: "8px",
+              }}
+            >
+              <WarningOutlined /> Cảnh báo ({warnings.length})
+            </div>
+            <div style={{ marginTop: "8px" }}>
+              {warnings.slice(0, 2).map((item, index) => (
+                <Alert
+                  key={index}
+                  message={item.field}
+                  description={item.message}
+                  type="warning"
+                  showIcon
+                  style={{ marginBottom: 8 }}
+                />
+              ))}
+              {warnings.length > 2 && (
+                <div style={{ fontSize: "12px", color: "#888" }}>
+                  ... và {warnings.length - 2} cảnh báo khác
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Recommendations Summary */}
+        {recommendations.length > 0 && (
+          <div>
+            <div
+              style={{
+                fontWeight: 600,
+                fontSize: "14px",
+                color: "#1890ff",
+                marginBottom: "8px",
+              }}
+            >
+              <BulbOutlined /> Đề xuất ({recommendations.length})
+            </div>
+            <div style={{ marginTop: "8px" }}>
+              {recommendations.map((item, index) => (
+                <Alert
+                  key={index}
+                  message={item.category}
+                  description={item.suggestion}
+                  type="info"
+                  showIcon
+                  style={{ marginBottom: 8 }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        <Alert
+          message="Chế độ xem AI"
+          description="Bạn đang xem dữ liệu từ AI. Chỉ có thể chọn trạng thái xác thực và thêm ghi chú."
+          type="info"
+          showIcon
+          style={{ marginTop: 16 }}
+        />
+      </Card>
+    );
+  }
+
   return (
     <Card
       title={
@@ -44,7 +196,7 @@ export default function DetailsCard({ form, useAIData, formValues }) {
           <CloseCircleOutlined style={{ color: "#ff4d4f" }} />
           Lỗi sai
           <span style={{ fontSize: "12px", color: "#999", fontWeight: 400 }}>
-            ({formValues.failed_checks || 0} lỗi)
+            ({formValues?.failed_checks || 0} lỗi)
           </span>
         </div>
         <Row
@@ -206,15 +358,15 @@ export default function DetailsCard({ form, useAIData, formValues }) {
                     Không có lỗi sai nào được báo cáo
                   </div>
                 )}
-                {fields.length < (formValues.failed_checks || 0) &&
+                {fields.length < (formValues?.failed_checks || 0) &&
                   !useAIData && (
                     <Alert
                       message={`Cảnh báo: Bạn đã nhập ${
-                        formValues.failed_checks
+                        formValues?.failed_checks
                       } lỗi nhưng chỉ có ${
                         fields.length
                       } trường. Vui lòng thêm ${
-                        formValues.failed_checks - fields.length
+                        formValues?.failed_checks - fields.length
                       } trường nữa.`}
                       type="warning"
                       showIcon
@@ -243,7 +395,7 @@ export default function DetailsCard({ form, useAIData, formValues }) {
           >
             <WarningOutlined style={{ color: "#faad14" }} /> Cảnh báo
             <span style={{ fontSize: "12px", color: "#999", fontWeight: 400 }}>
-              ({formValues.warning_count || 0} cảnh báo)
+              ({formValues?.warning_count || 0} cảnh báo)
             </span>
           </div>
           <Form form={form} component={false}>
@@ -335,15 +487,15 @@ export default function DetailsCard({ form, useAIData, formValues }) {
                       Không có cảnh báo nào
                     </div>
                   )}
-                  {fields.length < (formValues.warning_count || 0) &&
+                  {fields.length < (formValues?.warning_count || 0) &&
                     !useAIData && (
                       <Alert
                         message={`Cảnh báo: Bạn đã nhập ${
-                          formValues.warning_count
+                          formValues?.warning_count
                         } cảnh báo nhưng chỉ có ${
                           fields.length
                         } trường. Vui lòng thêm ${
-                          formValues.warning_count - fields.length
+                          formValues?.warning_count - fields.length
                         } trường nữa.`}
                         type="warning"
                         showIcon

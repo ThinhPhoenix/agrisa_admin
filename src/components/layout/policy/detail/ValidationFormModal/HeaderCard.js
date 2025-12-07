@@ -1,4 +1,4 @@
-import { Card, Tag, Typography } from "antd";
+import { Card, Switch, Tag, Typography } from "antd";
 const { Text } = Typography;
 
 export default function HeaderCard({
@@ -30,7 +30,7 @@ export default function HeaderCard({
         {latestValidation && (
           <>
             <br />
-            {/* <div
+            <div
               style={{
                 marginTop: "8px",
                 display: "flex",
@@ -49,15 +49,15 @@ export default function HeaderCard({
                 unCheckedChildren="Tắt"
                 size="small"
               />
-            </div> */}
-            {/* <Text
+            </div>
+            <Text
               type="secondary"
               style={{ fontSize: "11px", marginTop: "4px", display: "block" }}
             >
               {useAIData
-                ? "Form đã được điền sẵn dữ liệu từ AI. Bạn có thể điều chỉnh trước khi submit."
+                ? "Dữ liệu từ AI. Chỉ có thể chọn trạng thái xác thực."
                 : "Form trống. Nhập dữ liệu xác thực thủ công."}
-            </Text> */}
+            </Text>
           </>
         )}
       </div>

@@ -239,7 +239,7 @@ export default function PolicyDetailPage() {
           onSubmit={handleValidationSubmit}
           basePolicyId={basePolicy.id}
           latestValidation={latestValidation}
-          validatedBy="admin@example.com"
+          validatedBy="agrisa.admin@gmail.com"
           mode={validationModalMode}
         />
 
