@@ -259,7 +259,7 @@ export function usePendingPolicies() {
         endpoints.policy.base_policy.validate,
         validationData
       );
-      message.success("Validation đã được gửi thành công");
+      message.success("Duyệt hợp đồng mẫu thành công");
 
       // Refetch data to update the list
       const result = await fetchPendingPolicies({
@@ -302,11 +302,13 @@ export function usePendingPolicies() {
         }
         // Check for validation errors (English from backend)
         else if (backendError.toLowerCase().includes("validation")) {
-          errorMessage = "Dữ liệu validation không hợp lệ. Vui lòng kiểm tra lại!";
+          errorMessage =
+            "Dữ liệu validation không hợp lệ. Vui lòng kiểm tra lại!";
         }
         // Generic server error
         else if (status >= 500) {
-          errorMessage = "Lỗi máy chủ khi gửi validation. Vui lòng thử lại sau!";
+          errorMessage =
+            "Lỗi máy chủ khi gửi validation. Vui lòng thử lại sau!";
         }
         // Other errors - don't expose backend English error to user
         else {
