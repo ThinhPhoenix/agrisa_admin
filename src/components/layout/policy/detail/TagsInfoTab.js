@@ -1,7 +1,7 @@
 "use client";
 
-import { Card, Descriptions, Table, Tag, Typography } from "antd";
-import { FilePdfOutlined } from "@ant-design/icons";
+import CustomTable from "@/components/custom-table";
+import { Card, Tag, Typography } from "antd";
 
 const { Text, Title } = Typography;
 
@@ -11,7 +11,8 @@ export default function TagsInfoTab({ basePolicy }) {
     ? Object.entries(basePolicy.document_tags).map(([key, value], index) => ({
         id: `${key}-${index}`,
         key,
-        value: typeof value === "object" ? JSON.stringify(value) : String(value),
+        value:
+          typeof value === "object" ? JSON.stringify(value) : String(value),
         type: typeof value,
       }))
     : [];
@@ -47,7 +48,11 @@ export default function TagsInfoTab({ basePolicy }) {
       key: "type",
       width: "20%",
       render: (text) => (
-        <Tag color={text === "string" ? "blue" : text === "number" ? "green" : "default"}>
+        <Tag
+          color={
+            text === "string" ? "blue" : text === "number" ? "green" : "default"
+          }
+        >
           {text}
         </Tag>
       ),
@@ -61,7 +66,7 @@ export default function TagsInfoTab({ basePolicy }) {
         title={
           <div>
             <Title level={5} style={{ margin: 0 }}>
-              Metadata & Thẻ tài liệu
+              Các trường thông tin trong hợp đồng
             </Title>
             <Text type="secondary" style={{ fontSize: "12px" }}>
               Các trường thông tin động được trích xuất từ tài liệu PDF
@@ -72,11 +77,10 @@ export default function TagsInfoTab({ basePolicy }) {
         style={{ marginBottom: 16 }}
       >
         {tags.length > 0 ? (
-          <Table
+          <CustomTable
             columns={tagsColumns}
             dataSource={tags}
             rowKey="id"
-            pagination={false}
             size="middle"
           />
         ) : (

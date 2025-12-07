@@ -167,7 +167,7 @@ export default function PendingPoliciesPage() {
       },
     },
     {
-      title: "Trạng thái validation",
+      title: "Trạng thái duyệt",
       dataIndex: "validation_status",
       key: "validation_status",
       width: 150,
@@ -187,7 +187,7 @@ export default function PendingPoliciesPage() {
       },
     },
     {
-      title: "Kết quả validation",
+      title: "Kết quả duyệt",
       dataIndex: "validation_summary",
       key: "validation_summary",
       width: 200,

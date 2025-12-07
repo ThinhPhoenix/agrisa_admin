@@ -7,7 +7,6 @@ import { useTableData } from "@/services/hooks/common/use-table-data";
 import { usePartners } from "@/services/hooks/partner/use-partner";
 import {
   BankOutlined,
-  DownloadOutlined,
   EyeOutlined,
   FilterOutlined,
   SearchOutlined,
@@ -52,9 +51,15 @@ export default function PartnersPage() {
     searchText,
     filters: tableFilters,
   } = useTableData(data, {
-    searchFields: ['partner_display_name', 'partner_phone', 'partner_official_email', 'hotline', 'province_name'],
+    searchFields: [
+      "partner_display_name",
+      "partner_phone",
+      "partner_official_email",
+      "hotline",
+      "province_name",
+    ],
     defaultFilters: {
-      province_name: '',
+      province_name: "",
     },
     pageSize: 10,
   });
@@ -280,8 +285,8 @@ export default function PartnersPage() {
               Thêm thông tin đối tác
             </Button>
           </Link>
-          <Button icon={<DownloadOutlined />}>Nhập excel</Button>
-          <Button icon={<DownloadOutlined />}>Xuất excel</Button>
+          {/* <Button icon={<DownloadOutlined />}>Nhập excel</Button>
+          <Button icon={<DownloadOutlined />}>Xuất excel</Button> */}
           <SelectedColumn
             columns={columns}
             visibleColumns={visibleColumns}

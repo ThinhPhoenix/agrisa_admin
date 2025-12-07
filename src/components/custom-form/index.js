@@ -48,7 +48,7 @@ export const CustomForm = forwardRef(function CustomForm(
   }, [initialValues, form]);
 
   const handleValuesChange = (changedValues, allValues) => {
-    onValuesChange && onValuesChange(allValues);
+    onValuesChange && onValuesChange(changedValues, allValues);
   };
 
   const handleSubmit = (values) => {
@@ -196,7 +196,7 @@ export const CustomForm = forwardRef(function CustomForm(
               filterOption={
                 field.filterOption ||
                 ((input, option) => {
-                  const text = option.children || option.label || '';
+                  const text = option.children || option.label || "";
                   return text.toLowerCase().includes(input.toLowerCase());
                 })
               }
@@ -259,7 +259,7 @@ export const CustomForm = forwardRef(function CustomForm(
               filterOption={
                 field.filterOption ||
                 ((input, option) => {
-                  const text = option.children || option.label || '';
+                  const text = option.children || option.label || "";
                   return text.toLowerCase().includes(input.toLowerCase());
                 })
               }
@@ -689,7 +689,7 @@ export const CustomForm = forwardRef(function CustomForm(
               filterOption={
                 field.filterOption ||
                 ((input, option) => {
-                  const text = option.children || option.label || '';
+                  const text = option.children || option.label || "";
                   return text.toLowerCase().includes(input.toLowerCase());
                 })
               }

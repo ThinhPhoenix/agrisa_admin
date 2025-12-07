@@ -299,7 +299,13 @@ export default function AIValidationTab({
           <Col style={{ flex: "1 1 0", minWidth: 180, marginBottom: 8 }}>
             <Card size="small">
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={{ fontSize: 28, color: "#1890ff", lineHeight: 1 }}>
+                <div
+                  style={{
+                    fontSize: 28,
+                    color: "var(--color-primary-500)",
+                    lineHeight: 1,
+                  }}
+                >
                   <CalendarOutlined />
                 </div>
                 <div>
@@ -317,7 +323,13 @@ export default function AIValidationTab({
           <Col style={{ flex: "1 1 0", minWidth: 180, marginBottom: 8 }}>
             <Card size="small">
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={{ fontSize: 28, color: "#52c41a", lineHeight: 1 }}>
+                <div
+                  style={{
+                    fontSize: 28,
+                    color: "var(--color-primary-500)",
+                    lineHeight: 1,
+                  }}
+                >
                   <CheckCircleOutlined />
                 </div>
                 <div>
@@ -335,7 +347,13 @@ export default function AIValidationTab({
           <Col style={{ flex: "1 1 0", minWidth: 180, marginBottom: 8 }}>
             <Card size="small">
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={{ fontSize: 28, color: "#ff4d4f", lineHeight: 1 }}>
+                <div
+                  style={{
+                    fontSize: 28,
+                    color: "var(--color-primary-500)",
+                    lineHeight: 1,
+                  }}
+                >
                   <CloseCircleOutlined />
                 </div>
                 <div>
@@ -353,7 +371,13 @@ export default function AIValidationTab({
           <Col style={{ flex: "1 1 0", minWidth: 180, marginBottom: 8 }}>
             <Card size="small">
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={{ fontSize: 28, color: "#faad14", lineHeight: 1 }}>
+                <div
+                  style={{
+                    fontSize: 28,
+                    color: "var(--color-primary-500)",
+                    lineHeight: 1,
+                  }}
+                >
                   <WarningOutlined />
                 </div>
                 <div>
@@ -369,7 +393,13 @@ export default function AIValidationTab({
           <Col style={{ flex: "1 1 0", minWidth: 180, marginBottom: 8 }}>
             <Card size="small">
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={{ fontSize: 28, color: "#13c2c2", lineHeight: 1 }}>
+                <div
+                  style={{
+                    fontSize: 28,
+                    color: "var(--color-primary-500)",
+                    lineHeight: 1,
+                  }}
+                >
                   <BulbOutlined />
                 </div>
                 <div>
@@ -405,7 +435,15 @@ export default function AIValidationTab({
                 title: "Gợi ý",
                 dataIndex: "recommendation",
                 key: "recommendation",
-                render: (t) => <Text ellipsis={{ tooltip: t }}>{t}</Text>,
+                width: 480,
+                render: (t) => (
+                  <Text
+                    style={{ display: "block", maxWidth: 440 }}
+                    ellipsis={{ tooltip: t }}
+                  >
+                    {t}
+                  </Text>
+                ),
               },
               {
                 title: "Xác thực",
@@ -422,12 +460,13 @@ export default function AIValidationTab({
             ]}
             rowKey={(r) => r.key}
             pagination={{ pageSize: 8 }}
+            scroll={{ x: 900 }}
           />
 
           <Divider />
           {/* Mismatches table */}
           <Title level={5} style={{ marginTop: 8 }}>
-            Lỗi/Sai khác ({mismatchesData.length})
+            Lỗi Sai ({mismatchesData.length})
           </Title>
           <CustomTable
             dataSource={mismatchesData}
@@ -443,7 +482,15 @@ export default function AIValidationTab({
                 title: "Mô tả",
                 dataIndex: "impact",
                 key: "impact",
-                render: (t) => <Text ellipsis={{ tooltip: t }}>{t}</Text>,
+                width: 380,
+                render: (t) => (
+                  <Text
+                    style={{ display: "block", maxWidth: 340 }}
+                    ellipsis={{ tooltip: t }}
+                  >
+                    {t}
+                  </Text>
+                ),
               },
               {
                 title: "JSON",
@@ -489,7 +536,15 @@ export default function AIValidationTab({
                 title: "Gợi ý",
                 dataIndex: "suggestion",
                 key: "suggestion",
-                render: (t) => <Text ellipsis={{ tooltip: t }}>{t}</Text>,
+                width: 480,
+                render: (t) => (
+                  <Text
+                    style={{ display: "block", maxWidth: 440 }}
+                    ellipsis={{ tooltip: t }}
+                  >
+                    {t}
+                  </Text>
+                ),
               },
               {
                 title: "Trường ảnh hưởng",
@@ -513,6 +568,7 @@ export default function AIValidationTab({
             ]}
             rowKey={(r) => r.key}
             pagination={{ pageSize: 8 }}
+            scroll={{ x: 900 }}
           />
         </>
       )}

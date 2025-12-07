@@ -7,11 +7,7 @@ import { useAccounts } from "@/services/hooks/accounts/use-accounts";
 import { useTableData } from "@/services/hooks/common/use-table-data";
 import {
   CheckCircleOutlined,
-  DownloadOutlined,
-  EditOutlined,
-  EyeOutlined,
   FilterOutlined,
-  LockOutlined,
   SearchOutlined,
   TeamOutlined,
   UserOutlined,
@@ -125,7 +121,7 @@ export default function AccountsPage() {
           />
           <div className="accounts-user-details">
             <div className="accounts-user-name">{record.full_name}</div>
-            <div className="accounts-user-username">@{record.username}</div>
+            {/* <div className="accounts-user-username">@{record.username}</div> */}
             <div className="accounts-user-email">{record.email}</div>
           </div>
         </div>
@@ -175,39 +171,39 @@ export default function AccountsPage() {
         </div>
       ),
     },
-    {
-      title: "Hành động",
-      key: "action",
-      fixed: "right",
-      width: 150,
-      render: (_, record) => (
-        <div className="accounts-actions-cell">
-          <Link href={`/accounts/general/${record.id}`}>
-            <Button
-              type="dashed"
-              size="small"
-              className="accounts-action-btn !bg-blue-100 !border-blue-200 !text-blue-800 hover:!bg-blue-200"
-            >
-              <EyeOutlined size={14} />
-            </Button>
-          </Link>
-          <Button
-            type="dashed"
-            size="small"
-            className="accounts-action-btn !bg-green-100 !border-green-200 !text-green-800 hover:!bg-green-200"
-          >
-            <EditOutlined size={14} />
-          </Button>
-          <Button
-            type="dashed"
-            size="small"
-            className="accounts-action-btn !bg-purple-100 !border-purple-200 !text-purple-800 hover:!bg-purple-200"
-          >
-            <LockOutlined size={14} />
-          </Button>
-        </div>
-      ),
-    },
+    // {
+    //   title: "Hành động",
+    //   key: "action",
+    //   fixed: "right",
+    //   width: 150,
+    //   render: (_, record) => (
+    //     <div className="accounts-actions-cell">
+    //       <Link href={`/accounts/general/${record.id}`}>
+    //         <Button
+    //           type="dashed"
+    //           size="small"
+    //           className="accounts-action-btn !bg-blue-100 !border-blue-200 !text-blue-800 hover:!bg-blue-200"
+    //         >
+    //           <EyeOutlined size={14} />
+    //         </Button>
+    //       </Link>
+    //       <Button
+    //         type="dashed"
+    //         size="small"
+    //         className="accounts-action-btn !bg-green-100 !border-green-200 !text-green-800 hover:!bg-green-200"
+    //       >
+    //         <EditOutlined size={14} />
+    //       </Button>
+    //       <Button
+    //         type="dashed"
+    //         size="small"
+    //         className="accounts-action-btn !bg-purple-100 !border-purple-200 !text-purple-800 hover:!bg-purple-200"
+    //       >
+    //         <LockOutlined size={14} />
+    //       </Button>
+    //     </div>
+    //   ),
+    // },
   ];
 
   // Search fields - organized in 2 rows
@@ -354,8 +350,8 @@ export default function AccountsPage() {
               Tạo tài khoản
             </Button>
           </Link>
-          <Button icon={<DownloadOutlined />}>Nhập excel</Button>
-          <Button icon={<DownloadOutlined />}>Xuất excel</Button>
+          {/* <Button icon={<DownloadOutlined />}>Nhập excel</Button>
+          <Button icon={<DownloadOutlined />}>Xuất excel</Button> */}
           <SelectedColumn
             columns={columns}
             visibleColumns={visibleColumns}

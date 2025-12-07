@@ -148,52 +148,92 @@ export default function useValidationForm({
   }, [open, latestValidation, validatedBy, mode, useAIData]);
 
   useEffect(() => {
-    if (!form || !formValues) return;
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    console.log("🔄 useEffect TRIGGERED");
+    console.log("  form exists:", !!form);
+    console.log("  formValues exists:", !!formValues);
+    console.log("  useAIData:", useAIData);
+    console.log("  formValues:", formValues);
+
+    if (!form || !formValues) {
+      console.log("  ❌ SKIPPED (no form or formValues)");
+      console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+      return;
+    }
+
+    if (useAIData) {
+      console.log("  ⚠️ SKIPPED (useAIData is true)");
+      console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+      return;
+    }
 
     const currentMismatches = form.getFieldValue("mismatches") || [];
     const currentWarnings = form.getFieldValue("warnings") || [];
 
-    const failedCount = formValues.failed_checks || 0;
-    const warningCount = formValues.warning_count || 0;
+    const failedCount = parseInt(formValues.failed_checks) || 0;
+    const warningCount = parseInt(formValues.warning_count) || 0;
 
-    if (!useAIData) {
-      if (currentMismatches.length < failedCount) {
-        const newMismatches = [...currentMismatches];
-        for (let i = currentMismatches.length; i < failedCount; i++) {
-          newMismatches.push({
-            field: "",
-            expected: "",
-            actual: "",
-            severity: "low",
-            impact: "",
-            field_type: "",
-          });
-        }
-        form.setFieldValue("mismatches", newMismatches);
-      } else if (currentMismatches.length > failedCount) {
-        if (failedCount === 0) {
-          form.setFieldValue("mismatches", []);
-        } else {
-          const newMismatches = currentMismatches.slice(0, failedCount);
-          form.setFieldValue("mismatches", newMismatches);
-        }
-      }
+    console.log(
+      "  📊 Counts - failed:",
+      failedCount,
+      "warnings:",
+      warningCount
+    );
+    console.log(
+      "  📝 Current arrays - mismatches:",
+      currentMismatches.length,
+      "warnings:",
+      currentWarnings.length
+    );
 
-      if (currentWarnings.length < warningCount) {
-        const newWarnings = [...currentWarnings];
-        for (let i = currentWarnings.length; i < warningCount; i++) {
-          newWarnings.push({ field: "", message: "", recommendation: "" });
-        }
-        form.setFieldValue("warnings", newWarnings);
-      } else if (currentWarnings.length > warningCount) {
-        if (warningCount === 0) {
-          form.setFieldValue("warnings", []);
-        } else {
-          const newWarnings = currentWarnings.slice(0, warningCount);
-          form.setFieldValue("warnings", newWarnings);
-        }
+    // Sync mismatches
+    if (currentMismatches.length < failedCount) {
+      const newMismatches = [...currentMismatches];
+      for (let i = currentMismatches.length; i < failedCount; i++) {
+        newMismatches.push({
+          field: "",
+          expected: "",
+          actual: "",
+          severity: "medium",
+          impact: "",
+        });
       }
+      console.log("  ✅ Adding mismatches, new length:", newMismatches.length);
+      form.setFieldValue("mismatches", newMismatches);
+    } else if (currentMismatches.length > failedCount) {
+      console.log("  ➖ Reducing mismatches to:", failedCount);
+      if (failedCount === 0) {
+        form.setFieldValue("mismatches", []);
+      } else {
+        form.setFieldValue(
+          "mismatches",
+          currentMismatches.slice(0, failedCount)
+        );
+      }
+    } else {
+      console.log("  ➡️ Mismatches length unchanged");
     }
+
+    // Sync warnings
+    if (currentWarnings.length < warningCount) {
+      const newWarnings = [...currentWarnings];
+      for (let i = currentWarnings.length; i < warningCount; i++) {
+        newWarnings.push({ field: "", message: "", recommendation: "" });
+      }
+      console.log("  ✅ Adding warnings, new length:", newWarnings.length);
+      form.setFieldValue("warnings", newWarnings);
+    } else if (currentWarnings.length > warningCount) {
+      console.log("  ➖ Reducing warnings to:", warningCount);
+      if (warningCount === 0) {
+        form.setFieldValue("warnings", []);
+      } else {
+        form.setFieldValue("warnings", currentWarnings.slice(0, warningCount));
+      }
+    } else {
+      console.log("  ➡️ Warnings length unchanged");
+    }
+
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   }, [formValues?.failed_checks, formValues?.warning_count, form, useAIData]);
 
   const handleSubmit = async () => {
@@ -412,6 +452,11 @@ export default function useValidationForm({
     // Skip updates during IME composition
     if (isComposingRef.current) return;
 
+    console.log("━━━ handleValuesChange ━━━");
+    console.log("  useAIData:", useAIData);
+    console.log("  changedValues:", changedValues);
+    console.log("  allValues:", allValues);
+
     // Khi dùng AI data, chỉ cập nhật validation_status và validation_notes
     // Không thay đổi các thông số AI (total_checks, passed_checks, etc.)
     if (useAIData) {
@@ -423,10 +468,12 @@ export default function useValidationForm({
         if ("validation_notes" in changedValues) {
           updated.validation_notes = changedValues.validation_notes;
         }
+        console.log("  ✅ Updated formValues (AI mode):", updated);
         return updated;
       });
     } else {
       // Khi manual, cập nhật tất cả
+      console.log("  ✅ Setting formValues (manual mode):", allValues);
       setFormValues(allValues);
     }
   };
@@ -477,6 +524,23 @@ export default function useValidationForm({
       rules: [
         { required: true, message: "Bắt buộc" },
         { type: "number", min: 0, message: "Phải >= 0" },
+        ({ getFieldValue }) => ({
+          validator(_, value) {
+            const passed = getFieldValue("passed_checks");
+            const failed = getFieldValue("failed_checks");
+            const warning = getFieldValue("warning_count");
+            const sum =
+              (parseInt(passed) || 0) +
+              (parseInt(failed) || 0) +
+              (parseInt(warning) || 0);
+            if (value != null && value !== sum) {
+              return Promise.reject(
+                new Error(`Tổng số phải = Đạt + Lỗi + Cảnh báo (${sum})`)
+              );
+            }
+            return Promise.resolve();
+          },
+        }),
       ],
     },
     {
@@ -490,6 +554,23 @@ export default function useValidationForm({
       rules: [
         { required: true, message: "Bắt buộc" },
         { type: "number", min: 0, message: "Phải >= 0" },
+        ({ getFieldValue }) => ({
+          validator(_, value) {
+            const total = getFieldValue("total_checks");
+            const failed = getFieldValue("failed_checks");
+            const warning = getFieldValue("warning_count");
+            const sum =
+              (parseInt(value) || 0) +
+              (parseInt(failed) || 0) +
+              (parseInt(warning) || 0);
+            if (total != null && sum > total) {
+              return Promise.reject(
+                new Error("Đạt + Lỗi + Cảnh báo không được > Tổng số")
+              );
+            }
+            return Promise.resolve();
+          },
+        }),
       ],
     },
     {
@@ -507,14 +588,14 @@ export default function useValidationForm({
           validator(_, value) {
             const total = getFieldValue("total_checks");
             const passed = getFieldValue("passed_checks");
-            if (
-              total != null &&
-              passed != null &&
-              value != null &&
-              passed + value > total
-            ) {
+            const warning = getFieldValue("warning_count");
+            const sum =
+              (parseInt(passed) || 0) +
+              (parseInt(value) || 0) +
+              (parseInt(warning) || 0);
+            if (total != null && sum > total) {
               return Promise.reject(
-                new Error("Đạt + Lỗi không được > Tổng số")
+                new Error("Đạt + Lỗi + Cảnh báo không được > Tổng số")
               );
             }
             return Promise.resolve();
@@ -533,6 +614,23 @@ export default function useValidationForm({
       rules: [
         { required: true, message: "Bắt buộc" },
         { type: "number", min: 0, message: "Phải >= 0" },
+        ({ getFieldValue }) => ({
+          validator(_, value) {
+            const total = getFieldValue("total_checks");
+            const passed = getFieldValue("passed_checks");
+            const failed = getFieldValue("failed_checks");
+            const sum =
+              (parseInt(passed) || 0) +
+              (parseInt(failed) || 0) +
+              (parseInt(value) || 0);
+            if (total != null && sum > total) {
+              return Promise.reject(
+                new Error("Đạt + Lỗi + Cảnh báo không được > Tổng số")
+              );
+            }
+            return Promise.resolve();
+          },
+        }),
       ],
     },
     {

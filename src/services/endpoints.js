@@ -15,6 +15,7 @@ export const endpoints = {
     update: (id) => `${prefix}/users/${id}`,
     delete: (id) => `${prefix}/users/${id}`,
     list: "/auth/public/api/v2/users?limit=100&",
+    profile: (id) => `/profile/public/api/v1/users/${id}`,
   },
   policy: {
     data_tier: {

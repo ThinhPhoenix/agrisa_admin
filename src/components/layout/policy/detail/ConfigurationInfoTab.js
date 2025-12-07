@@ -1,7 +1,12 @@
 "use client";
 
 import useDataSource from "@/services/hooks/common/use-data-source";
-import { Card, Descriptions, Table, Tag, Typography } from "antd";
+import {
+  ClockCircleOutlined,
+  EnvironmentOutlined,
+  SwapOutlined,
+} from "@ant-design/icons";
+import { Card, Col, Divider, Row, Table, Tag, Typography } from "antd";
 import { useEffect, useState } from "react";
 
 const { Title, Text } = Typography;
@@ -131,43 +136,127 @@ export default function ConfigurationInfoTab({ trigger, conditions }) {
 
   return (
     <div className="configuration-info-tab">
-      {/* Trigger Information */}
-      {trigger && trigger.id && (
+      {/* Combined Trigger + Conditions Card */}
+      {(trigger || (conditions && conditions.length > 0)) && (
         <Card
-          title="Thông tin kích hoạt"
+          title={`Kích hoạt & Điều kiện (${
+            conditions ? conditions.length : 0
+          })`}
           bordered={false}
-          style={{ marginBottom: 16 }}
+          style={{ marginBottom: 12 }}
+          bodyStyle={{ padding: 12 }}
         >
-          <Descriptions column={2} bordered>
-            <Descriptions.Item label="Giai đoạn sinh trưởng">
-              {trigger.growth_stage}
-            </Descriptions.Item>
-            <Descriptions.Item label="Toán tử logic">
-              <Tag>{trigger.logical_operator}</Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label="Khoảng thời gian giám sát">
-              {trigger.monitor_interval}{" "}
-              {trigger.monitor_frequency_unit === "day"
-                ? "ngày"
-                : trigger.monitor_frequency_unit}
-            </Descriptions.Item>
-          </Descriptions>
-        </Card>
-      )}
+          {/* Trigger info */}
+          {trigger && trigger.id && (
+            <div style={{ marginBottom: 16 }}>
+              <Row gutter={[12, 12]} align="middle">
+                <Col xs={24} sm={12} md={8}>
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <EnvironmentOutlined
+                      style={{
+                        color: "#18573f",
+                        marginRight: 10,
+                        fontSize: 20,
+                      }}
+                    />
+                    <div style={{ width: "100%" }}>
+                      <div
+                        style={{
+                          fontSize: 14,
+                          color: "#595959",
+                          marginBottom: 4,
+                        }}
+                      >
+                        Giai đoạn sinh trưởng
+                      </div>
+                      <div
+                        style={{
+                          fontWeight: 700,
+                          fontSize: 16,
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        {trigger.growth_stage}
+                      </div>
+                    </div>
+                  </div>
+                </Col>
+                <Col xs={24} sm={12} md={8}>
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <SwapOutlined
+                      style={{
+                        color: "#18573f",
+                        marginRight: 10,
+                        fontSize: 20,
+                      }}
+                    />
+                    <div style={{ width: "100%" }}>
+                      <div
+                        style={{
+                          fontSize: 14,
+                          color: "#595959",
+                          marginBottom: 4,
+                        }}
+                      >
+                        Toán tử logic
+                      </div>
+                      <div style={{ marginTop: 0 }}>
+                        <Tag style={{ fontSize: 14, padding: "4px 8px" }}>
+                          {trigger.logical_operator}
+                        </Tag>
+                      </div>
+                    </div>
+                  </div>
+                </Col>
+                <Col xs={24} sm={24} md={8}>
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <ClockCircleOutlined
+                      style={{
+                        color: "#18573f",
+                        marginRight: 10,
+                        fontSize: 20,
+                      }}
+                    />
+                    <div style={{ width: "100%" }}>
+                      <div
+                        style={{
+                          fontSize: 14,
+                          color: "#595959",
+                          marginBottom: 4,
+                        }}
+                      >
+                        Khoảng thời gian giám sát
+                      </div>
+                      <div style={{ fontWeight: 700, fontSize: 16 }}>
+                        {trigger.monitor_interval}{" "}
+                        {trigger.monitor_frequency_unit === "day"
+                          ? "ngày"
+                          : trigger.monitor_frequency_unit}
+                      </div>
+                    </div>
+                  </div>
+                </Col>
+              </Row>
+            </div>
+          )}
 
-      {/* Conditions */}
-      {conditions && conditions.length > 0 && (
-        <Card
-          title={`Điều kiện kích hoạt (${conditions.length})`}
-          bordered={false}
-        >
-          <Table
-            columns={conditionsColumns}
-            dataSource={conditions}
-            rowKey="id"
-            pagination={false}
-            size="middle"
-          />
+          <Divider style={{ margin: "6px 0 12px" }} />
+
+          {/* Conditions table (keep existing behavior) */}
+          {conditions && conditions.length > 0 ? (
+            <Table
+              columns={conditionsColumns}
+              dataSource={conditions}
+              rowKey="id"
+              pagination={false}
+              size="small"
+              style={{ marginTop: 0 }}
+            />
+          ) : (
+            <div style={{ color: "#8c8c8c" }}>Không có điều kiện kích hoạt</div>
+          )}
         </Card>
       )}
     </div>

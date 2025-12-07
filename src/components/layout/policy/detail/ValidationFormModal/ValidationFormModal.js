@@ -9,9 +9,7 @@ import {
 import { Modal } from "antd";
 import BasicFormCard from "./BasicFormCard";
 import DetailsCard from "./DetailsCard";
-import FAQCard from "./FAQCard";
 import HeaderCard from "./HeaderCard";
-import InfoAlert from "./InfoAlert";
 import useValidationForm from "./useValidationForm";
 
 export default function ValidationFormModal(props) {
@@ -107,7 +105,7 @@ export default function ValidationFormModal(props) {
         useAIData={useAIData}
         setUseAIData={setUseAIData}
       />
-      <InfoAlert />
+      {/* <InfoAlert /> */}
       <BasicFormCard
         form={form}
         fields={fields}
@@ -119,7 +117,7 @@ export default function ValidationFormModal(props) {
         handleCompositionEnd={handleCompositionEnd}
       />
       <DetailsCard form={form} useAIData={useAIData} formValues={formValues} />
-      <FAQCard />
+      {/* <FAQCard /> */}
     </Modal>
   );
 }
