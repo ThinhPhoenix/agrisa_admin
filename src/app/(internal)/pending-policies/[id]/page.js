@@ -4,7 +4,7 @@ import AIValidationTab from "@/components/layout/policy/detail/AIValidationTab";
 import BasicInfoTab from "@/components/layout/policy/detail/BasicInfoTab";
 import ConfigurationInfoTab from "@/components/layout/policy/detail/ConfigurationInfoTab";
 import TagsInfoTab from "@/components/layout/policy/detail/TagsInfoTab";
-import ValidationFormModal from "@/components/layout/policy/detail/ValidationFormModal";
+import ValidationFormModal from "@/components/layout/policy/detail/ValidationFormModal/ValidationFormModal";
 import { usePendingPolicies } from "@/services/hooks/base-policy/use-pending-base-policies";
 import {
   CheckCircleOutlined,
