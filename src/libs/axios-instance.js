@@ -29,10 +29,17 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (error.response?.status === 401) {
-      console.log(`Unauthorized! Clearing user and redirecting to login.`);
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      console.log(
+        `Unauthorized/Forbidden (${error.response?.status})! Clearing user and redirecting to login.`
+      );
       const { clearUser } = useAuthStore.getState();
       clearUser();
+
+      // Redirect to sign-in page
+      if (typeof window !== "undefined") {
+        window.location.href = "/sign-in";
+      }
     }
     return Promise.reject(error);
   }

@@ -2,10 +2,10 @@
 import Assets from "@/assets";
 import AuthLoading from "@/components/auth-loading";
 import CustomForm from "@/components/custom-form";
-import { getSignInValidation, getSignInSuccess, getSignInError } from "@/libs/message/auth-message";
+import { getSignInValidation } from "@/libs/message/auth-message";
 import { useSignIn } from "@/services/hooks/auth/use-auth";
 import { useAuthStore } from "@/stores/auth-store";
-import { message, Typography } from "antd";
+import { Typography } from "antd";
 import { Lock, LogIn, User } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -42,16 +42,22 @@ const SigninPage = () => {
   }
 
   const onFinish = async (values) => {
+    // Show loading while validating token and /me
     const result = await signIn({
       email: values.email,
       password: values.password,
     });
 
     if (result.success) {
+      // Both token and /me validated, role_id is system_admin
       // Success message is already shown by the hook
-      router.push("/accounts/general");
+      // Wait a moment for localStorage to be fully written
+      setTimeout(() => {
+        router.push("/accounts/general");
+      }, 100);
     }
     // Error messages are already shown by the hook in Vietnamese
+    // This includes "Bạn không có quyền quản trị viên để truy cập hệ thống"
   };
 
   const fields = [

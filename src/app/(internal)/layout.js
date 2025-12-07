@@ -2,7 +2,6 @@
 import AuthLoading from "@/components/auth-loading";
 import CustomHeader from "@/components/custom-header";
 import CustomSidebar from "@/components/custom-sidebar";
-import { getSignInError } from "@/libs/message/auth-message";
 import { useAuthStore } from "@/stores/auth-store";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -31,59 +30,72 @@ export default function InternalLayoutFlexbox({ children }) {
     if (isVerifying.current) return;
     isVerifying.current = true;
 
+    const clearAuthAndRedirect = () => {
+      localStorage.removeItem("token");
+      localStorage.removeItem("refresh_token");
+      localStorage.removeItem("me");
+      console.log("Auth validation failed, redirecting to sign-in");
+      router.push("/sign-in");
+    };
+
     const verifyAuth = () => {
-      // Consider token from store OR persisted token in localStorage
+      // Step 1: Check if token exists
       const storedToken =
         typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
-      // If no token at all, redirect immediately
       if (!storedToken) {
-        // Don't show error message to user - they'll see sign-in page
-        // Only log for debugging
         console.log("No token found, redirecting to sign-in");
-        router.push("/sign-in");
+        clearAuthAndRedirect();
         return;
       }
 
-      // Have token - load user data from localStorage if available
-      try {
-        const storedMe = localStorage.getItem("me");
-        if (storedMe) {
-          const profile = JSON.parse(storedMe);
-          const existingToken = localStorage.getItem("token") || null;
-          const existingRefresh = localStorage.getItem("refresh_token") || null;
-
-          const userData = {
-            user_id: profile.user_id || null,
-            profile_id: profile.profile_id || null,
-            roles: profile.role_id ? [profile.role_id] : [],
-            token: existingToken,
-            refresh_token: existingRefresh,
-            expires_at: null,
-            session_id: null,
-            profile,
-            user: {
-              id: profile.user_id || null,
-              email: profile.email || null,
-              full_name: profile.full_name || null,
-              display_name: profile.display_name || null,
-              primary_phone: profile.primary_phone || null,
-              partner_id: profile.partner_id || null,
-              role_id: profile.role_id || null,
-            },
-          };
-
-          setUser(userData);
-        }
-      } catch (error) {
-        console.warn("Failed to parse stored user data:", error);
+      // Step 2: Check if /me data exists
+      const storedMe = localStorage.getItem("me");
+      if (!storedMe) {
+        console.log("No profile data found, redirecting to sign-in");
+        clearAuthAndRedirect();
+        return;
       }
 
-      // Token exists, allow rendering
-      // Note: Token validation will happen when API calls are made
-      // If token is invalid, axios interceptor will handle logout
-      setIsAuthChecking(false);
-      isVerifying.current = false;
+      // Step 3: Parse and validate /me data
+      try {
+        const profile = JSON.parse(storedMe);
+
+        // Step 4: Strict role validation - must be system_admin
+        if (profile.role_id !== "system_admin") {
+          console.log("Access denied: role_id is not system_admin");
+          clearAuthAndRedirect();
+          return;
+        }
+
+        // Step 5: All validations passed - restore user data
+        const userData = {
+          user_id: profile.user_id || null,
+          profile_id: profile.profile_id || null,
+          roles: [profile.role_id],
+          token: storedToken,
+          refresh_token: localStorage.getItem("refresh_token") || null,
+          expires_at: null,
+          session_id: null,
+          profile,
+          user: {
+            id: profile.user_id || null,
+            email: profile.email || null,
+            full_name: profile.full_name || null,
+            display_name: profile.display_name || null,
+            primary_phone: profile.primary_phone || null,
+            partner_id: profile.partner_id || null,
+            role_id: profile.role_id || null,
+          },
+        };
+
+        setUser(userData);
+        setIsAuthChecking(false);
+        isVerifying.current = false;
+      } catch (error) {
+        console.warn("Failed to parse stored user data:", error);
+        clearAuthAndRedirect();
+      }
     };
 
     verifyAuth();

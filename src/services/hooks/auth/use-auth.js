@@ -46,10 +46,10 @@ export const useSignIn = () => {
       setError(null);
 
       try {
-        // Log API call for debugging (not shown to user)
-        console.log("🚀 Calling API:", endpoints.auth.sign_in);
+        // Step 1: Call login API
+        console.log("🚀 Step 1: Calling login API:", endpoints.auth.sign_in);
 
-        const response = await axiosInstance.post(
+        const loginResponse = await axiosInstance.post(
           endpoints.auth.sign_in,
           {
             email: validation.data.email,
@@ -60,36 +60,85 @@ export const useSignIn = () => {
           }
         );
 
-        if (response.data.success) {
-          // Map the API response to the expected user data structure
-          const userData = {
-            user_id: response.data.data.user.id,
-            roles: [], // API doesn't return roles, keeping empty for now
-            token: response.data.data.access_token,
-            refresh_token: null, // API doesn't return refresh_token
-            expires_at: response.data.data.session.expires_at,
-            session_id: response.data.data.session.session_id,
-            user: response.data.data.user,
-            session: response.data.data.session,
-          };
-
-          setUser(userData);
-
-          // Show Vietnamese success message to user
-          const successMessage = getSignInSuccess("LOGIN_SUCCESS");
-          message.success(successMessage);
-
-          return {
-            success: true,
-            message: successMessage,
-            data: userData,
-          };
-        } else {
-          // Log English error for debugging
-          console.error("❌ Login failed:", response.data.message);
-          throw new Error(response.data.message || "Login failed");
+        if (!loginResponse.data.success) {
+          console.error("❌ Login failed:", loginResponse.data.message);
+          throw new Error(loginResponse.data.message || "Login failed");
         }
+
+        const accessToken = loginResponse.data.data.access_token;
+
+        // Temporarily save token to make authenticated request
+        localStorage.setItem("token", accessToken);
+
+        // Step 2: Call /me API to get profile with role validation
+        console.log("🚀 Step 2: Calling /me API:", endpoints.auth.me);
+
+        const meResponse = await axiosInstance.get(endpoints.auth.me);
+
+        if (!meResponse.data.success) {
+          // Clear token if /me fails
+          localStorage.removeItem("token");
+          console.error("❌ /me failed:", meResponse.data.message);
+          throw new Error(
+            meResponse.data.message || "Failed to get user profile"
+          );
+        }
+
+        const profile = meResponse.data.data;
+
+        // Step 3: Strict role validation - only system_admin allowed
+        console.log("🚀 Step 3: Validating role_id:", profile.role_id);
+
+        if (profile.role_id !== "system_admin") {
+          // Clear token immediately
+          localStorage.removeItem("token");
+          localStorage.removeItem("me");
+
+          const errorMessage =
+            "Bạn không có quyền quản trị viên để truy cập hệ thống";
+          console.error("❌ Access denied: role_id is not system_admin");
+          message.error(errorMessage);
+
+          return { success: false, message: errorMessage };
+        }
+
+        // Step 4: All validations passed - build complete user data
+        const userData = {
+          user_id: profile.user_id || loginResponse.data.data.user.id,
+          profile_id: profile.profile_id,
+          roles: [profile.role_id],
+          token: accessToken,
+          refresh_token: null,
+          expires_at: loginResponse.data.data.session.expires_at,
+          session_id: loginResponse.data.data.session.session_id,
+          profile: profile,
+          user: {
+            id: profile.user_id,
+            email: profile.email,
+            full_name: profile.full_name,
+            display_name: profile.display_name,
+            primary_phone: profile.primary_phone,
+            partner_id: profile.partner_id,
+            role_id: profile.role_id,
+          },
+        };
+
+        setUser(userData);
+
+        // Show Vietnamese success message to user
+        const successMessage = getSignInSuccess("LOGIN_SUCCESS");
+        message.success(successMessage);
+
+        return {
+          success: true,
+          message: successMessage,
+          data: userData,
+        };
       } catch (error) {
+        // Clean up on any error
+        localStorage.removeItem("token");
+        localStorage.removeItem("me");
+
         // Log English error for debugging only
         console.error("❌ Sign-in error:", error.message);
         console.error("❌ Error details:", error.response?.data);
@@ -187,6 +236,7 @@ export const useAuthMe = () => {
     setLoading,
     setError: setStoreError,
     isLoading,
+    clearUser,
   } = useAuthStore();
 
   const authMe = useCallback(async () => {
@@ -204,14 +254,47 @@ export const useAuthMe = () => {
     setError(null);
 
     try {
-      const response = await axiosInstance.get(endpoints.auth.auth_me);
+      const response = await axiosInstance.get(endpoints.auth.me);
 
       if (response.data.success) {
-        setUser(response.data.data);
+        const profile = response.data.data;
+
+        // Validate role_id must be system_admin
+        if (profile.role_id !== "system_admin") {
+          console.error("❌ Access denied: role_id is not system_admin");
+          clearUser(true);
+          const errorMessage =
+            "Bạn không có quyền quản trị viên để truy cập hệ thống";
+          setError(errorMessage);
+          setStoreError(errorMessage);
+          return { success: false, message: errorMessage };
+        }
+
+        const userData = {
+          user_id: profile.user_id,
+          profile_id: profile.profile_id,
+          roles: [profile.role_id],
+          token: token,
+          refresh_token: localStorage.getItem("refresh_token") || null,
+          expires_at: null,
+          session_id: null,
+          profile: profile,
+          user: {
+            id: profile.user_id,
+            email: profile.email,
+            full_name: profile.full_name,
+            display_name: profile.display_name,
+            primary_phone: profile.primary_phone,
+            partner_id: profile.partner_id,
+            role_id: profile.role_id,
+          },
+        };
+
+        setUser(userData);
         return {
           success: true,
           message: getSignInSuccess("AUTH_ME_SUCCESS"),
-          data: response.data.data,
+          data: userData,
         };
       } else {
         // Log English error for debugging
@@ -233,7 +316,7 @@ export const useAuthMe = () => {
     } finally {
       setLoading(false);
     }
-  }, [setUser, setLoading, setStoreError]);
+  }, [setUser, setLoading, setStoreError, clearUser]);
 
   return { authMe, isLoading, error };
 };

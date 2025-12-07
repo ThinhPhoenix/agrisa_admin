@@ -6,6 +6,7 @@ export const endpoints = {
     sign_out: `${prefix}/auth/sign-out`,
     sign_up: `${prefix}/auth/sign-up`,
     register: `/auth/public/register`,
+    me: `/profile/protected/api/v1/me`,
   },
   user: {
     find: `${prefix}/users`,

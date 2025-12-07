@@ -2,11 +2,14 @@ import { create } from "zustand";
 
 const defaultUser = {
   user_id: null,
+  profile_id: null,
   roles: [],
   token: null,
   refresh_token: null,
   expires_at: null,
   session_id: null,
+  profile: null,
+  user: null,
 };
 
 export const useAuthStore = create((set, get) => ({
@@ -18,9 +21,12 @@ export const useAuthStore = create((set, get) => ({
   // Set user data
   setUser: (userData) => {
     set({ user: userData, isManualLogout: false });
-    // Save token to localStorage
+    // Save token and profile to localStorage
     if (userData.token) {
       localStorage.setItem("token", userData.token);
+    }
+    if (userData.profile) {
+      localStorage.setItem("me", JSON.stringify(userData.profile));
     }
   },
 
