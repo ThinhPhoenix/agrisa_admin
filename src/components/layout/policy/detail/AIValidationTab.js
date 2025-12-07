@@ -1,22 +1,14 @@
 "use client";
 
 import {
+  BulbOutlined,
+  CalendarOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
   ExclamationCircleOutlined,
   WarningOutlined,
 } from "@ant-design/icons";
-import {
-  Alert,
-  Card,
-  Col,
-  Divider,
-  Row,
-  Space,
-  Statistic,
-  Tag,
-  Typography,
-} from "antd";
+import { Alert, Card, Col, Divider, Row, Tag, Typography } from "antd";
 import CustomTable from "../../../custom-table";
 
 const { Text, Paragraph, Title } = Typography;
@@ -53,6 +45,7 @@ export default function AIValidationTab({
   // Flatten mismatches and recommendations for table views
   const mismatchesData = [];
   const recommendationsData = [];
+  const warningsData = [];
   validations.forEach((v, vi) => {
     const base = {
       validation_id: v.id,
@@ -81,6 +74,16 @@ export default function AIValidationTab({
           priority: value.priority,
           suggestion: value.suggestion,
           affected_fields: value.affected_fields,
+          ...base,
+        });
+      });
+    }
+    if (v.warnings) {
+      Object.entries(v.warnings).forEach(([key, value]) => {
+        warningsData.push({
+          key: `${v.id ?? vi}-${key}`,
+          field: key,
+          recommendation: value.recommendation || value.message || "-",
           ...base,
         });
       });
@@ -290,34 +293,96 @@ export default function AIValidationTab({
         </Text>
       </div>
 
-      {/* Summary card */}
-      <Card style={{ marginTop: 12, marginBottom: 12 }}>
-        <Space direction="vertical" style={{ width: "100%" }}>
-          <Row gutter={16}>
-            <Col span={6}>
-              <Statistic title="Lần xác thực" value={totalValidations} />
-            </Col>
-            <Col span={6}>
-              <Statistic
-                title="Tổng kiểm tra đạt"
-                value={totalPassedChecks}
-                suffix={`/${totalChecks}`}
-              />
-            </Col>
-            <Col span={6}>
-              <Statistic title="Lỗi (Sai khác)" value={totalMismatches} />
-            </Col>
-            <Col span={6}>
-              <Statistic title="Cảnh báo" value={totalWarnings} />
-            </Col>
-          </Row>
-          <Row style={{ marginTop: 8 }}>
-            <Col span={6}>
-              <Statistic title="Gợi ý" value={totalRecommendations} />
-            </Col>
-          </Row>
-        </Space>
-      </Card>
+      {/* Summary cards: single responsive row with icons aligned to values */}
+      <div style={{ marginTop: 12, marginBottom: 12 }}>
+        <Row gutter={16} style={{ display: "flex", flexWrap: "wrap" }}>
+          <Col style={{ flex: "1 1 0", minWidth: 180, marginBottom: 8 }}>
+            <Card size="small">
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ fontSize: 28, color: "#1890ff", lineHeight: 1 }}>
+                  <CalendarOutlined />
+                </div>
+                <div>
+                  <div style={{ fontSize: 18, fontWeight: 700 }}>
+                    {totalValidations}
+                  </div>
+                  <div style={{ fontSize: 12, color: "#888" }}>
+                    Lần xác thực
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </Col>
+
+          <Col style={{ flex: "1 1 0", minWidth: 180, marginBottom: 8 }}>
+            <Card size="small">
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ fontSize: 28, color: "#52c41a", lineHeight: 1 }}>
+                  <CheckCircleOutlined />
+                </div>
+                <div>
+                  <div style={{ fontSize: 18, fontWeight: 700 }}>
+                    {totalPassedChecks}
+                  </div>
+                  <div style={{ fontSize: 12, color: "#888" }}>
+                    Tổng kiểm tra đạt / {totalChecks}
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </Col>
+
+          <Col style={{ flex: "1 1 0", minWidth: 180, marginBottom: 8 }}>
+            <Card size="small">
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ fontSize: 28, color: "#ff4d4f", lineHeight: 1 }}>
+                  <CloseCircleOutlined />
+                </div>
+                <div>
+                  <div style={{ fontSize: 18, fontWeight: 700 }}>
+                    {totalMismatches}
+                  </div>
+                  <div style={{ fontSize: 12, color: "#888" }}>
+                    Lỗi (Sai khác)
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </Col>
+
+          <Col style={{ flex: "1 1 0", minWidth: 180, marginBottom: 8 }}>
+            <Card size="small">
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ fontSize: 28, color: "#faad14", lineHeight: 1 }}>
+                  <WarningOutlined />
+                </div>
+                <div>
+                  <div style={{ fontSize: 18, fontWeight: 700 }}>
+                    {totalWarnings}
+                  </div>
+                  <div style={{ fontSize: 12, color: "#888" }}>Cảnh báo</div>
+                </div>
+              </div>
+            </Card>
+          </Col>
+
+          <Col style={{ flex: "1 1 0", minWidth: 180, marginBottom: 8 }}>
+            <Card size="small">
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ fontSize: 28, color: "#13c2c2", lineHeight: 1 }}>
+                  <BulbOutlined />
+                </div>
+                <div>
+                  <div style={{ fontSize: 18, fontWeight: 700 }}>
+                    {totalRecommendations}
+                  </div>
+                  <div style={{ fontSize: 12, color: "#888" }}>Gợi ý</div>
+                </div>
+              </div>
+            </Card>
+          </Col>
+        </Row>
+      </div>
 
       {validations.length === 0 ? (
         <Alert
@@ -328,6 +393,38 @@ export default function AIValidationTab({
         />
       ) : (
         <>
+          {/* Warnings table */}
+          <Title level={5} style={{ marginTop: 8 }}>
+            Cảnh báo ({warningsData.length})
+          </Title>
+          <CustomTable
+            dataSource={warningsData}
+            columns={[
+              { title: "Vấn đề", dataIndex: "field", key: "field" },
+              {
+                title: "Gợi ý",
+                dataIndex: "recommendation",
+                key: "recommendation",
+                render: (t) => <Text ellipsis={{ tooltip: t }}>{t}</Text>,
+              },
+              {
+                title: "Xác thực",
+                key: "validation",
+                render: (_, r) => (
+                  <div>
+                    <div>{r.validated_by}</div>
+                    <div style={{ color: "#888" }}>
+                      {new Date(r.created_at).toLocaleString("vi-VN")}
+                    </div>
+                  </div>
+                ),
+              },
+            ]}
+            rowKey={(r) => r.key}
+            pagination={{ pageSize: 8 }}
+          />
+
+          <Divider />
           {/* Mismatches table */}
           <Title level={5} style={{ marginTop: 8 }}>
             Lỗi/Sai khác ({mismatchesData.length})
