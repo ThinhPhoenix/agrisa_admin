@@ -139,7 +139,7 @@ export default function PendingPoliciesPage() {
       },
     },
     {
-      title: "Nhà bảo hiểm",
+      title: "Đối tác bảo hiểm",
       dataIndex: "provider",
       key: "provider",
       width: 180,
@@ -283,7 +283,7 @@ export default function PendingPoliciesPage() {
       name: "searchText",
       label: "Tìm kiếm",
       type: "input",
-      placeholder: "Tìm theo tên sản phẩm, mã sản phẩm, nhà bảo hiểm...",
+      placeholder: "Tìm theo tên sản phẩm, mã sản phẩm, đối tác bảo hiểm...",
     },
     {
       name: "searchButton",
