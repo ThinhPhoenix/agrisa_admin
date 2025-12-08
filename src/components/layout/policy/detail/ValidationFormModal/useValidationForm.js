@@ -415,22 +415,23 @@ export default function useValidationForm({
         }
 
         // Add extracted parameters
-        if (
-          values.extraction_confidence ||
-          values.parameters_found ||
-          values.document_version ||
-          values.extraction_method
-        ) {
+        // Always use AI data for extracted_parameters, don't allow manual entry
+        if (latestValidation?.extracted_parameters) {
           payload.extracted_parameters = {
-            extraction_confidence: (values.extraction_confidence || 95) / 100,
-            parameters_found: values.parameters_found || 0,
+            extraction_confidence:
+              latestValidation.extracted_parameters.extraction_confidence ||
+              0.95,
+            parameters_found:
+              latestValidation.extracted_parameters.parameters_found || 0,
           };
-          if (values.document_version)
+          if (latestValidation.extracted_parameters.document_version) {
             payload.extracted_parameters.document_version =
-              values.document_version;
-          if (values.extraction_method)
+              latestValidation.extracted_parameters.document_version;
+          }
+          if (latestValidation.extracted_parameters.extraction_method) {
             payload.extracted_parameters.extraction_method =
-              values.extraction_method;
+              latestValidation.extracted_parameters.extraction_method;
+          }
         }
       }
 

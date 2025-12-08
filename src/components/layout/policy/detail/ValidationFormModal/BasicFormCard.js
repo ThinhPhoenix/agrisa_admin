@@ -7,9 +7,11 @@ import {
   WarningOutlined,
 } from "@ant-design/icons";
 import { Card, Col, Progress, Row, Statistic, Typography } from "antd";
+import { memo } from "react";
+
 const { Text } = Typography;
 
-export default function BasicFormCard({
+const BasicFormCard = memo(function BasicFormCard({
   form,
   fields,
   handleValuesChange,
@@ -182,4 +184,6 @@ export default function BasicFormCard({
       </div>
     </Card>
   );
-}
+});
+
+export default BasicFormCard;

@@ -264,7 +264,7 @@ export default function PolicyDetailPage() {
                 <InfoCircleOutlined
                   style={{ marginRight: "8px", color: "#52c41a" }}
                 />
-                Xác thực hợp đồng gốc
+                Xác thực hợp đồng mẫu
               </Text>
               <br />
               <Text type="secondary" style={{ fontSize: "12px" }}>

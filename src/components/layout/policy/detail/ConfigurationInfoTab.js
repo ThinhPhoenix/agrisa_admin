@@ -149,14 +149,16 @@ export default function ConfigurationInfoTab({ trigger, conditions }) {
           {/* Trigger info */}
           {trigger && trigger.id && (
             <div style={{ marginBottom: 16 }}>
-              <Row gutter={[12, 12]} align="middle">
-                <Col xs={24} sm={12} md={8}>
-                  <div style={{ display: "flex", alignItems: "center" }}>
+              <Row gutter={[12, 12]}>
+                <Col xs={24} sm={24} md={24}>
+                  <div style={{ display: "flex", alignItems: "flex-start" }}>
                     <EnvironmentOutlined
                       style={{
                         color: "#18573f",
                         marginRight: 10,
+                        marginTop: 4,
                         fontSize: 20,
+                        flexShrink: 0,
                       }}
                     />
                     <div style={{ width: "100%" }}>
@@ -173,9 +175,8 @@ export default function ConfigurationInfoTab({ trigger, conditions }) {
                         style={{
                           fontWeight: 700,
                           fontSize: 16,
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
+                          whiteSpace: "normal",
+                          wordBreak: "break-word",
                         }}
                       >
                         {trigger.growth_stage}
@@ -183,13 +184,14 @@ export default function ConfigurationInfoTab({ trigger, conditions }) {
                     </div>
                   </div>
                 </Col>
-                <Col xs={24} sm={12} md={8}>
+                <Col xs={24} sm={12} md={12}>
                   <div style={{ display: "flex", alignItems: "center" }}>
                     <SwapOutlined
                       style={{
                         color: "#18573f",
                         marginRight: 10,
                         fontSize: 20,
+                        flexShrink: 0,
                       }}
                     />
                     <div style={{ width: "100%" }}>
@@ -210,13 +212,14 @@ export default function ConfigurationInfoTab({ trigger, conditions }) {
                     </div>
                   </div>
                 </Col>
-                <Col xs={24} sm={24} md={8}>
+                <Col xs={24} sm={12} md={12}>
                   <div style={{ display: "flex", alignItems: "center" }}>
                     <ClockCircleOutlined
                       style={{
                         color: "#18573f",
                         marginRight: 10,
                         fontSize: 20,
+                        flexShrink: 0,
                       }}
                     />
                     <div style={{ width: "100%" }}>

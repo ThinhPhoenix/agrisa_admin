@@ -326,7 +326,7 @@ export default function DetailsCard({ form, useAIData, formValues }) {
                           </Select>
                         </Form.Item>
                       </Col>
-                      <Col span={2}>
+                      {/* <Col span={2}>
                         <Button
                           type="text"
                           danger
@@ -334,7 +334,7 @@ export default function DetailsCard({ form, useAIData, formValues }) {
                           onClick={() => remove(name)}
                           size="small"
                         />
-                      </Col>
+                      </Col> */}
                     </Row>
                     {index < fields.length - 1 && (
                       <div
@@ -609,8 +609,8 @@ export default function DetailsCard({ form, useAIData, formValues }) {
           style={{ height: "1px", background: "#e8e8e8", margin: "16px 0" }}
         />
 
-        {/* Extracted Parameters */}
-        <div>
+        {/* Extracted Parameters - Hidden */}
+        {/* <div>
           <div
             style={{
               marginBottom: "12px",
@@ -631,7 +631,7 @@ export default function DetailsCard({ form, useAIData, formValues }) {
                   label="Phiên bản tài liệu"
                   style={{ marginBottom: "12px" }}
                 >
-                  <Input placeholder="v2.1" />
+                  <Input placeholder="v2.1" disabled={true} />
                 </Form.Item>
               </Col>
               <Col span={12}>
@@ -640,12 +640,12 @@ export default function DetailsCard({ form, useAIData, formValues }) {
                   label="Phương thức trích xuất"
                   style={{ marginBottom: "0px" }}
                 >
-                  <Input placeholder="AI-OCR" />
+                  <Input placeholder="AI-OCR" disabled={true} />
                 </Form.Item>
               </Col>
             </Row>
           </Form>
-        </div>
+        </div> */}
       </div>
     </Card>
   );
