@@ -98,7 +98,7 @@ export default function BasicInfoTab({
               value={
                 partnerLoading
                   ? "Đang tải..."
-                  : partnerData?.display_name ||
+                  : partnerData?.partner_display_name ||
                     basePolicy.insurance_provider_id
               }
             />

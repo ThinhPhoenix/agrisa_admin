@@ -250,13 +250,6 @@ export default function PoliciesPage() {
       },
     },
     {
-      title: policyMessage.table.createdAt,
-      dataIndex: "created_at",
-      key: "created_at",
-      width: 120,
-      render: (date) => formatDate(date),
-    },
-    {
       title: policyMessage.table.actions,
       key: "action",
       fixed: "right",

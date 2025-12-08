@@ -85,6 +85,7 @@ export const endpoints = {
   partner: {
     list: "/profile/public/api/v1/insurance-partners",
     get_one: (id) => `/profile/public/api/v1/insurance-partners/${id}`,
+    profile: (id) => `/profile/public/api/v1/insurance-partners/${id}/profile`,
     create: "/profile/protected/api/v1/insurance-partners",
     assign_user: (user_id) =>
       `/profile/protected/api/v1/users/admin/${user_id}`,

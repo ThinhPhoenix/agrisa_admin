@@ -12,8 +12,12 @@ export const usePartnerProfile = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axiosInstance.get(endpoints.user.profile(id));
-      setData(response.data);
+      const response = await axiosInstance.get(endpoints.partner.profile(id));
+      // API returns { success: true, data: { ... } }
+      // prefer the inner `data` object if available
+      setData(
+        response.data && response.data.data ? response.data.data : response.data
+      );
     } catch (err) {
       setError(err);
     } finally {

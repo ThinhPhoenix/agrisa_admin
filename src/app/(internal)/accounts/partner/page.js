@@ -99,13 +99,6 @@ export default function PartnersPage() {
       render: (_, record) => record.partner_phone,
     },
     {
-      title: "Hotline",
-      dataIndex: "hotline",
-      key: "hotline",
-      width: 130,
-      render: (_, record) => record.hotline,
-    },
-    {
       title: "Tỉnh/Thành phố",
       dataIndex: "province",
       key: "province",
@@ -113,30 +106,11 @@ export default function PartnersPage() {
       render: (_, record) => record.province_name,
     },
     {
-      title: "Đánh giá",
-      dataIndex: "rating",
-      key: "rating",
-      width: 100,
-      render: (_, record) => (
-        <span>
-          {record.partner_rating_score.toFixed(1)} (
-          {record.partner_rating_count})
-        </span>
-      ),
-    },
-    {
       title: "Kinh nghiệm",
       dataIndex: "experience",
       key: "experience",
       width: 120,
       render: (_, record) => `${record.trust_metric_experience} năm`,
-    },
-    {
-      title: "Số khách hàng",
-      dataIndex: "clients",
-      key: "clients",
-      width: 120,
-      render: (_, record) => record.trust_metric_clients.toLocaleString(),
     },
     {
       title: "Tỷ lệ thanh toán",
@@ -285,8 +259,6 @@ export default function PartnersPage() {
               Thêm thông tin đối tác
             </Button>
           </Link>
-          {/* <Button icon={<DownloadOutlined />}>Nhập excel</Button>
-          <Button icon={<DownloadOutlined />}>Xuất excel</Button> */}
           <SelectedColumn
             columns={columns}
             visibleColumns={visibleColumns}

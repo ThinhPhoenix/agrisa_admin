@@ -138,20 +138,20 @@ export default function PendingPoliciesPage() {
         );
       },
     },
-    {
-      title: "Đối tác bảo hiểm",
-      dataIndex: "provider",
-      key: "provider",
-      width: 180,
-      render: (_, record) => {
-        const basePolicy = record.base_policy || {};
-        return (
-          <div className="policy-item-name">
-            {basePolicy.insurance_provider_id}
-          </div>
-        );
-      },
-    },
+    // {
+    //   title: "Đối tác bảo hiểm",
+    //   dataIndex: "provider",
+    //   key: "provider",
+    //   width: 180,
+    //   render: (_, record) => {
+    //     const basePolicy = record.base_policy || {};
+    //     return (
+    //       <div className="policy-item-name">
+    //         {basePolicy.insurance_provider_id}
+    //       </div>
+    //     );
+    //   },
+    // },
     {
       title: "Loại cây trồng",
       dataIndex: "crop_type",
@@ -222,32 +222,6 @@ export default function PendingPoliciesPage() {
                   <span>{warning_count}</span>
                 </Text>
               )}
-            </div>
-          </div>
-        );
-      },
-    },
-    {
-      title: "Ngày tạo",
-      dataIndex: "created_at",
-      key: "created_at",
-      width: 160,
-      render: (_, record) => {
-        const basePolicy = record.base_policy || {};
-        const createdAt = basePolicy.created_at;
-        if (!createdAt || createdAt === "0001-01-01T00:00:00Z") {
-          return <Text type="secondary">N/A</Text>;
-        }
-        return (
-          <div className="policy-created-at">
-            <div className="policy-date">
-              {new Date(createdAt).toLocaleDateString("vi-VN")}
-            </div>
-            <div className="policy-time">
-              {new Date(createdAt).toLocaleTimeString("vi-VN", {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
             </div>
           </div>
         );

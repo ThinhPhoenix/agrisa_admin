@@ -93,8 +93,7 @@ export default function SourcesPage() {
       (sum, item) => sum + (item.base_cost || 0),
       0
     );
-    const averageCost =
-      totalItems > 0 ? (totalCost / totalItems).toFixed(2) : 0;
+    const averageCost = totalItems > 0 ? Math.round(totalCost / totalItems) : 0;
 
     return {
       totalItems,
@@ -372,9 +371,9 @@ export default function SourcesPage() {
             </div>
             <div className="data-summary-content">
               <div className="data-summary-value-compact">
-                ${summaryStats.averageCost}
+                {summaryStats.averageCost.toLocaleString("en-US")}₫
               </div>
-              <div className="data-summary-label-compact">Giá TB</div>
+              <div className="data-summary-label-compact">Giá Trung Bình</div>
             </div>
           </div>
         </div>

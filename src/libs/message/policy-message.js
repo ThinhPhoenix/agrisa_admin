@@ -29,9 +29,12 @@ export const policyMessage = {
     pending_review: "Chờ xét duyệt",
     pending_payment: "Chờ thanh toán",
     active: "Đang hoạt động",
+    payout: "Đang chi trả",
     expired: "Đã hết hạn",
+    pending_cancel: "Chờ hủy",
     cancelled: "Đã hủy",
     rejected: "Bị từ chối",
+    dispute: "Tranh chấp",
   },
 
   // Underwriting status

@@ -3,6 +3,7 @@
 import SelectedColumn from "@/components/column-selector";
 import { CustomForm } from "@/components/custom-form";
 import CustomTable from "@/components/custom-table";
+import { formatUtcDate } from "@/libs/datetime";
 import { useAccounts } from "@/services/hooks/accounts/use-accounts";
 import { useTableData } from "@/services/hooks/common/use-table-data";
 import {
@@ -12,16 +13,7 @@ import {
   TeamOutlined,
   UserOutlined,
 } from "@ant-design/icons";
-import {
-  Button,
-  Collapse,
-  Image,
-  Layout,
-  Space,
-  Spin,
-  Tag,
-  Typography,
-} from "antd";
+import { Button, Collapse, Layout, Space, Spin, Tag, Typography } from "antd";
 import Link from "next/link";
 import { useState } from "react";
 import "./accounts.css";
@@ -107,10 +99,10 @@ export default function AccountsPage() {
       title: "Thông tin tài khoản",
       dataIndex: "user_info",
       key: "user_info",
-      width: 300,
+      width: 100,
       render: (_, record) => (
         <div className="accounts-user-info">
-          <Image
+          {/* <Image
             src={record.avatar}
             alt={record.username}
             width={48}
@@ -118,7 +110,7 @@ export default function AccountsPage() {
             className="accounts-user-avatar"
             preview={false}
             fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RnG4W+FgYxN"
-          />
+          /> */}
           <div className="accounts-user-details">
             <div className="accounts-user-name">{record.full_name}</div>
             {/* <div className="accounts-user-username">@{record.username}</div> */}
@@ -160,13 +152,16 @@ export default function AccountsPage() {
       render: (_, record) => (
         <div className="accounts-last-login">
           <div className="accounts-login-date">
-            {new Date(record.last_login).toLocaleDateString("vi-VN")}
+            {formatUtcDate(record.last_login)}
           </div>
           <div className="accounts-login-time">
-            {new Date(record.last_login).toLocaleTimeString("vi-VN", {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
+            {record.last_login
+              ? new Date(record.last_login).toLocaleTimeString("vi-VN", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  timeZone: "UTC",
+                })
+              : "-"}
           </div>
         </div>
       ),

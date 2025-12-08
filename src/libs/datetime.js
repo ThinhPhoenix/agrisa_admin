@@ -118,3 +118,13 @@ export const formatDateTime = (dateTimeObj, separator = "\n") => {
 export const getCurrentDateTime = () => {
   return parseUnixTimestamp(Date.now());
 };
+
+// Format UTC-aware date (optionally with time)
+export function formatUtcDate(value, { withTime = false } = {}) {
+  if (!value) return "-";
+  const d = new Date(value);
+  if (isNaN(d)) return "-";
+  return withTime
+    ? d.toLocaleString("vi-VN", { timeZone: "UTC" })
+    : d.toLocaleDateString("vi-VN", { timeZone: "UTC" });
+}
