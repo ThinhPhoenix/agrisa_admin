@@ -562,7 +562,7 @@ export default function TestTriggerPage() {
             </Text>
           </div>
           <Link href="/claims">
-            <Button icon={<ArrowLeftOutlined />}>← Quay Lại</Button>
+            <Button icon={<ArrowLeftOutlined />}>Quay Lại</Button>
           </Link>
         </div>
 

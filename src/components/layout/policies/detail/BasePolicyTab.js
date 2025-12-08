@@ -1,22 +1,21 @@
-import { policyMessage } from "@/libs/message";
 import {
-  SafetyOutlined,
-  FileTextOutlined,
-  DownloadOutlined,
-  ThunderboltOutlined,
   BarChartOutlined,
+  DownloadOutlined,
+  FileTextOutlined,
+  SafetyOutlined,
+  ThunderboltOutlined,
 } from "@ant-design/icons";
 import {
-  Card,
-  Descriptions,
-  Typography,
-  Empty,
-  Spin,
   Button,
-  Tag,
-  Table,
-  Space,
+  Card,
   Collapse,
+  Descriptions,
+  Empty,
+  Space,
+  Spin,
+  Table,
+  Tag,
+  Typography,
 } from "antd";
 
 const { Title, Text } = Typography;
@@ -332,9 +331,11 @@ export function BasePolicyTab({
             <Descriptions.Item label="Loại file">
               {document.content_type}
             </Descriptions.Item>
-            <Descriptions.Item label="Hết hạn URL">
+            <Descriptions.Item label="Thời hạn URL">
               {document.presigned_url_expiry
-                ? new Date(document.presigned_url_expiry).toLocaleString("vi-VN")
+                ? new Date(document.presigned_url_expiry).toLocaleString(
+                    "vi-VN"
+                  )
                 : "-"}
             </Descriptions.Item>
           </Descriptions>
