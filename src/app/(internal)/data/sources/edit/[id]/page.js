@@ -52,18 +52,11 @@ export default function EditSourcePage() {
   // Handle submit button click
   const handleSubmitClick = async () => {
     try {
-      // 1. Validate Ant Design Form fields first
+      // 1. Validate Ant Design Form fields
       const values = await formRef.current.validateFields();
 
-      // 2. Validate with Zod schema (Frontend validation)      const zodValidation = updateDataSourceSchema.safeParse(values);
-      if (!zodValidation.success) {
-        const firstError = zodValidation.error.errors[0];
-        message.error(firstError.message);
-        return;
-      }
-
-      // 3. Submit to backend (BE validation)
-      await handleFormSubmit(zodValidation.data);
+      // 2. Submit to backend (Backend handles validation)
+      await handleFormSubmit(values);
     } catch (err) {
       // Ant Design validation error - already handled by form
       console.error("Form validation error:", err);

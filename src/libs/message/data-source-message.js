@@ -37,18 +37,19 @@ export const DATA_SOURCE_MESSAGES = {
     },
 
     VALIDATION: {
-      // Data source type
+      // Data source type (Enum: weather, satellite, derived)
       DATA_SOURCE_TYPE_REQUIRED: "Vui lòng chọn loại nguồn dữ liệu!",
-      DATA_SOURCE_TYPE_INVALID: "Loại nguồn dữ liệu không hợp lệ!",
+      DATA_SOURCE_TYPE_INVALID: "Loại nguồn dữ liệu không hợp lệ! (Phải là: weather, satellite, hoặc derived)",
 
-      // Parameter name
+      // Parameter name (Enum: ndvi, ndmi, rainfall)
       PARAMETER_NAME_REQUIRED: "Vui lòng nhập tên tham số!",
       PARAMETER_NAME_TOO_LONG: "Tên tham số không được vượt quá 100 ký tự!",
       PARAMETER_NAME_EMPTY: "Tên tham số không được để trống!",
+      PARAMETER_NAME_INVALID: "Tên tham số không hợp lệ! (Phải là: ndvi, ndmi, hoặc rainfall)",
 
-      // Parameter type
+      // Parameter type (Enum: numeric, boolean, categorical)
       PARAMETER_TYPE_REQUIRED: "Vui lòng chọn loại tham số!",
-      PARAMETER_TYPE_INVALID: "Loại tham số không hợp lệ!",
+      PARAMETER_TYPE_INVALID: "Loại tham số không hợp lệ! (Phải là: numeric, boolean, hoặc categorical)",
 
       // Base cost
       BASE_COST_REQUIRED: "Vui lòng nhập chi phí cơ bản!",
@@ -60,26 +61,38 @@ export const DATA_SOURCE_MESSAGES = {
       DATA_TIER_ID_INVALID: "ID cấp độ dữ liệu không hợp lệ!",
 
       // Min/Max value
-      MIN_MAX_INVALID:
-        "Giá trị tối thiểu phải nhỏ hơn hoặc bằng giá trị tối đa!",
+      MIN_MAX_INVALID: "Giá trị tối thiểu không được lớn hơn giá trị tối đa!",
 
-      // Accuracy rating
+      // Accuracy rating (0-100)
       ACCURACY_RATING_INVALID: "Độ chính xác phải từ 0 đến 100!",
 
-      // Display name and description
+      // Display name (Tiếng Việt)
       DISPLAY_NAME_REQUIRED: "Vui lòng nhập tên hiển thị!",
       DISPLAY_NAME_TOO_LONG: "Tên hiển thị không được vượt quá 200 ký tự!",
-      DESCRIPTION_TOO_LONG: "Mô tả không được vượt quá 500 ký tự!",
+
+      // Description (Tiếng Việt)
+      DESCRIPTION_TOO_LONG: "Mô tả không được vượt quá 1000 ký tự!",
 
       // Unit
       UNIT_TOO_LONG: "Đơn vị không được vượt quá 50 ký tự!",
 
+      // Update frequency
+      UPDATE_FREQUENCY_REQUIRED: "Vui lòng chọn tần suất cập nhật!",
+      UPDATE_FREQUENCY_TOO_LONG: "Tần suất cập nhật không được vượt quá 100 ký tự!",
+
+      // Spatial resolution
+      SPATIAL_RESOLUTION_TOO_LONG: "Độ phân giải không gian không được vượt quá 100 ký tự!",
+
+      // Data provider
+      DATA_PROVIDER_TOO_LONG: "Nhà cung cấp dữ liệu không được vượt quá 200 ký tự!",
+
+      // API endpoint
+      API_ENDPOINT_INVALID: "API endpoint phải là URL hợp lệ!",
+      API_ENDPOINT_TOO_LONG: "API endpoint không được vượt quá 500 ký tự!",
+
       // Batch
       BATCH_SIZE_EXCEEDED: "Số lượng nguồn dữ liệu không được vượt quá 100!",
       BATCH_SIZE_EMPTY: "Phải có ít nhất 1 nguồn dữ liệu!",
-
-      // Update frequency
-      UPDATE_FREQUENCY_REQUIRED: "Vui lòng chọn tần suất cập nhật!",
     },
 
     INFO: {
@@ -229,7 +242,7 @@ export const getTierInfo = (key, params = {}) =>
 
 /**
  * Map Backend error code/message sang message tiếng Việt
- * Tương tự parseBackendError cho auth
+ * 100% Vietnamese error messages - NO English messages shown to end users
  */
 export const parseDataSourceError = (error, context = "data_source") => {
   // Network error
@@ -241,100 +254,101 @@ export const parseDataSourceError = (error, context = "data_source") => {
   }
 
   const { status, data } = error.response;
-  const lowerMessage = (
-    data?.error?.message ||
-    data?.message ||
-    ""
-  ).toLowerCase();
+  const originalMessage = data?.error?.message || data?.message || "";
+  const lowerMessage = originalMessage.toLowerCase();
 
-  // Backend error code mapping
+  // ========== VALIDATION FIELD-SPECIFIC ERRORS ==========
+  // Mapping chi tiết từng validation error từ backend sang tiếng Việt
+  const validationErrorMapping = {
+    // Data source enum errors
+    "invalid data_source": DATA_SOURCE_MESSAGES.DATA_SOURCE.VALIDATION.DATA_SOURCE_TYPE_INVALID,
+    "must be one of weather, satellite, derived": DATA_SOURCE_MESSAGES.DATA_SOURCE.VALIDATION.DATA_SOURCE_TYPE_INVALID,
+
+    // Parameter type enum errors
+    "invalid parameter_type": DATA_SOURCE_MESSAGES.DATA_SOURCE.VALIDATION.PARAMETER_TYPE_INVALID,
+    "must be one of numeric, boolean, categorical": DATA_SOURCE_MESSAGES.DATA_SOURCE.VALIDATION.PARAMETER_TYPE_INVALID,
+
+    // Parameter name enum errors
+    "invalid parameter_name": DATA_SOURCE_MESSAGES.DATA_SOURCE.VALIDATION.PARAMETER_NAME_INVALID,
+    "must be one of ndvi, ndmi, rainfall": DATA_SOURCE_MESSAGES.DATA_SOURCE.VALIDATION.PARAMETER_NAME_INVALID,
+    "parameter name cannot be empty": DATA_SOURCE_MESSAGES.DATA_SOURCE.VALIDATION.PARAMETER_NAME_EMPTY,
+
+    // Base cost errors
+    "base_cost cannot be negative": DATA_SOURCE_MESSAGES.DATA_SOURCE.VALIDATION.BASE_COST_NEGATIVE,
+
+    // Accuracy rating errors
+    "accuracy_rating must be between 0 and 100": DATA_SOURCE_MESSAGES.DATA_SOURCE.VALIDATION.ACCURACY_RATING_INVALID,
+
+    // Min/Max value errors
+    "min_value cannot be greater than max_value": DATA_SOURCE_MESSAGES.DATA_SOURCE.VALIDATION.MIN_MAX_INVALID,
+
+    // String length errors
+    "unit must be 50 characters or less": DATA_SOURCE_MESSAGES.DATA_SOURCE.VALIDATION.UNIT_TOO_LONG,
+    "display_name_vi must be 200 characters or less": DATA_SOURCE_MESSAGES.DATA_SOURCE.VALIDATION.DISPLAY_NAME_TOO_LONG,
+    "description_vi must be 1000 characters or less": DATA_SOURCE_MESSAGES.DATA_SOURCE.VALIDATION.DESCRIPTION_TOO_LONG,
+    "update_frequency must be 100 characters or less": DATA_SOURCE_MESSAGES.DATA_SOURCE.VALIDATION.UPDATE_FREQUENCY_TOO_LONG,
+    "spatial_resolution must be 100 characters or less": DATA_SOURCE_MESSAGES.DATA_SOURCE.VALIDATION.SPATIAL_RESOLUTION_TOO_LONG,
+    "data_provider must be 200 characters or less": DATA_SOURCE_MESSAGES.DATA_SOURCE.VALIDATION.DATA_PROVIDER_TOO_LONG,
+    "api_endpoint must be 500 characters or less": DATA_SOURCE_MESSAGES.DATA_SOURCE.VALIDATION.API_ENDPOINT_TOO_LONG,
+
+    // URL validation errors
+    "api_endpoint must be a valid url": DATA_SOURCE_MESSAGES.DATA_SOURCE.VALIDATION.API_ENDPOINT_INVALID,
+
+    // General validation errors
+    "data source not found": DATA_SOURCE_MESSAGES.DATA_SOURCE.ERROR.NOT_FOUND,
+    "invalid uuid format": DATA_SOURCE_MESSAGES.DATA_SOURCE.ERROR.INVALID_ID,
+    "invalid request body": DATA_SOURCE_MESSAGES.DATA_SOURCE.ERROR.INVALID_REQUEST,
+
+    // Tier-specific errors
+    "tier level": DATA_SOURCE_MESSAGES.TIER.ERROR.TIER_LEVEL_EXISTS,
+    "already exists": DATA_SOURCE_MESSAGES.TIER.ERROR.TIER_LEVEL_EXISTS,
+    "category": DATA_SOURCE_MESSAGES.TIER.ERROR.CATEGORY_NOT_EXIST,
+    "does not exist": DATA_SOURCE_MESSAGES.TIER.ERROR.CATEGORY_NOT_EXIST,
+
+    // PostgreSQL numeric overflow
+    "numeric field overflow": "Giá trị số vượt quá giới hạn cho phép!",
+  };
+
+  // Try exact match first
+  for (const [key, vietnameseMessage] of Object.entries(validationErrorMapping)) {
+    if (lowerMessage.includes(key.toLowerCase())) {
+      return vietnameseMessage;
+    }
+  }
+
+  // ========== BACKEND ERROR CODE MAPPING ==========
   if (data?.error?.code) {
     const code = data.error.code;
-    switch (code) {
-      case "INVALID_REQUEST":
-      case "VALIDATION_FAILED":
-        return context === "tier_category"
-          ? DATA_SOURCE_MESSAGES.TIER_CATEGORY.ERROR.VALIDATION_FAILED
-          : context === "tier"
-          ? "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại!"
-          : DATA_SOURCE_MESSAGES.DATA_SOURCE.ERROR.VALIDATION_FAILED;
-      case "NOT_FOUND":
-        return context === "tier_category"
-          ? DATA_SOURCE_MESSAGES.TIER_CATEGORY.ERROR.NOT_FOUND
-          : context === "tier"
-          ? DATA_SOURCE_MESSAGES.TIER.ERROR.NOT_FOUND
-          : DATA_SOURCE_MESSAGES.DATA_SOURCE.ERROR.NOT_FOUND;
-      case "CREATION_FAILED":
-        return context === "tier_category"
-          ? DATA_SOURCE_MESSAGES.TIER_CATEGORY.ERROR.CREATION_FAILED
-          : context === "tier"
-          ? DATA_SOURCE_MESSAGES.TIER.ERROR.CREATION_FAILED
-          : DATA_SOURCE_MESSAGES.DATA_SOURCE.ERROR.CREATION_FAILED;
-      case "UPDATE_FAILED":
-        return context === "tier_category"
-          ? DATA_SOURCE_MESSAGES.TIER_CATEGORY.ERROR.UPDATE_FAILED
-          : context === "tier"
-          ? DATA_SOURCE_MESSAGES.TIER.ERROR.UPDATE_FAILED
-          : DATA_SOURCE_MESSAGES.DATA_SOURCE.ERROR.UPDATE_FAILED;
-      case "DELETE_FAILED":
-        return context === "tier_category"
-          ? DATA_SOURCE_MESSAGES.TIER_CATEGORY.ERROR.DELETE_FAILED
-          : context === "tier"
-          ? DATA_SOURCE_MESSAGES.TIER.ERROR.DELETE_FAILED
-          : DATA_SOURCE_MESSAGES.DATA_SOURCE.ERROR.DELETE_FAILED;
-      default:
-        break;
+    const errorCodeMapping = {
+      INVALID_REQUEST: DATA_SOURCE_MESSAGES.DATA_SOURCE.ERROR.INVALID_REQUEST,
+      VALIDATION_FAILED: DATA_SOURCE_MESSAGES.DATA_SOURCE.ERROR.VALIDATION_FAILED,
+      NOT_FOUND: DATA_SOURCE_MESSAGES.DATA_SOURCE.ERROR.NOT_FOUND,
+      CREATION_FAILED: DATA_SOURCE_MESSAGES.DATA_SOURCE.ERROR.CREATION_FAILED,
+      UPDATE_FAILED: DATA_SOURCE_MESSAGES.DATA_SOURCE.ERROR.UPDATE_FAILED,
+      DELETE_FAILED: DATA_SOURCE_MESSAGES.DATA_SOURCE.ERROR.DELETE_FAILED,
+      INVALID_ID: DATA_SOURCE_MESSAGES.DATA_SOURCE.ERROR.INVALID_ID,
+    };
+
+    if (errorCodeMapping[code]) {
+      return errorCodeMapping[code];
     }
   }
 
-  // Message-based detection
-  if (lowerMessage.includes("parameter name cannot be empty")) {
-    return DATA_SOURCE_MESSAGES.DATA_SOURCE.VALIDATION.PARAMETER_NAME_EMPTY;
-  }
-  if (
-    lowerMessage.includes("tier level") &&
-    lowerMessage.includes("already exists")
-  ) {
-    return DATA_SOURCE_MESSAGES.TIER.ERROR.TIER_LEVEL_EXISTS;
-  }
-  if (
-    lowerMessage.includes("category") &&
-    lowerMessage.includes("does not exist")
-  ) {
-    return DATA_SOURCE_MESSAGES.TIER.ERROR.CATEGORY_NOT_EXIST;
-  }
-  if (lowerMessage.includes("invalid uuid")) {
-    return DATA_SOURCE_MESSAGES.DATA_SOURCE.ERROR.INVALID_ID;
-  }
-  // PostgreSQL numeric field overflow - phát hiện khi giá trị vượt quá giới hạn
-  if (lowerMessage.includes("numeric field overflow")) {
-    if (context === "tier_category") {
-      return DATA_SOURCE_MESSAGES.TIER_CATEGORY.VALIDATION
-        .CATEGORY_MULTIPLIER_OUT_OF_RANGE;
-    } else if (context === "tier") {
-      return DATA_SOURCE_MESSAGES.TIER.VALIDATION.TIER_MULTIPLIER_OUT_OF_RANGE;
-    }
-    return "Giá trị số vượt quá giới hạn cho phép!";
-  }
+  // ========== HTTP STATUS FALLBACK ==========
+  const httpStatusMapping = {
+    400: "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại!",
+    404: context === "tier_category"
+      ? DATA_SOURCE_MESSAGES.TIER_CATEGORY.ERROR.NOT_FOUND
+      : context === "tier"
+      ? DATA_SOURCE_MESSAGES.TIER.ERROR.NOT_FOUND
+      : DATA_SOURCE_MESSAGES.DATA_SOURCE.ERROR.NOT_FOUND,
+    409: DATA_SOURCE_MESSAGES.TIER.ERROR.TIER_LEVEL_EXISTS,
+    422: "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại!",
+    500: "Máy chủ đang gặp sự cố. Vui lòng thử lại sau!",
+    503: "Dịch vụ tạm thời không khả dụng. Vui lòng thử lại sau!",
+  };
 
-  // HTTP status fallback
-  switch (status) {
-    case 400:
-    case 422:
-      return "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại!";
-    case 404:
-      return context === "tier_category"
-        ? DATA_SOURCE_MESSAGES.TIER_CATEGORY.ERROR.NOT_FOUND
-        : context === "tier"
-        ? DATA_SOURCE_MESSAGES.TIER.ERROR.NOT_FOUND
-        : DATA_SOURCE_MESSAGES.DATA_SOURCE.ERROR.NOT_FOUND;
-    case 409:
-      return DATA_SOURCE_MESSAGES.TIER.ERROR.TIER_LEVEL_EXISTS;
-    case 500:
-      return "Máy chủ đang gặp sự cố. Vui lòng thử lại sau!";
-    default:
-      return "Có lỗi xảy ra. Vui lòng thử lại!";
-  }
+  return httpStatusMapping[status] || "Có lỗi xảy ra. Vui lòng thử lại!";
 };
 
 // Export default

@@ -2,6 +2,7 @@
 
 import { CustomForm } from "@/components/custom-form";
 import { createDataSourceSchema } from "@/schemas/data-source-schema";
+import { useCategories } from "@/services/hooks/data/use-categories";
 import { useSources } from "@/services/hooks/data/use-sources";
 import { useTiers } from "@/services/hooks/data/use-tiers";
 import { Button, Layout, message, Spin, Typography } from "antd";
@@ -13,15 +14,36 @@ const { Title, Text } = Typography;
 
 export default function CreateSourcePage() {
   const { createSource, loading: apiLoading } = useSources();
-  const { data: tiers, loading: tiersLoading } = useTiers();
+  const { data: categories, loading: categoriesLoading } = useCategories();
+  const { getTiersByCategory } = useTiers();
   const router = useRouter();
   const formRef = useRef();
   const [submitting, setSubmitting] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [tiers, setTiers] = useState([]);
+  const [tiersLoading, setTiersLoading] = useState(false);
 
-  // Debug log
-  console.log("Tiers data:", tiers);
-  console.log("Tiers loading:", tiersLoading);
-  console.log("Tiers is array:", Array.isArray(tiers));
+  // Handle category change - fetch tiers by category
+  const handleCategoryChange = async (categoryId) => {
+    try {
+      setSelectedCategory(categoryId);
+      setTiersLoading(true);
+      setTiers([]);
+
+      // Reset tier field when category changes
+      formRef.current?.setFieldsValue({ data_tier_id: undefined });
+
+      if (categoryId) {
+        const tiersData = await getTiersByCategory(categoryId);
+        setTiers(tiersData || []);
+      }
+    } catch (err) {
+      console.error("Error fetching tiers by category:", err);
+      setTiers([]);
+    } finally {
+      setTiersLoading(false);
+    }
+  };
 
   // Handle form submit
   const handleFormSubmit = async (formData) => {
@@ -50,16 +72,27 @@ export default function CreateSourcePage() {
         return;
       }
 
-      const payload = {
-        ...zodValidation.data,
-      };
+      // Remove data_tier_category_id from payload (only used for UI logic)
+      const { data_tier_category_id, ...dataSourcePayload } =
+        zodValidation.data;
 
-      await handleFormSubmit(payload);
+      await handleFormSubmit(dataSourcePayload);
     } catch (err) {
       // Ant Design validation error - already handled by form
       console.error("Form validation error:", err);
     }
   };
+
+  // Category options for dropdown
+  const categoryOptions = useMemo(() => {
+    if (!Array.isArray(categories) || categories.length === 0) {
+      return [];
+    }
+    return categories.map((category) => ({
+      label: category.category_name,
+      value: category.id,
+    }));
+  }, [categories]);
 
   // Tier options for dropdown
   const tierOptions = useMemo(() => {
@@ -76,7 +109,7 @@ export default function CreateSourcePage() {
   const dataSourceOptions = [
     { label: "Weather (Thời tiết)", value: "weather" },
     { label: "Satellite (Vệ tinh)", value: "satellite" },
-    { label: "Derived (Dẫn xuất)", value: "derived" },
+    // { label: "Derived (Dẫn xuất)", value: "derived" },
   ];
 
   // Parameter name options (fixed values)
@@ -193,18 +226,38 @@ export default function CreateSourcePage() {
       step: 1000,
     },
     {
+      name: "data_tier_category_id",
+      label: "Danh mục cấp độ",
+      type: "select",
+      placeholder: categoriesLoading
+        ? "Đang tải danh sách danh mục..."
+        : categoryOptions.length === 0
+        ? "Không có danh mục nào"
+        : "Chọn danh mục cấp độ...",
+      required: true,
+      options: categoryOptions,
+      loading: categoriesLoading,
+      disabled: categoriesLoading || categoryOptions.length === 0,
+      showSearch: true,
+      filterOption: (input, option) =>
+        (option?.label ?? "").toLowerCase().includes(input.toLowerCase()),
+      onChange: handleCategoryChange,
+    },
+    {
       name: "data_tier_id",
       label: "Cấp độ dữ liệu",
       type: "select",
-      placeholder: tiersLoading
+      placeholder: !selectedCategory
+        ? "Vui lòng chọn danh mục cấp độ trước"
+        : tiersLoading
         ? "Đang tải danh sách cấp độ..."
         : tierOptions.length === 0
-        ? "Không có cấp độ nào"
+        ? "Không có cấp độ nào trong danh mục này"
         : "Chọn cấp độ dữ liệu...",
       required: true,
       options: tierOptions,
       loading: tiersLoading,
-      disabled: tiersLoading || tierOptions.length === 0,
+      disabled: !selectedCategory || tiersLoading || tierOptions.length === 0,
       showSearch: true,
       filterOption: (input, option) =>
         (option?.label ?? "").toLowerCase().includes(input.toLowerCase()),
@@ -220,7 +273,7 @@ export default function CreateSourcePage() {
   ];
 
   // Loading state check
-  if (apiLoading || tiersLoading) {
+  if (apiLoading || categoriesLoading) {
     return (
       <Layout.Content className="data-content">
         <div className="data-loading">

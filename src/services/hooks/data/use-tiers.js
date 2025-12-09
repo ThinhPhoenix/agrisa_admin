@@ -228,6 +228,35 @@ export function useTiers() {
     }
   }, []); // Empty dependency array since it only uses axiosInstance and endpoints
 
+  // Get tiers by category ID
+  const getTiersByCategory = useCallback(async (categoryId) => {
+    try {
+      const response = await axiosInstance.get(
+        endpoints.policy.data_tier.tier.get_by_category(categoryId)
+      );
+      let tiersData = response.data;
+      if (Array.isArray(response.data)) {
+        tiersData = response.data;
+      } else if (response.data && Array.isArray(response.data.data)) {
+        tiersData = response.data.data;
+      } else if (
+        response.data &&
+        typeof response.data === "object" &&
+        response.data.data
+      ) {
+        tiersData = Array.isArray(response.data.data) ? response.data.data : [];
+      } else {
+        tiersData = [];
+      }
+      return tiersData;
+    } catch (err) {
+      console.error("Error fetching tiers by category:", err);
+      const errorMessage = parseDataSourceError(err, "tier");
+      message.error(errorMessage);
+      throw err;
+    }
+  }, []);
+
   return {
     data,
     filteredData,
@@ -243,6 +272,7 @@ export function useTiers() {
     updateTier,
     deleteTier,
     getTier,
+    getTiersByCategory,
     fetchTiers,
   };
 }
