@@ -93,6 +93,6 @@ export const endpoints = {
   address: {
     provinces: "https://provinces.open-api.vn/api/p/",
     wards: (provinceCode) =>
-      `https://provinces.open-api.vn/api/w/?province=${provinceCode}`,
+      `https://provinces.open-api.vn/api/v2/w/?province=${provinceCode}`,
   },
 };

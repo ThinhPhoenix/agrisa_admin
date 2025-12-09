@@ -2,7 +2,19 @@
 
 import { CustomForm } from "@/components/custom-form";
 import { usePartners } from "@/services/hooks/partner/use-partner";
-import { Button, Divider, Layout, message, Typography } from "antd";
+import {
+  Button,
+  Divider,
+  Layout,
+  message,
+  Typography
+} from "antd";
+import {
+  IdcardOutlined,
+  PhoneOutlined,
+  EnvironmentOutlined,
+  SafetyCertificateOutlined
+} from "@ant-design/icons";
 import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
@@ -23,31 +35,33 @@ export default function CreatePartnerPage() {
   const handleFormSubmit = async (formData) => {
     try {
       setSubmitting(true);
-      const operatingProvinceNames = formData.operating_provinces
+      console.log("📝 Form data:", formData);
+
+      const operatingProvinceNames = (formData.operating_provinces || [])
         .map((code) => provinces.find((p) => p.code === code)?.name)
         .filter(Boolean);
-      const coverageProvinceNames = formData.coverage_areas
-        .map((code) => provinces.find((p) => p.code === code)?.name)
-        .filter(Boolean);
+
       const modifiedData = {
         ...formData,
         operating_provinces: operatingProvinceNames,
-        coverage_areas: coverageProvinceNames.join(", "),
         head_office_address: `${formData.head_office_address || ""}, ${
           wardName || ""
         }, ${provinceName || ""}`
-          .replace(/^,/, "")
-          .replace(/,$/, "")
-          .replace(/, ,/g, ",")
-          .replace(/ ,/g, ",")
+          .replace(/^,\s*/, "")
+          .replace(/,\s*$/, "")
+          .replace(/,\s*,/g, ",")
           .trim(),
         province_name: provinceName,
         ward_name: wardName,
       };
+
+      console.log("🚀 Sending to API:", modifiedData);
+
       await createPartner(modifiedData);
+      message.success("Tạo đối tác thành công!");
       router.push("/accounts/partner");
     } catch (err) {
-      // Error is handled in the hook
+      console.error("❌ Submit error:", err);
     } finally {
       setSubmitting(false);
     }
@@ -56,20 +70,24 @@ export default function CreatePartnerPage() {
   // Handle submit button click
   const handleSubmitClick = async () => {
     try {
-      // Validate Ant Design Form fields
-      const values = await formRef.current.validateFields();
+      console.log("🔘 Submit clicked");
 
-      // Additional validation
+      const values = await formRef.current.validateFields();
+      console.log("✅ Validation passed:", values);
+
       const errors = [];
 
-      // Validate legal_company_name starts with "Công ty"
-      if (!values.legal_company_name?.startsWith("Công ty")) {
+      // Validate company name starts with "Công ty"
+      if (
+        values.legal_company_name &&
+        !values.legal_company_name.startsWith("Công ty")
+      ) {
         errors.push(
           "Tên công ty phải bắt đầu bằng 'Công ty' theo quy định pháp luật Việt Nam"
         );
       }
 
-      // Validate incorporation_date is not in future
+      // Validate dates
       if (
         values.incorporation_date &&
         values.incorporation_date.isAfter(dayjs())
@@ -77,57 +95,42 @@ export default function CreatePartnerPage() {
         errors.push("Ngày thành lập không được là ngày tương lai");
       }
 
-      // Validate license_issue_date after incorporation_date
       if (values.incorporation_date && values.license_issue_date) {
         if (!values.license_issue_date.isAfter(values.incorporation_date)) {
           errors.push("Ngày cấp giấy phép phải sau ngày thành lập công ty");
         }
       }
 
-      // Validate license_expiry_date after license_issue_date
       if (values.license_issue_date && values.license_expiry_date) {
         if (!values.license_expiry_date.isAfter(values.license_issue_date)) {
           errors.push("Ngày hết hạn giấy phép phải sau ngày cấp giấy phép");
         }
       }
 
-      // Validate license not expired
-      if (
-        values.license_expiry_date &&
-        values.license_expiry_date.isBefore(dayjs())
-      ) {
-        errors.push("Giấy phép đã hết hạn");
-      }
-
-      // Validate year_established matches incorporation_date
-      if (values.incorporation_date && values.year_established) {
-        if (values.incorporation_date.year() !== values.year_established) {
-          errors.push("Năm thành lập phải khớp với năm trong ngày thành lập");
-        }
-      }
-
       if (errors.length > 0) {
+        console.log("⚠️ Validation errors:", errors);
         message.error(errors[0]);
         return;
       }
 
-      // Submit to backend
       await handleFormSubmit(values);
     } catch (err) {
-      console.error("Form validation error:", err);
+      console.error("❌ Validation error:", err);
+      if (err.errorFields && err.errorFields.length > 0) {
+        message.error(`Vui lòng kiểm tra: ${err.errorFields[0].errors[0]}`);
+      }
     }
   };
 
-  // Province options for dropdown
-  const provinceOptions = provinces.map((province) => ({
-    label: province.name,
-    value: province.code,
+  // Province & Ward options
+  const provinceOptions = provinces.map((p) => ({
+    label: p.name,
+    value: p.code,
   }));
 
-  // Ward options for dropdown
-  const wardOptions = wards.map((ward) => ({
-    label: ward.name,
-    value: ward.code,
+  const wardOptions = wards.map((w) => ({
+    label: w.name,
+    value: w.code,
   }));
 
   // Company type options
@@ -145,17 +148,20 @@ export default function CreatePartnerPage() {
     { label: "Bảo hiểm chỉ số thời tiết", value: "weather_index_insurance" },
   ];
 
-  // Form fields
+  // Simplified form fields - Only essentials
   const formFields = [
-    // ============= THÔNG TIN CÔNG TY =============
+    // ========== THÔNG TIN CƠ BẢN ==========
     {
-      name: "divider_company",
+      name: "divider_basic",
       type: "custom",
       label: "",
-      gridColumn: "span 3",
+      gridColumn: "span 2",
       render: () => (
-        <Divider orientation="left" style={{ marginTop: 0, marginBottom: 8 }}>
-          <strong style={{ fontSize: "16px" }}>Thông tin công ty</strong>
+        <Divider orientation="left" style={{ marginTop: 0, marginBottom: 16 }}>
+          <strong style={{ fontSize: "16px", color: "#1890ff" }}>
+            <IdcardOutlined style={{ marginRight: 8 }} />
+            Thông tin cơ bản
+          </strong>
         </Divider>
       ),
     },
@@ -163,19 +169,15 @@ export default function CreatePartnerPage() {
       name: "legal_company_name",
       label: "Tên pháp lý công ty",
       type: "input",
-      placeholder: "Ví dụ: Công ty Cổ phần Bảo hiểm...",
+      placeholder: "Ví dụ: Công ty Cổ phần Bảo hiểm Nông Nghiệp...",
       required: true,
       maxLength: 255,
-      gridColumn: "span 3",
+      gridColumn: "span 2",
       rules: [
-        {
-          required: true,
-          message: "Vui lòng nhập tên pháp lý công ty!",
-        },
+        { required: true, message: "Vui lòng nhập tên pháp lý công ty!" },
         {
           pattern: /^[a-zA-ZÀ-ỹ\s]+$/,
-          message:
-            "Tên công ty chỉ được chứa chữ cái tiếng Việt và khoảng trắng",
+          message: "Tên công ty chỉ được chứa chữ cái và khoảng trắng",
         },
       ],
     },
@@ -184,40 +186,32 @@ export default function CreatePartnerPage() {
       label: "Tên giao dịch",
       type: "input",
       placeholder: "Ví dụ: Bảo hiểm Phương Nam",
-      required: false,
+      required: true,
       maxLength: 255,
-    },
-    {
-      name: "partner_display_name",
-      label: "Tên hiển thị",
-      type: "input",
-      placeholder: "Ví dụ: Phương Nam Insurance",
-      required: false,
-      maxLength: 255,
+      rules: [
+        { required: true, message: "Vui lòng nhập tên giao dịch!" },
+        {
+          pattern: /^[a-zA-ZÀ-ỹ0-9\s]+$/,
+          message: "Tên giao dịch không được chứa ký tự đặc biệt",
+        },
+      ],
     },
     {
       name: "company_type",
       label: "Loại hình công ty",
       type: "select",
-      placeholder: "Chọn loại hình công ty...",
+      placeholder: "Chọn loại hình...",
       required: true,
       options: companyTypeOptions,
+      rules: [{ required: true, message: "Vui lòng chọn loại hình công ty!" }],
     },
     {
       name: "incorporation_date",
       label: "Ngày thành lập",
       type: "datepicker",
-      placeholder: "Chọn ngày thành lập...",
+      placeholder: "Chọn ngày...",
       required: true,
-    },
-    {
-      name: "year_established",
-      label: "Năm thành lập",
-      type: "number",
-      placeholder: "Ví dụ: 2010",
-      required: true,
-      min: 1900,
-      max: new Date().getFullYear(),
+      rules: [{ required: true, message: "Vui lòng chọn ngày thành lập!" }],
     },
     {
       name: "tax_identification_number",
@@ -226,13 +220,10 @@ export default function CreatePartnerPage() {
       placeholder: "Ví dụ: 0456789012",
       required: true,
       rules: [
-        {
-          required: true,
-          message: "Vui lòng nhập mã số thuế!",
-        },
+        { required: true, message: "Vui lòng nhập mã số thuế!" },
         {
           pattern: /^\d{10}(-\d{3})?$/,
-          message: "Mã số thuế phải có định dạng 10 chữ số hoặc 10 chữ số-XXX",
+          message: "Mã số thuế: 10 chữ số hoặc 10-XXX",
         },
       ],
     },
@@ -241,57 +232,28 @@ export default function CreatePartnerPage() {
       label: "Mã số đăng ký kinh doanh",
       type: "input",
       placeholder: "Ví dụ: 0111456789",
-      required: false,
+      required: true,
       rules: [
+        { required: true, message: "Vui lòng nhập mã số đăng ký kinh doanh!" },
         {
           pattern: /^\d{10}(-\d{3})?$/,
-          message:
-            "Mã số đăng ký kinh doanh phải có định dạng 10 chữ số hoặc 10 chữ số-XXX",
-        },
-      ],
-    },
-    {
-      name: "partner_tagline",
-      label: "Slogan",
-      type: "textarea",
-      placeholder: "Nhập slogan công ty...",
-      required: false,
-      maxLength: 500,
-      gridColumn: "span 3",
-    },
-    {
-      name: "partner_description",
-      label: "Mô tả công ty",
-      type: "textarea",
-      placeholder: "Nhập mô tả về công ty...",
-      required: false,
-      maxLength: 2000,
-      gridColumn: "span 3",
-      rows: 4,
-    },
-    {
-      name: "partner_website",
-      label: "Website",
-      type: "input",
-      placeholder: "https://www.example.com",
-      required: false,
-      rules: [
-        {
-          type: "url",
-          message: "Vui lòng nhập URL hợp lệ!",
+          message: "Mã số ĐKKD: 10 chữ số hoặc 10-XXX",
         },
       ],
     },
 
-    // ============= THÔNG TIN LIÊN HỆ =============
+    // ========== THÔNG TIN LIÊN HỆ ==========
     {
       name: "divider_contact",
       type: "custom",
       label: "",
-      gridColumn: "span 3",
+      gridColumn: "span 2",
       render: () => (
-        <Divider orientation="left" style={{ marginTop: 16, marginBottom: 8 }}>
-          <strong style={{ fontSize: "16px" }}>Thông tin liên hệ</strong>
+        <Divider orientation="left" style={{ marginTop: 24, marginBottom: 16 }}>
+          <strong style={{ fontSize: "16px", color: "#1890ff" }}>
+            <PhoneOutlined style={{ marginRight: 8 }} />
+            Thông tin liên hệ
+          </strong>
         </Divider>
       ),
     },
@@ -299,21 +261,12 @@ export default function CreatePartnerPage() {
       name: "partner_official_email",
       label: "Email chính thức",
       type: "input",
-      placeholder: "insurance@example.com",
+      placeholder: "info@company.com",
       required: true,
       rules: [
-        {
-          required: true,
-          message: "Vui lòng nhập email chính thức!",
-        },
-        {
-          type: "email",
-          message: "Email không đúng định dạng!",
-        },
-        {
-          max: 254,
-          message: "Email không được vượt quá 254 ký tự!",
-        },
+        { required: true, message: "Vui lòng nhập email!" },
+        { type: "email", message: "Email không đúng định dạng!" },
+        { max: 254, message: "Email tối đa 254 ký tự!" },
       ],
     },
     {
@@ -325,68 +278,23 @@ export default function CreatePartnerPage() {
       rules: [
         {
           pattern: /^\+84\d{9,10}$/,
-          message:
-            "Số điện thoại phải có định dạng +84 theo sau bởi 9-10 chữ số",
+          message: "Số điện thoại: +84 + 9-10 chữ số",
         },
       ],
-    },
-    {
-      name: "hotline",
-      label: "Hotline",
-      type: "input",
-      placeholder: "+84865921360",
-      required: false,
-      rules: [
-        {
-          pattern: /^\+84\d{9,10}$/,
-          message: "Hotline phải có định dạng +84 theo sau bởi 9-10 chữ số",
-        },
-      ],
-    },
-    {
-      name: "customer_service_hotline",
-      label: "Hotline CSKH",
-      type: "input",
-      placeholder: "+84865921359",
-      required: false,
-      rules: [
-        {
-          pattern: /^\+84\d{9,10}$/,
-          message:
-            "Hotline CSKH phải có định dạng +84 theo sau bởi 9-10 chữ số",
-        },
-      ],
-    },
-    {
-      name: "fax_number",
-      label: "Số Fax",
-      type: "input",
-      placeholder: "+84865921358",
-      required: false,
-      rules: [
-        {
-          pattern: /^\+84\d{9,10}$/,
-          message: "Số fax phải có định dạng +84 theo sau bởi 9-10 chữ số",
-        },
-      ],
-    },
-    {
-      name: "support_hours",
-      label: "Giờ hỗ trợ",
-      type: "input",
-      placeholder: "Thứ 2 đến Chủ nhật, 7:00 - 20:00",
-      required: false,
     },
 
-    // ============= ĐỊA CHỈ TRỤ SỞ CHÍNH =============
+    // ========== ĐỊA CHỈ ==========
     {
       name: "divider_address",
       type: "custom",
       label: "",
-      gridColumn: "span 3",
+      gridColumn: "span 2",
       render: () => (
-        <Divider orientation="left" style={{ marginTop: 16, marginBottom: 8 }}>
-          <strong style={{ fontSize: "16px" }}>Địa chỉ trụ sở chính</strong>
+        <Divider orientation="left" style={{ marginTop: 24, marginBottom: 16 }}>
+          <strong style={{ fontSize: "16px", color: "#1890ff" }}>
+            <EnvironmentOutlined style={{ marginRight: 8 }} />
+            Địa chỉ trụ sở chính
+          </strong>
         </Divider>
       ),
     },
@@ -398,10 +306,14 @@ export default function CreatePartnerPage() {
       required: true,
       options: provinceOptions,
       showSearch: true,
+      rules: [{ required: true, message: "Vui lòng chọn tỉnh/thành phố!" }],
       onChange: (value) => {
         fetchWards(value);
         setSelectedProvince(value);
         setProvinceName(provinces.find((p) => p.code === value)?.name || "");
+        // Reset ward when province changes
+        formRef.current?.setFieldsValue({ ward_code: undefined });
+        setWardName("");
       },
     },
     {
@@ -413,82 +325,71 @@ export default function CreatePartnerPage() {
       options: wardOptions,
       showSearch: true,
       disabled: !selectedProvince,
+      rules: [{ required: true, message: "Vui lòng chọn phường/xã!" }],
       onChange: (value) => {
         setWardName(wards.find((w) => w.code === value)?.name || "");
       },
     },
     {
-      name: "postal_code",
-      label: "Mã bưu điện",
-      type: "input",
-      placeholder: "Ví dụ: 900000",
-      required: false,
-    },
-    {
       name: "head_office_address",
-      label: "Địa chỉ trụ sở chính",
+      label: "Địa chỉ chi tiết",
       type: "input",
-      placeholder: "Nhập địa chỉ đầy đủ...",
+      placeholder: "Số nhà, tên đường...",
       required: true,
       maxLength: 255,
-      gridColumn: "span 3",
+      gridColumn: "span 2",
       disabled: !selectedProvince,
+      rules: [
+        { required: true, message: "Vui lòng nhập địa chỉ!" },
+        { max: 255, message: "Địa chỉ tối đa 255 ký tự!" },
+      ],
     },
 
-    // ============= GIẤY PHÉP BẢO HIỂM =============
+    // ========== GIẤY PHÉP BẢO HIỂM ==========
     {
       name: "divider_license",
       type: "custom",
       label: "",
-      gridColumn: "span 3",
+      gridColumn: "span 2",
       render: () => (
-        <Divider orientation="left" style={{ marginTop: 16, marginBottom: 8 }}>
-          <strong style={{ fontSize: "16px" }}>Giấy phép bảo hiểm</strong>
+        <Divider orientation="left" style={{ marginTop: 24, marginBottom: 16 }}>
+          <strong style={{ fontSize: "16px", color: "#1890ff" }}>
+            <SafetyCertificateOutlined style={{ marginRight: 8 }} />
+            Giấy phép bảo hiểm
+          </strong>
         </Divider>
       ),
     },
     {
       name: "insurance_license_number",
-      label: "Số giấy phép bảo hiểm",
+      label: "Số giấy phép",
       type: "input",
       placeholder: "Ví dụ: 1234567890",
       required: true,
       rules: [
-        {
-          required: true,
-          message: "Vui lòng nhập số giấy phép bảo hiểm!",
-        },
+        { required: true, message: "Vui lòng nhập số giấy phép!" },
         {
           pattern: /^\d{10}(-\d{3})?$/,
-          message:
-            "Số giấy phép phải có định dạng 10 chữ số hoặc 10 chữ số-XXX",
+          message: "Số giấy phép: 10 chữ số hoặc 10-XXX",
         },
       ],
     },
     {
       name: "license_issue_date",
-      label: "Ngày cấp giấy phép",
+      label: "Ngày cấp",
       type: "datepicker",
       placeholder: "Chọn ngày cấp...",
       required: true,
+      rules: [{ required: true, message: "Vui lòng chọn ngày cấp giấy phép!" }],
     },
     {
       name: "license_expiry_date",
-      label: "Ngày hết hạn giấy phép",
+      label: "Ngày hết hạn",
       type: "datepicker",
       placeholder: "Chọn ngày hết hạn...",
       required: true,
-    },
-    {
-      name: "license_status",
-      label: "Trạng thái giấy phép",
-      type: "select",
-      placeholder: "Chọn trạng thái...",
-      required: false,
-      options: [
-        { label: "Còn hiệu lực", value: "active" },
-        { label: "Sắp hết hạn", value: "expiring_soon" },
-        { label: "Hết hạn", value: "expired" },
+      rules: [
+        { required: true, message: "Vui lòng chọn ngày hết hạn giấy phép!" },
       ],
     },
     {
@@ -498,89 +399,24 @@ export default function CreatePartnerPage() {
       placeholder: "Chọn loại hình bảo hiểm...",
       required: true,
       options: insuranceLinesOptions,
+      gridColumn: "span 2",
+      rules: [
+        { required: true, message: "Vui lòng chọn ít nhất 1 loại hình!" },
+      ],
     },
     {
       name: "operating_provinces",
       label: "Tỉnh/Thành phố hoạt động",
       type: "multiselect",
-      placeholder: "Chọn tỉnh/thành phố...",
+      placeholder: "Chọn tỉnh/thành phố hoạt động...",
       required: true,
       options: provinceOptions,
       showSearch: true,
-      mode: "tags",
-      gridColumn: "span 3",
-    },
-    {
-      name: "coverage_areas",
-      label: "Khu vực phủ sóng",
-      type: "multiselect",
-      placeholder: "Chọn tỉnh/thành phố...",
-      required: false,
-      options: provinceOptions,
-      showSearch: true,
-      mode: "tags",
-      gridColumn: "span 3",
-    },
-
-    // ============= CHỈ SỐ TIN CẬY & THỐNG KÊ =============
-    {
-      name: "divider_metrics",
-      type: "custom",
-      label: "",
-      gridColumn: "span 3",
-      render: () => (
-        <Divider orientation="left" style={{ marginTop: 16, marginBottom: 8 }}>
-          <strong style={{ fontSize: "16px" }}>
-            Chỉ số tin cậy & Thống kê
-          </strong>
-        </Divider>
-      ),
-    },
-    {
-      name: "trust_metric_experience",
-      label: "Năm kinh nghiệm",
-      type: "number",
-      placeholder: "Nhập số năm...",
-      required: false,
-      min: 0,
-    },
-    {
-      name: "trust_metric_clients",
-      label: "Số lượng khách hàng",
-      type: "number",
-      placeholder: "Nhập số lượng...",
-      required: false,
-      min: 0,
-    },
-    {
-      name: "trust_metric_claim_rate",
-      label: "Tỷ lệ bồi thường (%)",
-      type: "number",
-      placeholder: "Nhập tỷ lệ %...",
-      required: false,
-      min: 0,
-      max: 100,
-    },
-    {
-      name: "total_payouts",
-      label: "Tổng chi trả",
-      type: "input",
-      placeholder: "Ví dụ: Khoảng 2.7 tỷ VND",
-      required: false,
-    },
-    {
-      name: "average_payout_time",
-      label: "Thời gian chi trả trung bình",
-      type: "input",
-      placeholder: "Ví dụ: 4 ngày làm việc",
-      required: false,
-    },
-    {
-      name: "confirmation_timeline",
-      label: "Thời gian xác nhận",
-      type: "input",
-      placeholder: "Ví dụ: Trong vòng 36 giờ",
-      required: false,
+      mode: "multiple",
+      gridColumn: "span 2",
+      rules: [
+        { required: true, message: "Vui lòng chọn ít nhất 1 tỉnh hoạt động!" },
+      ],
     },
   ];
 
@@ -589,15 +425,19 @@ export default function CreatePartnerPage() {
       <div className="data-page-container">
         <div className="data-page-header">
           <Title level={2} className="data-page-title">
-            Tạo thông tin đối tác bảo hiểm mới
+            Tạo đối tác bảo hiểm mới
           </Title>
+          <p style={{ color: "#666", marginTop: 8 }}>
+            Điền thông tin cơ bản để tạo hồ sơ đối tác bảo hiểm. Các trường đánh
+            dấu <span style={{ color: "red" }}>*</span> là bắt buộc.
+          </p>
         </div>
 
         <div className="data-form-container">
           <CustomForm
             ref={formRef}
             fields={formFields}
-            gridColumns="1fr 1fr 1fr"
+            gridColumns="1fr 1fr"
             gap="16px"
           />
 
@@ -606,12 +446,15 @@ export default function CreatePartnerPage() {
               display: "flex",
               gap: "12px",
               justifyContent: "flex-end",
-              marginTop: "24px",
+              marginTop: "32px",
+              paddingTop: "24px",
+              borderTop: "1px solid #f0f0f0",
             }}
           >
             <Button
               size="large"
               onClick={() => router.push("/accounts/partner")}
+              style={{ minWidth: 120 }}
             >
               Hủy
             </Button>
@@ -620,8 +463,9 @@ export default function CreatePartnerPage() {
               size="large"
               onClick={handleSubmitClick}
               loading={submitting}
+              style={{ minWidth: 120 }}
             >
-              Tạo đối tác
+              {submitting ? "Đang tạo..." : "Tạo đối tác"}
             </Button>
           </div>
         </div>
