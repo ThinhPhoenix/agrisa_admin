@@ -2,6 +2,7 @@
 
 import { CustomForm } from "@/components/custom-form";
 import { getRegisterValidation } from "@/libs/message/auth-message";
+import { useAccounts } from "@/services/hooks/accounts/use-accounts";
 import { useCreateAccount } from "@/services/hooks/accounts/use-create-account";
 import { ArrowLeftOutlined, SaveOutlined } from "@ant-design/icons";
 import { Button, Layout, Space, Typography } from "antd";
@@ -14,6 +15,7 @@ const { Title, Text } = Typography;
 export default function CreateAccountPage() {
   const router = useRouter();
   const { createAccount, loading } = useCreateAccount();
+  const { roles } = useAccounts();
 
   // Handle form submit
   const handleFormSubmit = async (formData) => {
@@ -35,8 +37,11 @@ export default function CreateAccountPage() {
         },
       };
 
-      // Call API to create account
-      const result = await createAccount(registerData);
+      // Get role_name from form
+      const roleName = formData.role || "user";
+
+      // Call API to create account with role_name
+      const result = await createAccount(registerData, roleName);
 
       // If successful, redirect to accounts list
       if (result.success) {
@@ -46,6 +51,12 @@ export default function CreateAccountPage() {
       console.error("Error in form submission:", error);
     }
   };
+
+  // Transform roles to options for select
+  const roleOptions = (roles || []).map((role) => ({
+    label: role.display_name || role.name,
+    value: role.name,
+  }));
 
   // Form fields - following API requirements from REGISTER_API_VALIDATION.md
   const formFields = [
@@ -157,13 +168,23 @@ export default function CreateAccountPage() {
       rules: [{ required: true, message: "Vui lòng chọn giới tính!" }],
     },
 
-    // Row 3: Address (full width)
+    // Row 3: Role, Address (role takes 1 column, address takes 2)
+    {
+      name: "role",
+      label: "Vai trò",
+      type: "select",
+      placeholder: "Chọn vai trò",
+      required: true,
+      options: roleOptions,
+      rules: [{ required: true, message: "Vui lòng chọn vai trò!" }],
+    },
     {
       name: "address",
       label: "Địa chỉ",
       type: "input",
       placeholder: "Nhập địa chỉ đầy đủ",
       required: true,
+      gridColumn: "span 2",
       rules: [
         { required: true, message: "Vui lòng nhập địa chỉ!" },
         { min: 10, message: "Địa chỉ phải có ít nhất 10 ký tự!" },

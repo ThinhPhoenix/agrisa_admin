@@ -7,6 +7,7 @@ export const endpoints = {
     sign_up: `${prefix}/auth/sign-up`,
     register: `/auth/public/register`,
     me: `/profile/protected/api/v1/me`,
+    roles: `/auth/protected/api/v2/role`,
   },
   user: {
     find: `${prefix}/users`,
@@ -16,6 +17,7 @@ export const endpoints = {
     delete: (id) => `${prefix}/users/${id}`,
     list: "/auth/public/api/v2/users?limit=100&",
     profile: (id) => `/profile/public/api/v1/users/${id}`,
+    register: (role_name) => `/auth/public/register?role_name=${role_name}`,
   },
   policy: {
     data_tier: {

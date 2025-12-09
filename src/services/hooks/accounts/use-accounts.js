@@ -7,12 +7,26 @@ export function useAccounts() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [roles, setRoles] = useState([]);
   const [filters, setFilters] = useState({
     username: "",
     email: "",
     role: "",
     status: "",
   });
+
+  // Fetch roles from API
+  const fetchRoles = useCallback(async () => {
+    try {
+      const response = await axiosInstance.get(endpoints.auth.roles);
+      const rolesData = response.data?.data || [];
+      setRoles(rolesData);
+    } catch (err) {
+      console.error("Error fetching roles:", err);
+      message.error("Lỗi khi tải danh sách vai trò: " + err.message);
+      setRoles([]);
+    }
+  }, []);
 
   // Fetch data from API
   const fetchData = useCallback(async () => {
@@ -55,13 +69,15 @@ export function useAccounts() {
 
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+    fetchRoles();
+  }, [fetchData, fetchRoles]);
 
   // Filter options
   const filterOptions = useMemo(() => {
-    const roles = [...new Set(data.map((item) => item.role))].map((role) => ({
-      label: role,
-      value: role,
+    // Use roles from API instead of extracting from data
+    const roleOptions = roles.map((role) => ({
+      label: role.display_name || role.name,
+      value: role.name,
     }));
 
     const statuses = [...new Set(data.map((item) => item.status))].map(
@@ -72,10 +88,10 @@ export function useAccounts() {
     );
 
     return {
-      roles,
+      roles: roleOptions,
       statuses,
     };
-  }, [data]);
+  }, [data, roles]);
 
   // Filtered data
   const filteredData = useMemo(() => {
@@ -125,6 +141,27 @@ export function useAccounts() {
     });
   };
 
+  // Register user with role
+  const registerUser = useCallback(async (userData, roleName) => {
+    try {
+      const response = await axiosInstance.post(
+        endpoints.user.register(roleName),
+        userData
+      );
+      message.success("Đăng ký tài khoản thành công!");
+      await fetchData(); // Refresh data
+      return response.data;
+    } catch (err) {
+      console.error("Error registering user:", err);
+      const errorMessage =
+        err.response?.data?.error?.message ||
+        err.response?.data?.message ||
+        "Lỗi khi đăng ký tài khoản";
+      message.error(errorMessage);
+      throw err;
+    }
+  }, [fetchData]);
+
   return {
     data,
     filteredData,
@@ -136,5 +173,7 @@ export function useAccounts() {
     loading,
     error,
     refetch: fetchData,
+    roles,
+    registerUser,
   };
 }
