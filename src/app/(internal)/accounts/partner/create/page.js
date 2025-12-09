@@ -3,18 +3,12 @@
 import { CustomForm } from "@/components/custom-form";
 import { usePartners } from "@/services/hooks/partner/use-partner";
 import {
-  Button,
-  Divider,
-  Layout,
-  message,
-  Typography
-} from "antd";
-import {
+  EnvironmentOutlined,
   IdcardOutlined,
   PhoneOutlined,
-  EnvironmentOutlined,
-  SafetyCertificateOutlined
+  SafetyCertificateOutlined,
 } from "@ant-design/icons";
+import { Button, Divider, Layout, message, Typography } from "antd";
 import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
