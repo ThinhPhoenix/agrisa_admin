@@ -19,10 +19,14 @@ export function useAccounts() {
   const fetchRoles = useCallback(async () => {
     try {
       const response = await axiosInstance.get(endpoints.auth.roles);
-      const rolesData = response.data?.data || [];
+      // API returns roles directly in response.data.roles, not in response.data.data
+      const rolesData = response.data?.roles || [];
+      console.log("Fetched roles:", rolesData);
       setRoles(rolesData);
     } catch (err) {
       console.error("Error fetching roles:", err);
+      console.error("Endpoint:", endpoints.auth.roles);
+      console.error("Response:", err.response?.data);
       message.error("Lỗi khi tải danh sách vai trò: " + err.message);
       setRoles([]);
     }
@@ -142,25 +146,28 @@ export function useAccounts() {
   };
 
   // Register user with role
-  const registerUser = useCallback(async (userData, roleName) => {
-    try {
-      const response = await axiosInstance.post(
-        endpoints.user.register(roleName),
-        userData
-      );
-      message.success("Đăng ký tài khoản thành công!");
-      await fetchData(); // Refresh data
-      return response.data;
-    } catch (err) {
-      console.error("Error registering user:", err);
-      const errorMessage =
-        err.response?.data?.error?.message ||
-        err.response?.data?.message ||
-        "Lỗi khi đăng ký tài khoản";
-      message.error(errorMessage);
-      throw err;
-    }
-  }, [fetchData]);
+  const registerUser = useCallback(
+    async (userData, roleName) => {
+      try {
+        const response = await axiosInstance.post(
+          endpoints.user.register(roleName),
+          userData
+        );
+        message.success("Đăng ký tài khoản thành công!");
+        await fetchData(); // Refresh data
+        return response.data;
+      } catch (err) {
+        console.error("Error registering user:", err);
+        const errorMessage =
+          err.response?.data?.error?.message ||
+          err.response?.data?.message ||
+          "Lỗi khi đăng ký tài khoản";
+        message.error(errorMessage);
+        throw err;
+      }
+    },
+    [fetchData]
+  );
 
   return {
     data,
