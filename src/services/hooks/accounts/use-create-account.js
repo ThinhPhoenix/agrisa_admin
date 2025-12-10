@@ -26,18 +26,19 @@ export function useCreateAccount() {
    * @param {string} registerData.user_profile.date_of_birth - Date of birth (YYYY-MM-DD)
    * @param {string} registerData.user_profile.gender - Gender (male, female, other)
    * @param {string} registerData.user_profile.address - Address
+   * @param {string} roleName - Role name (required, e.g., "admin", "farmer", "user_default")
    * @returns {Promise<object>} Created user data
    */
-  const createAccount = async (registerData) => {
+  const createAccount = async (registerData, roleName = "user_default") => {
     try {
       setLoading(true);
       setError(null);
 
-      // Call register API
-      const response = await axiosInstance.post(
-        endpoints.auth.register,
-        registerData
-      );
+      // Call register API with role name
+      const response = await axiosInstance.post(endpoints.auth.register, {
+        ...registerData,
+        role: roleName,
+      });
 
       // Extract user data from response
       const userData = response.data.data?.user || response.data.data;

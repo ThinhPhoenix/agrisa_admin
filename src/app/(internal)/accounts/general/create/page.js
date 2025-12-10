@@ -37,8 +37,8 @@ export default function CreateAccountPage() {
         },
       };
 
-      // Get role_name from form
-      const roleName = formData.role || "user";
+      // Get role_name from form (value is the role name from options)
+      const roleName = formData.role || "user_default";
 
       // Call API to create account with role_name
       const result = await createAccount(registerData, roleName);
@@ -87,7 +87,8 @@ export default function CreateAccountPage() {
         { min: 10, message: "Số điện thoại phải có ít nhất 10 ký tự!" },
         {
           pattern: /^(\+84|0)[3|5|7|8|9][0-9]{8}$/,
-          message: "Số điện thoại không hợp lệ! (VD: 0987654321 hoặc +84987654321)",
+          message:
+            "Số điện thoại không hợp lệ! (VD: 0987654321 hoặc +84987654321)",
         },
       ],
     },
@@ -126,7 +127,10 @@ export default function CreateAccountPage() {
       placeholder: "Chọn ngày sinh",
       required: true,
       rules: [
-        { required: true, message: getRegisterValidation("DATE_OF_BIRTH_REQUIRED") },
+        {
+          required: true,
+          message: getRegisterValidation("DATE_OF_BIRTH_REQUIRED"),
+        },
         {
           validator: (_, value) => {
             if (!value) {
