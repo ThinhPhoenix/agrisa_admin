@@ -55,8 +55,8 @@ export default function HeaderCard({
               style={{ fontSize: "11px", marginTop: "4px", display: "block" }}
             >
               {useAIData
-                ? "Dữ liệu từ AI. Chỉ có thể chọn trạng thái xác thực."
-                : "Form trống. Nhập dữ liệu xác thực thủ công."}
+                ? " Dùng dữ liệu AI. Bạn có thể xem, chỉnh sửa chi tiết và thêm ghi chú."
+                : " Nhập thủ công. Tổng số kiểm tra tự động tính từ: Đạt + Lỗi + Cảnh báo."}
             </Text>
           </>
         )}

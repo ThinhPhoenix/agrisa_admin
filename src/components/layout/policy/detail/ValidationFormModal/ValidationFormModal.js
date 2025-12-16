@@ -36,6 +36,7 @@ export default function ValidationFormModal(props) {
     successPercent,
     handleCompositionStart,
     handleCompositionEnd,
+    recalculateCountsFromItems,
   } = useValidationForm({
     open,
     latestValidation,
@@ -45,6 +46,8 @@ export default function ValidationFormModal(props) {
     onCancel,
     basePolicyId,
   });
+
+  // No need for manual validation - form.validateFields() will handle it
 
   const getModalTitle = () => {
     switch (mode) {
@@ -116,7 +119,12 @@ export default function ValidationFormModal(props) {
         handleCompositionStart={handleCompositionStart}
         handleCompositionEnd={handleCompositionEnd}
       />
-      <DetailsCard form={form} useAIData={useAIData} formValues={formValues} />
+      <DetailsCard
+        form={form}
+        useAIData={useAIData}
+        formValues={formValues}
+        recalculateCountsFromItems={recalculateCountsFromItems}
+      />
       {/* <FAQCard /> */}
     </Modal>
   );

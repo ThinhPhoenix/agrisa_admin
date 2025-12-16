@@ -151,15 +151,61 @@ const BasicFormCard = memo(function BasicFormCard({
       title={
         <span style={{ fontWeight: 600 }}>
           <BarChartOutlined style={{ marginRight: "8px" }} />
-          Thông tin xác thực
+          Thông tin xác thực thủ công
         </span>
       }
       size="small"
       style={{ marginBottom: "16px" }}
     >
+      {/* Total checks - prominent display */}
+      <Card
+        size="small"
+        style={{
+          textAlign: "center",
+          marginBottom: "16px",
+          background: "#f0f5ff",
+          border: "1px solid #adc6ff",
+        }}
+      >
+        <Statistic
+          title={
+            <span style={{ fontSize: "14px", fontWeight: 500 }}>
+              Tổng số kiểm tra
+            </span>
+          }
+          value={formValues?.total_checks || 0}
+          prefix={<ClockCircleOutlined />}
+          valueStyle={{ color: "#1890ff", fontSize: "32px" }}
+        />
+        <Text type="secondary" style={{ fontSize: "12px" }}>
+          = Đạt + Lỗi + Cảnh báo
+        </Text>
+      </Card>
+
+      {/* Input fields for manual entry */}
       <CustomForm
         form={form}
-        fields={fields}
+        fields={fields
+          .filter(
+            (f) =>
+              f.name !== "total_checks" &&
+              (f.name === "validation_status" ||
+                f.name === "passed_checks" ||
+                f.name === "failed_checks" ||
+                f.name === "warning_count" ||
+                f.name === "validation_notes")
+          )
+          .map((field) => {
+            // Add composition handlers to validation_notes to fix Vietnamese input
+            if (field.name === "validation_notes") {
+              return {
+                ...field,
+                onCompositionStart: handleCompositionStart,
+                onCompositionEnd: handleCompositionEnd,
+              };
+            }
+            return field;
+          })}
         onValuesChange={handleValuesChange}
         gridColumns="repeat(2, 1fr)"
         gap="16px"

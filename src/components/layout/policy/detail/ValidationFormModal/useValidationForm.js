@@ -1,5 +1,5 @@
 import { Form } from "antd";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export default function useValidationForm({
   open,
@@ -93,7 +93,7 @@ export default function useValidationForm({
       }
 
       const initialValues = {
-        validation_status: validationStatus || "pending",
+        validation_status: validationStatus, // Don't set default - user must choose
         total_checks: latestValidation.total_checks || 0,
         passed_checks: latestValidation.passed_checks || 0,
         failed_checks: latestValidation.failed_checks || 0,
@@ -122,7 +122,7 @@ export default function useValidationForm({
       setWarningsData(warningsArray);
     } else {
       const defaultValues = {
-        validation_status: "pending",
+        validation_status: undefined, // Don't set default - user must choose
         total_checks: 0,
         passed_checks: 0,
         failed_checks: 0,
@@ -449,33 +449,92 @@ export default function useValidationForm({
     onCancel();
   };
 
+  // Recalculate counts from items arrays (memoized to avoid re-creation)
+  const recalculateCountsFromItems = useCallback(() => {
+    const currentMismatches = form.getFieldValue("mismatches") || [];
+    const currentWarnings = form.getFieldValue("warnings") || [];
+    const currentRecommendations = form.getFieldValue("recommendations") || [];
+
+    const failedCount = currentMismatches.length;
+    const warningCount = currentWarnings.length;
+    const passedCount = formValues?.passed_checks || 0;
+    const totalCount = passedCount + failedCount + warningCount;
+
+    console.log("🔄 Recalculating from items:", {
+      mismatches: failedCount,
+      warnings: warningCount,
+      passed: passedCount,
+      total: totalCount,
+    });
+
+    setFormValues((prev) => ({
+      ...prev,
+      total_checks: totalCount,
+      failed_checks: failedCount,
+      warning_count: warningCount,
+    }));
+
+    // Update form fields
+    form.setFieldsValue({
+      total_checks: totalCount,
+      failed_checks: failedCount,
+      warning_count: warningCount,
+    });
+
+    // Update state arrays
+    setMismatchesData(currentMismatches);
+    setWarningsData(currentWarnings);
+    setRecommendationsData(currentRecommendations);
+  }, [form, formValues?.passed_checks]);
+
   const handleValuesChange = (changedValues, allValues) => {
     // Skip updates during IME composition
     if (isComposingRef.current) return;
+
+    // Skip update if only validation_notes changed (to avoid re-render during Vietnamese input)
+    if (
+      "validation_notes" in changedValues &&
+      Object.keys(changedValues).length === 1
+    ) {
+      console.log("  ⏭️ Skipping validation_notes update to avoid re-render");
+      return;
+    }
 
     console.log("━━━ handleValuesChange ━━━");
     console.log("  useAIData:", useAIData);
     console.log("  changedValues:", changedValues);
     console.log("  allValues:", allValues);
 
-    // Khi dùng AI data, chỉ cập nhật validation_status và validation_notes
+    // Khi dùng AI data, chỉ cập nhật validation_status
     // Không thay đổi các thông số AI (total_checks, passed_checks, etc.)
+    // Không update validation_notes vào formValues để tránh re-render
     if (useAIData) {
       setFormValues((prev) => {
         const updated = { ...prev };
         if ("validation_status" in changedValues) {
           updated.validation_status = changedValues.validation_status;
         }
-        if ("validation_notes" in changedValues) {
-          updated.validation_notes = changedValues.validation_notes;
-        }
         console.log("  ✅ Updated formValues (AI mode):", updated);
         return updated;
       });
     } else {
-      // Khi manual, cập nhật tất cả
-      console.log("  ✅ Setting formValues (manual mode):", allValues);
-      setFormValues(allValues);
+      // Khi manual mode, tự động tính total_checks từ passed + failed + warning
+      const passed = parseInt(allValues.passed_checks) || 0;
+      const failed = parseInt(allValues.failed_checks) || 0;
+      const warning = parseInt(allValues.warning_count) || 0;
+      const calculatedTotal = passed + failed + warning;
+
+      const updatedValues = {
+        ...allValues,
+        total_checks: calculatedTotal,
+      };
+
+      // Cập nhật form với total_checks mới
+      form.setFieldValue("total_checks", calculatedTotal);
+
+      console.log("  ✅ Setting formValues (manual mode):", updatedValues);
+      console.log("  📊 Auto-calculated total_checks:", calculatedTotal);
+      setFormValues(updatedValues);
     }
   };
 
@@ -521,28 +580,14 @@ export default function useValidationForm({
       placeholder: "0",
       min: 0,
       gridColumn: "span 1",
-      disabled: useAIData,
+      disabled: true, // Always disabled - auto-calculated
       rules: [
         { required: true, message: "Bắt buộc" },
         { type: "number", min: 0, message: "Phải >= 0" },
-        ({ getFieldValue }) => ({
-          validator(_, value) {
-            const passed = getFieldValue("passed_checks");
-            const failed = getFieldValue("failed_checks");
-            const warning = getFieldValue("warning_count");
-            const sum =
-              (parseInt(passed) || 0) +
-              (parseInt(failed) || 0) +
-              (parseInt(warning) || 0);
-            if (value != null && value !== sum) {
-              return Promise.reject(
-                new Error(`Tổng số phải = Đạt + Lỗi + Cảnh báo (${sum})`)
-              );
-            }
-            return Promise.resolve();
-          },
-        }),
       ],
+      help: useAIData
+        ? "Tự động từ dữ liệu AI"
+        : "Tự động = Đạt + Lỗi + Cảnh báo",
     },
     {
       type: "number",
@@ -555,23 +600,6 @@ export default function useValidationForm({
       rules: [
         { required: true, message: "Bắt buộc" },
         { type: "number", min: 0, message: "Phải >= 0" },
-        ({ getFieldValue }) => ({
-          validator(_, value) {
-            const total = getFieldValue("total_checks");
-            const failed = getFieldValue("failed_checks");
-            const warning = getFieldValue("warning_count");
-            const sum =
-              (parseInt(value) || 0) +
-              (parseInt(failed) || 0) +
-              (parseInt(warning) || 0);
-            if (total != null && sum > total) {
-              return Promise.reject(
-                new Error("Đạt + Lỗi + Cảnh báo không được > Tổng số")
-              );
-            }
-            return Promise.resolve();
-          },
-        }),
       ],
     },
     {
@@ -585,23 +613,6 @@ export default function useValidationForm({
       rules: [
         { required: true, message: "Bắt buộc" },
         { type: "number", min: 0, message: "Phải >= 0" },
-        ({ getFieldValue }) => ({
-          validator(_, value) {
-            const total = getFieldValue("total_checks");
-            const passed = getFieldValue("passed_checks");
-            const warning = getFieldValue("warning_count");
-            const sum =
-              (parseInt(passed) || 0) +
-              (parseInt(value) || 0) +
-              (parseInt(warning) || 0);
-            if (total != null && sum > total) {
-              return Promise.reject(
-                new Error("Đạt + Lỗi + Cảnh báo không được > Tổng số")
-              );
-            }
-            return Promise.resolve();
-          },
-        }),
       ],
     },
     {
@@ -615,23 +626,6 @@ export default function useValidationForm({
       rules: [
         { required: true, message: "Bắt buộc" },
         { type: "number", min: 0, message: "Phải >= 0" },
-        ({ getFieldValue }) => ({
-          validator(_, value) {
-            const total = getFieldValue("total_checks");
-            const passed = getFieldValue("passed_checks");
-            const failed = getFieldValue("failed_checks");
-            const sum =
-              (parseInt(passed) || 0) +
-              (parseInt(failed) || 0) +
-              (parseInt(value) || 0);
-            if (total != null && sum > total) {
-              return Promise.reject(
-                new Error("Đạt + Lỗi + Cảnh báo không được > Tổng số")
-              );
-            }
-            return Promise.resolve();
-          },
-        }),
       ],
     },
     {
@@ -663,10 +657,11 @@ export default function useValidationForm({
       name: "validation_notes",
       label: "Ghi chú xác thực",
       placeholder:
-        "Đã hoàn thành xem xét thủ công. Các sai lệch nhỏ đã được ghi nhận nhưng có thể chấp nhận được.",
+        "Ví dụ: Đã hoàn thành xem xét thủ công. Các sai lệch nhỏ đã được ghi nhận nhưng có thể chấp nhận được.",
       autoSize: { minRows: 4, maxRows: 20 },
       disabled: false,
       rules: [],
+      help: "Mô tả chi tiết về quá trình xác thực, lý do chấp nhận/từ chối",
     },
   ];
 
@@ -695,5 +690,6 @@ export default function useValidationForm({
     latestValidation,
     handleCompositionStart,
     handleCompositionEnd,
+    recalculateCountsFromItems,
   };
 }

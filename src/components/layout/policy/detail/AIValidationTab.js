@@ -5,7 +5,6 @@ import {
   CalendarOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
-  ExclamationCircleOutlined,
   WarningOutlined,
 } from "@ant-design/icons";
 import { Alert, Card, Col, Divider, Row, Tag, Typography } from "antd";
@@ -158,130 +157,6 @@ export default function AIValidationTab({
     },
   ];
 
-  const expandedRowRender = (validation) => (
-    <div style={{ padding: 12 }}>
-      {/* Mismatches */}
-      {validation.mismatches &&
-        Object.keys(validation.mismatches).length > 0 && (
-          <div style={{ marginBottom: 12 }}>
-            <Text strong>
-              <ExclamationCircleOutlined /> Sai khác:
-            </Text>
-            <div style={{ marginTop: 8 }}>
-              {Object.entries(validation.mismatches).map(([key, value]) => (
-                <Card
-                  key={key}
-                  size="small"
-                  style={{
-                    marginBottom: 8,
-                    borderLeft: `3px solid ${
-                      value.severity === "critical"
-                        ? "#ff4d4f"
-                        : value.severity === "important"
-                        ? "#faad14"
-                        : "#1890ff"
-                    }`,
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      marginBottom: 4,
-                    }}
-                  >
-                    <Text strong>{key}</Text>
-                    {getSeverityBadge(value.severity)}
-                  </div>
-                  <Paragraph type="secondary" style={{ marginBottom: 8 }}>
-                    {value.impact}
-                  </Paragraph>
-                  <Row gutter={16}>
-                    <Col span={12}>
-                      <Text type="secondary">Giá trị JSON:</Text>
-                      <br />
-                      <Text code>{JSON.stringify(value.json_value)}</Text>
-                    </Col>
-                    <Col span={12}>
-                      <Text type="secondary">Giá trị PDF:</Text>
-                      <br />
-                      <Text code>{JSON.stringify(value.pdf_value)}</Text>
-                    </Col>
-                  </Row>
-                </Card>
-              ))}
-            </div>
-          </div>
-        )}
-
-      {/* Warnings */}
-      {validation.warnings && Object.keys(validation.warnings).length > 0 && (
-        <div style={{ marginBottom: 12 }}>
-          <Text strong type="warning">
-            <WarningOutlined /> Cảnh báo:
-          </Text>
-          <div style={{ marginTop: 8 }}>
-            {Object.entries(validation.warnings).map(([key, value]) => (
-              <Alert
-                key={key}
-                message={key}
-                description={value.recommendation}
-                type="warning"
-                showIcon
-                style={{ marginBottom: 8 }}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Recommendations */}
-      {validation.recommendations &&
-        Object.keys(validation.recommendations).length > 0 && (
-          <div style={{ marginBottom: 12 }}>
-            <Text strong type="info">
-              <CheckCircleOutlined /> Đề xuất:
-            </Text>
-            <div style={{ marginTop: 8 }}>
-              {Object.entries(validation.recommendations).map(
-                ([key, value]) => (
-                  <Alert
-                    key={key}
-                    message={`${key} (Priority: ${value.priority})`}
-                    description={
-                      <div>
-                        <Paragraph>{value.suggestion}</Paragraph>
-                        {value.affected_fields && (
-                          <div>
-                            <Text type="secondary">
-                              Các trường bị ảnh hưởng:
-                            </Text>
-                            <br />
-                            {value.affected_fields.map((field) => (
-                              <Tag key={field}>{field}</Tag>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    }
-                    type="info"
-                    showIcon
-                    style={{ marginBottom: 8 }}
-                  />
-                )
-              )}
-            </div>
-          </div>
-        )}
-
-      {validation.validation_notes && (
-        <div>
-          <Text type="secondary">Ghi chú: </Text>
-          <Text>{validation.validation_notes}</Text>
-        </div>
-      )}
-    </div>
-  );
   return (
     <div className="ai-validation-tab">
       <div>
@@ -493,13 +368,13 @@ export default function AIValidationTab({
                 ),
               },
               {
-                title: "JSON",
+                title: "Trong điều khoản",
                 dataIndex: "json_value",
                 key: "json",
                 render: (j) => <Text code>{JSON.stringify(j)}</Text>,
               },
               {
-                title: "PDF",
+                title: "Trong tệp PDF",
                 dataIndex: "pdf_value",
                 key: "pdf",
                 render: (p) => <Text code>{JSON.stringify(p)}</Text>,

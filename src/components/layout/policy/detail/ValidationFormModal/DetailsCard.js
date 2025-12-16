@@ -18,9 +18,14 @@ import {
   Tooltip,
 } from "antd";
 
-export default function DetailsCard({ form, useAIData, formValues }) {
+export default function DetailsCard({
+  form,
+  useAIData,
+  formValues,
+  recalculateCountsFromItems,
+}) {
   if (useAIData) {
-    // Show read-only summary when using AI data
+    // Show editable items when using AI data
     const mismatches = form.getFieldValue("mismatches") || [];
     const warnings = form.getFieldValue("warnings") || [];
     const recommendations = form.getFieldValue("recommendations") || [];
@@ -30,143 +35,322 @@ export default function DetailsCard({ form, useAIData, formValues }) {
         title={
           <span style={{ fontWeight: 600 }}>
             <CloseCircleOutlined style={{ color: "#ff4d4f" }} />
-            Chi tiết xác thực từ AI (Chỉ xem)
+            Chi tiết xác thực từ AI (Có thể chỉnh sửa)
           </span>
         }
         size="small"
         style={{ marginBottom: "16px" }}
       >
-        {/* Mismatches Summary */}
-        {mismatches.length > 0 && (
-          <div style={{ marginBottom: "16px" }}>
-            <div
-              style={{
-                fontWeight: 600,
-                fontSize: "14px",
-                color: "#ff4d4f",
-                marginBottom: "8px",
-              }}
-            >
-              <CloseCircleOutlined /> Lỗi sai ({mismatches.length})
-            </div>
-            <div style={{ marginTop: "8px" }}>
-              {mismatches.slice(0, 3).map((item, index) => (
-                <Alert
-                  key={index}
-                  message={item.field}
-                  description={
-                    <div>
-                      <div>
-                        <span style={{ color: "#888" }}>Kỳ vọng: </span>
-                        <code
-                          style={{ background: "#f5f5f5", padding: "2px 6px" }}
-                        >
-                          {item.expected}
-                        </code>
-                      </div>
-                      <div style={{ marginTop: 4 }}>
-                        <span style={{ color: "#888" }}>Thực tế: </span>
-                        <code
-                          style={{ background: "#f5f5f5", padding: "2px 6px" }}
-                        >
-                          {item.actual}
-                        </code>
-                      </div>
-                      {item.impact && (
-                        <div
-                          style={{
-                            marginTop: 4,
-                            fontSize: "12px",
-                            color: "#666",
-                          }}
-                        >
-                          {item.impact}
-                        </div>
-                      )}
-                    </div>
-                  }
-                  type="error"
-                  showIcon
-                  style={{ marginBottom: 8 }}
-                />
-              ))}
-              {mismatches.length > 3 && (
-                <div style={{ fontSize: "12px", color: "#888" }}>
-                  ... và {mismatches.length - 3} lỗi khác
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Warnings Summary */}
-        {warnings.length > 0 && (
-          <div style={{ marginBottom: "16px" }}>
-            <div
-              style={{
-                fontWeight: 600,
-                fontSize: "14px",
-                color: "#faad14",
-                marginBottom: "8px",
-              }}
-            >
-              <WarningOutlined /> Cảnh báo ({warnings.length})
-            </div>
-            <div style={{ marginTop: "8px" }}>
-              {warnings.slice(0, 2).map((item, index) => (
-                <Alert
-                  key={index}
-                  message={item.field}
-                  description={item.message}
-                  type="warning"
-                  showIcon
-                  style={{ marginBottom: 8 }}
-                />
-              ))}
-              {warnings.length > 2 && (
-                <div style={{ fontSize: "12px", color: "#888" }}>
-                  ... và {warnings.length - 2} cảnh báo khác
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Recommendations Summary */}
-        {recommendations.length > 0 && (
-          <div>
-            <div
-              style={{
-                fontWeight: 600,
-                fontSize: "14px",
-                color: "#1890ff",
-                marginBottom: "8px",
-              }}
-            >
-              <BulbOutlined /> Đề xuất ({recommendations.length})
-            </div>
-            <div style={{ marginTop: "8px" }}>
-              {recommendations.map((item, index) => (
-                <Alert
-                  key={index}
-                  message={item.category}
-                  description={item.suggestion}
-                  type="info"
-                  showIcon
-                  style={{ marginBottom: 8 }}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
         <Alert
-          message="Chế độ xem AI"
-          description="Bạn đang xem dữ liệu từ AI. Chỉ có thể chọn trạng thái xác thực và thêm ghi chú."
+          message="Chế độ AI-Assisted"
+          description="Bạn có thể xem, chỉnh sửa, xóa hoặc thêm chi tiết. Số liệu tổng hợp sẽ tự động cập nhật."
           type="info"
           showIcon
-          style={{ marginTop: 16 }}
+          style={{ marginBottom: 16 }}
         />
+
+        {/* Mismatches - Editable */}
+        <div style={{ marginBottom: "24px" }}>
+          <div
+            style={{
+              marginBottom: "12px",
+              fontWeight: 600,
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+            }}
+          >
+            <CloseCircleOutlined style={{ color: "#ff4d4f" }} />
+            Lỗi sai ({mismatches.length})
+          </div>
+          <Form form={form} component={false}>
+            <Form.List name="mismatches">
+              {(fields, { add, remove }) => (
+                <>
+                  {fields.map(({ key, name, ...restField }, index) => (
+                    <Card
+                      key={key}
+                      size="small"
+                      style={{
+                        marginBottom: 8,
+                        background: "#fff2f0",
+                        border: "1px solid #ffccc7",
+                      }}
+                    >
+                      <Row gutter={12} align="middle">
+                        <Col span={5}>
+                          <Form.Item
+                            {...restField}
+                            label="Trường"
+                            name={[name, "field"]}
+                            style={{ marginBottom: 0 }}
+                          >
+                            <Input placeholder="Tên trường" />
+                          </Form.Item>
+                        </Col>
+                        <Col span={5}>
+                          <Form.Item
+                            {...restField}
+                            label="Kỳ vọng"
+                            name={[name, "expected"]}
+                            style={{ marginBottom: 0 }}
+                          >
+                            <Input placeholder="Giá trị kỳ vọng" />
+                          </Form.Item>
+                        </Col>
+                        <Col span={5}>
+                          <Form.Item
+                            {...restField}
+                            label="Thực tế"
+                            name={[name, "actual"]}
+                            style={{ marginBottom: 0 }}
+                          >
+                            <Input placeholder="Giá trị thực tế" />
+                          </Form.Item>
+                        </Col>
+                        <Col span={5}>
+                          <Form.Item
+                            {...restField}
+                            label="Mức độ"
+                            name={[name, "severity"]}
+                            style={{ marginBottom: 0 }}
+                          >
+                            <Select placeholder="Mức độ" size="small">
+                              <Select.Option value="low">Thấp</Select.Option>
+                              <Select.Option value="medium">
+                                Trung bình
+                              </Select.Option>
+                              <Select.Option value="high">Cao</Select.Option>
+                              <Select.Option value="critical">
+                                Nghiêm trọng
+                              </Select.Option>
+                            </Select>
+                          </Form.Item>
+                        </Col>
+                        <Col span={4} style={{ textAlign: "right" }}>
+                          <Button
+                            type="text"
+                            danger
+                            icon={<MinusCircleOutlined />}
+                            onClick={() => {
+                              remove(name);
+                              // Recalculate after deletion
+                              setTimeout(recalculateCountsFromItems, 100);
+                            }}
+                            size="small"
+                          >
+                            Xóa
+                          </Button>
+                        </Col>
+                      </Row>
+                    </Card>
+                  ))}
+                  <Button
+                    type="dashed"
+                    onClick={() => {
+                      add({
+                        field: "",
+                        expected: "",
+                        actual: "",
+                        severity: "medium",
+                      });
+                      // Recalculate after addition
+                      setTimeout(recalculateCountsFromItems, 100);
+                    }}
+                    block
+                    icon={<PlusOutlined />}
+                    style={{ marginTop: "8px" }}
+                  >
+                    Thêm lỗi sai
+                  </Button>
+                </>
+              )}
+            </Form.List>
+          </Form>
+        </div>
+
+        <div
+          style={{ height: "1px", background: "#e8e8e8", margin: "16px 0" }}
+        />
+
+        {/* Warnings - Editable */}
+        <div style={{ marginBottom: "24px" }}>
+          <div
+            style={{
+              marginBottom: "12px",
+              fontWeight: 600,
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+            }}
+          >
+            <WarningOutlined style={{ color: "#faad14" }} />
+            Cảnh báo ({warnings.length})
+          </div>
+          <Form form={form} component={false}>
+            <Form.List name="warnings">
+              {(fields, { add, remove }) => (
+                <>
+                  {fields.map(({ key, name, ...restField }, index) => (
+                    <Card
+                      key={key}
+                      size="small"
+                      style={{
+                        marginBottom: 8,
+                        background: "#fffbe6",
+                        border: "1px solid #ffe58f",
+                      }}
+                    >
+                      <Row gutter={12} align="middle">
+                        <Col span={7}>
+                          <Form.Item
+                            {...restField}
+                            label="Trường"
+                            name={[name, "field"]}
+                            style={{ marginBottom: 0 }}
+                          >
+                            <Input placeholder="Tên trường" />
+                          </Form.Item>
+                        </Col>
+                        <Col span={9}>
+                          <Form.Item
+                            {...restField}
+                            label="Nội dung"
+                            name={[name, "message"]}
+                            style={{ marginBottom: 0 }}
+                          >
+                            <Input.TextArea
+                              placeholder="Nội dung cảnh báo"
+                              autoSize={{ minRows: 1, maxRows: 3 }}
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col span={4}>
+                          <Button
+                            type="text"
+                            danger
+                            icon={<MinusCircleOutlined />}
+                            onClick={() => {
+                              remove(name);
+                              // Recalculate after deletion
+                              setTimeout(recalculateCountsFromItems, 100);
+                            }}
+                            size="small"
+                          >
+                            Xóa
+                          </Button>
+                        </Col>
+                      </Row>
+                    </Card>
+                  ))}
+                  <Button
+                    type="dashed"
+                    onClick={() => {
+                      add({ field: "", message: "" });
+                      // Recalculate after addition
+                      setTimeout(recalculateCountsFromItems, 100);
+                    }}
+                    block
+                    icon={<PlusOutlined />}
+                    style={{ marginTop: "8px" }}
+                  >
+                    Thêm cảnh báo
+                  </Button>
+                </>
+              )}
+            </Form.List>
+          </Form>
+        </div>
+
+        <div
+          style={{ height: "1px", background: "#e8e8e8", margin: "16px 0" }}
+        />
+
+        {/* Recommendations - Editable */}
+        <div>
+          <div
+            style={{
+              marginBottom: "12px",
+              fontWeight: 600,
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+            }}
+          >
+            <BulbOutlined style={{ color: "#1890ff" }} />
+            Đề xuất ({recommendations.length})
+          </div>
+          <Form form={form} component={false}>
+            <Form.List name="recommendations">
+              {(fields, { add, remove }) => (
+                <>
+                  {fields.map(({ key, name, ...restField }, index) => (
+                    <Card
+                      key={key}
+                      size="small"
+                      style={{
+                        marginBottom: 8,
+                        background: "#e6f7ff",
+                        border: "1px solid #91d5ff",
+                      }}
+                    >
+                      <Row gutter={12} align="middle">
+                        <Col span={7}>
+                          <Form.Item
+                            {...restField}
+                            label="Danh mục"
+                            name={[name, "category"]}
+                            style={{ marginBottom: 0 }}
+                          >
+                            <Input placeholder="Danh mục" />
+                          </Form.Item>
+                        </Col>
+                        <Col span={13}>
+                          <Form.Item
+                            {...restField}
+                            label="Nội dung đề xuất"
+                            name={[name, "suggestion"]}
+                            style={{ marginBottom: 0 }}
+                          >
+                            <Input.TextArea
+                              placeholder="Nội dung đề xuất"
+                              autoSize={{ minRows: 1, maxRows: 3 }}
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col span={4} style={{ textAlign: "right" }}>
+                          <Button
+                            type="text"
+                            danger
+                            icon={<MinusCircleOutlined />}
+                            onClick={() => {
+                              remove(name);
+                              // No need to recalculate for recommendations as they don't affect counts
+                            }}
+                            size="small"
+                          >
+                            Xóa
+                          </Button>
+                        </Col>
+                      </Row>
+                    </Card>
+                  ))}
+                  <Button
+                    type="dashed"
+                    onClick={() => {
+                      add({ category: "", suggestion: "" });
+                    }}
+                    block
+                    icon={<PlusOutlined />}
+                    style={{ marginTop: "8px" }}
+                  >
+                    Thêm đề xuất
+                  </Button>
+                </>
+              )}
+            </Form.List>
+          </Form>
+        </div>
       </Card>
     );
   }
