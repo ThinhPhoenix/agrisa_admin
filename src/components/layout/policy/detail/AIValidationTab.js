@@ -2,15 +2,78 @@
 
 import {
   BulbOutlined,
-  CalendarOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
   WarningOutlined,
 } from "@ant-design/icons";
-import { Alert, Card, Col, Divider, Row, Tag, Typography } from "antd";
+import {
+  Alert,
+  Card,
+  Col,
+  Progress,
+  Row,
+  Statistic,
+  Tag,
+  Typography,
+} from "antd";
+import { useMemo } from "react";
 import CustomTable from "../../../custom-table";
 
-const { Text, Paragraph, Title } = Typography;
+const { Text, Title } = Typography;
+
+// Mapping functions theo tài liệu BE
+const getSeverityLabel = (severity) => {
+  const map = {
+    critical: "Nghiêm trọng",
+    important: "Quan trọng",
+    warning: "Cảnh báo",
+    metadata: "Thông tin phụ",
+    info: "Thông tin",
+  };
+  return map[severity] || severity;
+};
+
+const getSeverityColor = (severity) => {
+  const map = {
+    critical: "#ff4d4f",
+    important: "#fa8c16",
+    warning: "#faad14",
+    metadata: "#8c8c8c",
+    info: "#1890ff",
+  };
+  return map[severity] || "#1890ff";
+};
+
+const getPriorityLabel = (priority) => {
+  const map = {
+    high: "Cao",
+    medium: "Trung bình",
+    low: "Thấp",
+  };
+  return map[priority] || priority;
+};
+
+const getPriorityColor = (priority) => {
+  const map = {
+    high: "#ff4d4f",
+    medium: "#faad14",
+    low: "#52c41a",
+  };
+  return map[priority] || "#1890ff";
+};
+
+const getValidationStatusLabel = (status) => {
+  const map = {
+    pending: "Chờ xử lý",
+    in_progress: "Đang kiểm tra",
+    passed: "Đạt",
+    failed: "Thất bại",
+    warning: "Có cảnh báo",
+    needs_review: "Cần xem xét",
+    rejected: "Bị từ chối",
+  };
+  return map[status] || status;
+};
 
 export default function AIValidationTab({
   validations = [],
@@ -18,275 +81,212 @@ export default function AIValidationTab({
   getValidationStatusConfig,
 }) {
   // Aggregate stats
-  const totalValidations = validations.length;
-  const totalMismatches = validations.reduce(
-    (s, v) => s + (v.mismatches ? Object.keys(v.mismatches).length : 0),
-    0
-  );
-  const totalWarnings = validations.reduce(
-    (s, v) => s + (v.warning_count || 0),
-    0
-  );
-  const totalRecommendations = validations.reduce(
-    (s, v) =>
-      s + (v.recommendations ? Object.keys(v.recommendations).length : 0),
-    0
-  );
-  const totalPassedChecks = validations.reduce(
-    (s, v) => s + (v.passed_checks || 0),
-    0
-  );
-  const totalChecks = validations.reduce(
-    (s, v) => s + (v.total_checks || 0),
-    0
-  );
+  const stats = useMemo(() => {
+    const totalValidations = validations.length;
+    const totalMismatches = validations.reduce(
+      (s, v) => s + (v.mismatches ? Object.keys(v.mismatches).length : 0),
+      0
+    );
+    const totalWarnings = validations.reduce(
+      (s, v) => s + (v.warning_count || 0),
+      0
+    );
+    const totalRecommendations = validations.reduce(
+      (s, v) =>
+        s + (v.recommendations ? Object.keys(v.recommendations).length : 0),
+      0
+    );
+    const totalPassedChecks = validations.reduce(
+      (s, v) => s + (v.passed_checks || 0),
+      0
+    );
+    const totalChecks = validations.reduce(
+      (s, v) => s + (v.total_checks || 0),
+      0
+    );
+    const successRate =
+      totalChecks > 0 ? Math.round((totalPassedChecks / totalChecks) * 100) : 0;
 
-  // Flatten mismatches and recommendations for table views
-  const mismatchesData = [];
-  const recommendationsData = [];
-  const warningsData = [];
-  validations.forEach((v, vi) => {
-    const base = {
-      validation_id: v.id,
-      validated_by: v.validated_by,
-      created_at: v.created_at,
-      validation_status: v.validation_status,
+    return {
+      totalValidations,
+      totalMismatches,
+      totalWarnings,
+      totalRecommendations,
+      totalPassedChecks,
+      totalChecks,
+      successRate,
     };
-    if (v.mismatches) {
-      Object.entries(v.mismatches).forEach(([key, value]) => {
-        mismatchesData.push({
-          key: `${v.id ?? vi}-${key}`,
-          field: key,
-          severity: value.severity,
-          impact: value.impact,
-          json_value: value.json_value,
-          pdf_value: value.pdf_value,
-          ...base,
-        });
-      });
-    }
-    if (v.recommendations) {
-      Object.entries(v.recommendations).forEach(([key, value]) => {
-        recommendationsData.push({
-          key: `${v.id ?? vi}-${key}`,
-          field: key,
-          priority: value.priority,
-          suggestion: value.suggestion,
-          affected_fields: value.affected_fields,
-          ...base,
-        });
-      });
-    }
-    if (v.warnings) {
-      Object.entries(v.warnings).forEach(([key, value]) => {
-        warningsData.push({
-          key: `${v.id ?? vi}-${key}`,
-          field: key,
-          recommendation: value.recommendation || value.message || "-",
-          ...base,
-        });
-      });
-    }
-  });
+  }, [validations]);
 
-  const columns = [
-    {
-      title: "Trạng thái",
-      dataIndex: "validation_status",
-      key: "status",
-      render: (status) => {
-        const cfg = getValidationStatusConfig(status);
-        return (
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            {cfg?.icon}
-            <span>{cfg?.text}</span>
+  // Flatten data for tables
+  const mismatchesData = useMemo(() => {
+    const data = [];
+    validations.forEach((v, vi) => {
+      const base = {
+        validation_id: v.id,
+        validated_by: v.validated_by,
+        created_at: v.created_at,
+        validation_status: v.validation_status,
+      };
+      if (v.mismatches) {
+        Object.entries(v.mismatches).forEach(([key, value]) => {
+          data.push({
+            key: `${v.id ?? vi}-${key}`,
+            field: key,
+            severity: value.severity,
+            impact: value.impact,
+            field_type: value.field_type,
+            json_value: value.json_value,
+            pdf_value: value.pdf_value,
+            ...base,
+          });
+        });
+      }
+    });
+    return data;
+  }, [validations]);
+
+  const warningsData = useMemo(() => {
+    const data = [];
+    validations.forEach((v, vi) => {
+      const base = {
+        validation_id: v.id,
+        validated_by: v.validated_by,
+        created_at: v.created_at,
+      };
+      if (v.warnings) {
+        Object.entries(v.warnings).forEach(([key, value]) => {
+          data.push({
+            key: `${v.id ?? vi}-${key}`,
+            field: key,
+            recommendation: value.recommendation || value.message || "-",
+            ...base,
+          });
+        });
+      }
+    });
+    return data;
+  }, [validations]);
+
+  const recommendationsData = useMemo(() => {
+    const data = [];
+    validations.forEach((v, vi) => {
+      const base = {
+        validation_id: v.id,
+        validated_by: v.validated_by,
+        created_at: v.created_at,
+      };
+      if (v.recommendations) {
+        Object.entries(v.recommendations).forEach(([key, value]) => {
+          data.push({
+            key: `${v.id ?? vi}-${key}`,
+            field: key,
+            priority: value.priority,
+            suggestion: value.suggestion,
+            affected_fields: value.affected_fields,
+            ...base,
+          });
+        });
+      }
+    });
+    return data;
+  }, [validations]);
+
+  // Glassmorphism tag style
+  const getGlassmorphismTag = (color, label) => (
+    <span
+      style={{
+        padding: "2px 12px",
+        borderRadius: "12px",
+        fontSize: "12px",
+        fontWeight: 500,
+        background: `${color}20`,
+        border: `1px solid ${color}60`,
+        color: color,
+        backdropFilter: "blur(10px)",
+        display: "inline-block",
+      }}
+    >
+      {label}
+    </span>
+  );
+
+  // Render expandable row for value comparison and metadata
+  const renderExpandedRow = (record) => {
+    const isDifferent = record.json_value !== record.pdf_value;
+    const isNumeric =
+      typeof record.json_value === "number" ||
+      typeof record.pdf_value === "number";
+
+    let percentDiff = null;
+    if (isDifferent && isNumeric && record.json_value && record.pdf_value) {
+      const diff =
+        ((record.pdf_value - record.json_value) / record.json_value) * 100;
+      percentDiff = Math.abs(diff).toFixed(1);
+    }
+
+    return (
+      <div style={{ padding: "12px 24px", background: "#fafafa" }}>
+        <Row gutter={24}>
+          <Col span={6}>
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              Kiểu dữ liệu
+            </Text>
+            <div>
+              <Tag>{record.field_type || "N/A"}</Tag>
+            </div>
+          </Col>
+          <Col span={6}>
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              Giá trị hệ thống (JSON)
+            </Text>
+            <div>
+              <Text code>{JSON.stringify(record.json_value)}</Text>
+            </div>
+          </Col>
+          <Col span={6}>
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              Giá trị hợp đồng (PDF)
+            </Text>
+            <div>
+              <Text code>{JSON.stringify(record.pdf_value)}</Text>
+            </div>
+          </Col>
+          <Col span={6}>
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              Người xác thực
+            </Text>
+            <div>
+              <Text>{record.validated_by || "-"}</Text>
+            </div>
+            <Text type="secondary" style={{ fontSize: 11, marginTop: 4 }}>
+              {record.created_at
+                ? new Date(record.created_at).toLocaleString("vi-VN")
+                : "-"}
+            </Text>
+          </Col>
+        </Row>
+        {percentDiff && (
+          <div style={{ marginTop: 8 }}>
+            <Text type="danger" style={{ fontSize: 12 }}>
+              Chênh lệch: {percentDiff}%
+            </Text>
           </div>
-        );
-      },
-    },
-    {
-      title: "Người xác thực",
-      dataIndex: "validated_by",
-      key: "validated_by",
-    },
-    {
-      title: "Thời gian",
-      dataIndex: "created_at",
-      key: "created_at",
-      render: (d) => new Date(d).toLocaleString("vi-VN"),
-    },
-    {
-      title: "Kết quả",
-      key: "result",
-      render: (_, record) => (
-        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-          <Text>
-            <CheckCircleOutlined className="text-green-600" /> Đạt:{" "}
-            {record.passed_checks}/{record.total_checks}
-          </Text>
-          {record.failed_checks > 0 && (
-            <Text type="danger">
-              <CloseCircleOutlined /> Lỗi: {record.failed_checks}
-            </Text>
-          )}
-          {record.warning_count > 0 && (
-            <Text type="warning">
-              <WarningOutlined /> Cảnh báo: {record.warning_count}
-            </Text>
-          )}
-        </div>
-      ),
-    },
-    {
-      title: "Sai khác",
-      key: "mismatch_count",
-      render: (_, record) =>
-        record.mismatches ? Object.keys(record.mismatches).length : 0,
-    },
-    {
-      title: "Đề xuất",
-      key: "recommendation_count",
-      render: (_, record) =>
-        record.recommendations ? Object.keys(record.recommendations).length : 0,
-    },
-    {
-      title: "Ghi chú",
-      dataIndex: "validation_notes",
-      key: "notes",
-      render: (n) => (n ? <Text ellipsis={{ tooltip: n }}>{n}</Text> : "-"),
-    },
-  ];
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="ai-validation-tab">
-      <div>
+      {/* Header */}
+      <div style={{ marginBottom: 16 }}>
         <Title level={5} style={{ margin: 0 }}>
           Lịch sử xác thực AI ({validations.length})
         </Title>
-        <Text type="secondary" style={{ fontSize: "12px" }}>
+        <Text type="secondary" style={{ fontSize: 12 }}>
           Tóm tắt, lỗi sai và gợi ý cho bản chính sách này
         </Text>
-      </div>
-
-      {/* Summary cards: single responsive row with icons aligned to values */}
-      <div style={{ marginTop: 12, marginBottom: 12 }}>
-        <Row gutter={16} style={{ display: "flex", flexWrap: "wrap" }}>
-          <Col style={{ flex: "1 1 0", minWidth: 180, marginBottom: 8 }}>
-            <Card size="small">
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <div
-                  style={{
-                    fontSize: 28,
-                    color: "var(--color-primary-500)",
-                    lineHeight: 1,
-                  }}
-                >
-                  <CalendarOutlined />
-                </div>
-                <div>
-                  <div style={{ fontSize: 18, fontWeight: 700 }}>
-                    {totalValidations}
-                  </div>
-                  <div style={{ fontSize: 12, color: "#888" }}>
-                    Lần xác thực
-                  </div>
-                </div>
-              </div>
-            </Card>
-          </Col>
-
-          <Col style={{ flex: "1 1 0", minWidth: 180, marginBottom: 8 }}>
-            <Card size="small">
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <div
-                  style={{
-                    fontSize: 28,
-                    color: "var(--color-primary-500)",
-                    lineHeight: 1,
-                  }}
-                >
-                  <CheckCircleOutlined />
-                </div>
-                <div>
-                  <div style={{ fontSize: 18, fontWeight: 700 }}>
-                    {totalPassedChecks}
-                  </div>
-                  <div style={{ fontSize: 12, color: "#888" }}>
-                    Tổng kiểm tra đạt / {totalChecks}
-                  </div>
-                </div>
-              </div>
-            </Card>
-          </Col>
-
-          <Col style={{ flex: "1 1 0", minWidth: 180, marginBottom: 8 }}>
-            <Card size="small">
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <div
-                  style={{
-                    fontSize: 28,
-                    color: "var(--color-primary-500)",
-                    lineHeight: 1,
-                  }}
-                >
-                  <CloseCircleOutlined />
-                </div>
-                <div>
-                  <div style={{ fontSize: 18, fontWeight: 700 }}>
-                    {totalMismatches}
-                  </div>
-                  <div style={{ fontSize: 12, color: "#888" }}>
-                    Lỗi (Sai khác)
-                  </div>
-                </div>
-              </div>
-            </Card>
-          </Col>
-
-          <Col style={{ flex: "1 1 0", minWidth: 180, marginBottom: 8 }}>
-            <Card size="small">
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <div
-                  style={{
-                    fontSize: 28,
-                    color: "var(--color-primary-500)",
-                    lineHeight: 1,
-                  }}
-                >
-                  <WarningOutlined />
-                </div>
-                <div>
-                  <div style={{ fontSize: 18, fontWeight: 700 }}>
-                    {totalWarnings}
-                  </div>
-                  <div style={{ fontSize: 12, color: "#888" }}>Cảnh báo</div>
-                </div>
-              </div>
-            </Card>
-          </Col>
-
-          <Col style={{ flex: "1 1 0", minWidth: 180, marginBottom: 8 }}>
-            <Card size="small">
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <div
-                  style={{
-                    fontSize: 28,
-                    color: "var(--color-primary-500)",
-                    lineHeight: 1,
-                  }}
-                >
-                  <BulbOutlined />
-                </div>
-                <div>
-                  <div style={{ fontSize: 18, fontWeight: 700 }}>
-                    {totalRecommendations}
-                  </div>
-                  <div style={{ fontSize: 12, color: "#888" }}>Gợi ý</div>
-                </div>
-              </div>
-            </Card>
-          </Col>
-        </Row>
       </div>
 
       {validations.length === 0 ? (
@@ -298,152 +298,232 @@ export default function AIValidationTab({
         />
       ) : (
         <>
-          {/* Warnings table */}
-          <Title level={5} style={{ marginTop: 8 }}>
+          {/* Summary Statistics */}
+          <Row gutter={12} style={{ marginBottom: 16 }}>
+            <Col span={6}>
+              <Card size="small" bodyStyle={{ padding: "12px" }}>
+                <Statistic
+                  title="Tỷ lệ thành công"
+                  value={stats.successRate}
+                  suffix="%"
+                  valueStyle={{ fontSize: 20 }}
+                />
+                <Progress
+                  percent={stats.successRate}
+                  strokeColor={
+                    stats.successRate >= 80
+                      ? "#52c41a"
+                      : stats.successRate >= 50
+                      ? "#faad14"
+                      : "#ff4d4f"
+                  }
+                  size="small"
+                  showInfo={false}
+                  style={{ marginTop: 4 }}
+                />
+              </Card>
+            </Col>
+            <Col span={6}>
+              <Card size="small" bodyStyle={{ padding: "12px" }}>
+                <Statistic
+                  title={<span style={{ fontSize: 12 }}>Đạt / Tổng</span>}
+                  value={stats.totalPassedChecks}
+                  suffix={`/ ${stats.totalChecks}`}
+                  valueStyle={{ fontSize: 20 }}
+                  prefix={<CheckCircleOutlined style={{ fontSize: 16 }} />}
+                />
+              </Card>
+            </Col>
+            <Col span={4}>
+              <Card size="small" bodyStyle={{ padding: "12px" }}>
+                <Statistic
+                  title={<span style={{ fontSize: 12 }}>Lỗi</span>}
+                  value={stats.totalMismatches}
+                  valueStyle={{ fontSize: 20, color: "#ff4d4f" }}
+                  prefix={<CloseCircleOutlined style={{ fontSize: 16 }} />}
+                />
+              </Card>
+            </Col>
+            <Col span={4}>
+              <Card size="small" bodyStyle={{ padding: "12px" }}>
+                <Statistic
+                  title={<span style={{ fontSize: 12 }}>Cảnh báo</span>}
+                  value={stats.totalWarnings}
+                  valueStyle={{ fontSize: 20, color: "#faad14" }}
+                  prefix={<WarningOutlined style={{ fontSize: 16 }} />}
+                />
+              </Card>
+            </Col>
+            <Col span={4}>
+              <Card size="small" bodyStyle={{ padding: "12px" }}>
+                <Statistic
+                  title={<span style={{ fontSize: 12 }}>Gợi ý</span>}
+                  value={stats.totalRecommendations}
+                  valueStyle={{ fontSize: 20, color: "#1890ff" }}
+                  prefix={<BulbOutlined style={{ fontSize: 16 }} />}
+                />
+              </Card>
+            </Col>
+          </Row>
+
+          {/* Mismatches Table */}
+          <Title level={5} style={{ marginTop: 16, marginBottom: 12 }}>
+            Lỗi sai ({mismatchesData.length})
+          </Title>
+          <CustomTable
+            dataSource={mismatchesData}
+            columns={[
+              {
+                title: "Trường dữ liệu",
+                dataIndex: "field",
+                key: "field",
+                width: 180,
+                fixed: "left",
+              },
+              {
+                title: "Mức độ",
+                dataIndex: "severity",
+                key: "severity",
+                width: 140,
+                render: (severity) =>
+                  getGlassmorphismTag(
+                    getSeverityColor(severity),
+                    getSeverityLabel(severity)
+                  ),
+              },
+              {
+                title: "Mô tả ảnh hưởng",
+                dataIndex: "impact",
+                key: "impact",
+                width: 400,
+                render: (text) => (
+                  <div
+                    style={{
+                      whiteSpace: "pre-wrap",
+                      maxHeight: "80px",
+                      overflow: "auto",
+                      lineHeight: "1.5",
+                    }}
+                  >
+                    {text}
+                  </div>
+                ),
+              },
+            ]}
+            expandable={{
+              expandedRowRender: renderExpandedRow,
+              rowExpandable: () => true,
+            }}
+            rowKey={(r) => r.key}
+            pagination={{ pageSize: 10, showSizeChanger: true }}
+            size="small"
+            scroll={{ x: 800 }}
+          />
+
+          {/* Warnings Table */}
+          <Title level={5} style={{ marginTop: 24, marginBottom: 12 }}>
             Cảnh báo ({warningsData.length})
           </Title>
           <CustomTable
             dataSource={warningsData}
             columns={[
-              { title: "Vấn đề", dataIndex: "field", key: "field" },
               {
-                title: "Gợi ý",
+                title: "Vấn đề",
+                dataIndex: "field",
+                key: "field",
+                width: 200,
+                fixed: "left",
+              },
+              {
+                title: "Khuyến nghị",
                 dataIndex: "recommendation",
                 key: "recommendation",
-                width: 480,
-                render: (t) => (
-                  <Text
-                    style={{ display: "block", maxWidth: 440 }}
-                    ellipsis={{ tooltip: t }}
+                render: (text) => (
+                  <div
+                    style={{
+                      whiteSpace: "pre-wrap",
+                      maxHeight: "80px",
+                      overflow: "auto",
+                      lineHeight: "1.5",
+                    }}
                   >
-                    {t}
-                  </Text>
-                ),
-              },
-              {
-                title: "Xác thực",
-                key: "validation",
-                render: (_, r) => (
-                  <div>
-                    <div>{r.validated_by}</div>
-                    <div style={{ color: "#888" }}>
-                      {new Date(r.created_at).toLocaleString("vi-VN")}
-                    </div>
+                    {text}
                   </div>
                 ),
               },
             ]}
             rowKey={(r) => r.key}
-            pagination={{ pageSize: 8 }}
-            scroll={{ x: 900 }}
+            pagination={{ pageSize: 10, showSizeChanger: true }}
+            size="small"
+            scroll={{ x: 600 }}
           />
 
-          <Divider />
-          {/* Mismatches table */}
-          <Title level={5} style={{ marginTop: 8 }}>
-            Lỗi Sai ({mismatchesData.length})
-          </Title>
-          <CustomTable
-            dataSource={mismatchesData}
-            columns={[
-              { title: "Trường", dataIndex: "field", key: "field" },
-              {
-                title: "Mức độ",
-                dataIndex: "severity",
-                key: "severity",
-                render: (s) => getSeverityBadge(s),
-              },
-              {
-                title: "Mô tả",
-                dataIndex: "impact",
-                key: "impact",
-                width: 380,
-                render: (t) => (
-                  <Text
-                    style={{ display: "block", maxWidth: 340 }}
-                    ellipsis={{ tooltip: t }}
-                  >
-                    {t}
-                  </Text>
-                ),
-              },
-              {
-                title: "Trong điều khoản",
-                dataIndex: "json_value",
-                key: "json",
-                render: (j) => <Text code>{JSON.stringify(j)}</Text>,
-              },
-              {
-                title: "Trong tệp PDF",
-                dataIndex: "pdf_value",
-                key: "pdf",
-                render: (p) => <Text code>{JSON.stringify(p)}</Text>,
-              },
-              {
-                title: "Xác thực",
-                key: "validation",
-                render: (_, r) => (
-                  <div>
-                    <div>{r.validated_by}</div>
-                    <div style={{ color: "#888" }}>
-                      {new Date(r.created_at).toLocaleString("vi-VN")}
-                    </div>
-                  </div>
-                ),
-              },
-            ]}
-            rowKey={(r) => r.key}
-            pagination={{ pageSize: 8 }}
-          />
-
-          <Divider />
-
-          {/* Recommendations table */}
-          <Title level={5} style={{ marginTop: 8 }}>
-            Gợi ý/Đề xuất ({recommendationsData.length})
+          {/* Recommendations Table */}
+          <Title level={5} style={{ marginTop: 24, marginBottom: 12 }}>
+            Đề xuất cải thiện ({recommendationsData.length})
           </Title>
           <CustomTable
             dataSource={recommendationsData}
             columns={[
-              { title: "Vấn đề", dataIndex: "field", key: "field" },
-              { title: "Ưu tiên", dataIndex: "priority", key: "priority" },
+              {
+                title: "Vấn đề",
+                dataIndex: "field",
+                key: "field",
+                width: 180,
+                fixed: "left",
+              },
+              {
+                title: "Độ ưu tiên",
+                dataIndex: "priority",
+                key: "priority",
+                width: 140,
+                render: (priority) =>
+                  getGlassmorphismTag(
+                    getPriorityColor(priority),
+                    getPriorityLabel(priority)
+                  ),
+              },
               {
                 title: "Gợi ý",
                 dataIndex: "suggestion",
                 key: "suggestion",
-                width: 480,
-                render: (t) => (
-                  <Text
-                    style={{ display: "block", maxWidth: 440 }}
-                    ellipsis={{ tooltip: t }}
+                width: 350,
+                render: (text) => (
+                  <div
+                    style={{
+                      whiteSpace: "pre-wrap",
+                      maxHeight: "80px",
+                      overflow: "auto",
+                      lineHeight: "1.5",
+                    }}
                   >
-                    {t}
-                  </Text>
+                    {text}
+                  </div>
                 ),
               },
               {
                 title: "Trường ảnh hưởng",
                 dataIndex: "affected_fields",
                 key: "affected_fields",
+                width: 250,
                 render: (arr) =>
-                  arr ? arr.map((f) => <Tag key={f}>{f}</Tag>) : "-",
-              },
-              {
-                title: "Xác thực",
-                key: "validation",
-                render: (_, r) => (
-                  <div>
-                    <div>{r.validated_by}</div>
-                    <div style={{ color: "#888" }}>
-                      {new Date(r.created_at).toLocaleString("vi-VN")}
+                  arr && arr.length > 0 ? (
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                      {arr.map((f) => (
+                        <Tag key={f} style={{ marginBottom: 4 }}>
+                          {f}
+                        </Tag>
+                      ))}
                     </div>
-                  </div>
-                ),
+                  ) : (
+                    <Text type="secondary">-</Text>
+                  ),
               },
             ]}
             rowKey={(r) => r.key}
-            pagination={{ pageSize: 8 }}
-            scroll={{ x: 900 }}
+            pagination={{ pageSize: 10, showSizeChanger: true }}
+            size="small"
+            scroll={{ x: 1000 }}
           />
         </>
       )}
