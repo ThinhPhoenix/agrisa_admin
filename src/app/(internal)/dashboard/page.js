@@ -611,7 +611,7 @@ export default function DashboardPage() {
                   <Statistic
                     title={dashboardMessage.revenue.totalProvidersThisMonth}
                     value={revenue.data?.current_month?.total_providers || 0}
-                    valueStyle={{ fontSize: 20, color: "#f7e8ab" }}
+                    valueStyle={{ fontSize: 20 }}
                   />
                 </Col>
               </Row>

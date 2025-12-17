@@ -152,7 +152,9 @@ export default function CreatePartnerPage() {
       gridColumn: "span 2",
       render: () => (
         <Divider orientation="left" style={{ marginTop: 0, marginBottom: 16 }}>
-          <strong style={{ fontSize: "16px", color: "#1890ff" }}>
+          <strong
+            style={{ fontSize: "16px", color: "var(--color-primary-500)" }}
+          >
             <IdcardOutlined style={{ marginRight: 8 }} />
             Thông tin cơ bản
           </strong>
@@ -244,7 +246,9 @@ export default function CreatePartnerPage() {
       gridColumn: "span 2",
       render: () => (
         <Divider orientation="left" style={{ marginTop: 24, marginBottom: 16 }}>
-          <strong style={{ fontSize: "16px", color: "#1890ff" }}>
+          <strong
+            style={{ fontSize: "16px", color: "var(--color-primary-500)" }}
+          >
             <PhoneOutlined style={{ marginRight: 8 }} />
             Thông tin liên hệ
           </strong>
@@ -285,7 +289,9 @@ export default function CreatePartnerPage() {
       gridColumn: "span 2",
       render: () => (
         <Divider orientation="left" style={{ marginTop: 24, marginBottom: 16 }}>
-          <strong style={{ fontSize: "16px", color: "#1890ff" }}>
+          <strong
+            style={{ fontSize: "16px", color: "var(--color-primary-500)" }}
+          >
             <EnvironmentOutlined style={{ marginRight: 8 }} />
             Địa chỉ trụ sở chính
           </strong>
@@ -347,7 +353,9 @@ export default function CreatePartnerPage() {
       gridColumn: "span 2",
       render: () => (
         <Divider orientation="left" style={{ marginTop: 24, marginBottom: 16 }}>
-          <strong style={{ fontSize: "16px", color: "#1890ff" }}>
+          <strong
+            style={{ fontSize: "16px", color: "var(--color-primary-500)" }}
+          >
             <SafetyCertificateOutlined style={{ marginRight: 8 }} />
             Giấy phép bảo hiểm
           </strong>

@@ -1,5 +1,6 @@
 "use client";
 
+import { formatUtcDate } from "@/libs/datetime";
 import { claimMessage } from "@/libs/message";
 import { useClaimDetail } from "@/services/hooks/claim";
 import {
@@ -268,10 +269,10 @@ export default function ClaimDetailPage() {
               {formatDateTime(claim.trigger_timestamp)}
             </Descriptions.Item>
             <Descriptions.Item label="Ngày tạo">
-              {formatDateTime(claim.created_at)}
+              {formatUtcDate(claim.created_at, { withTime: true })}
             </Descriptions.Item>
             <Descriptions.Item label="Cập nhật lần cuối">
-              {formatDateTime(claim.updated_at)}
+              {formatUtcDate(claim.updated_at, { withTime: true })}
             </Descriptions.Item>
           </Descriptions>
 

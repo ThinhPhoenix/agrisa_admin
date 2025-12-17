@@ -7,9 +7,11 @@ import { useTableData } from "@/services/hooks/common/use-table-data";
 import { usePartners } from "@/services/hooks/partner/use-partner";
 import {
   BankOutlined,
+  EnvironmentOutlined,
   EyeOutlined,
   FilterOutlined,
   SearchOutlined,
+  StarOutlined,
 } from "@ant-design/icons";
 import { Button, Collapse, Layout, Space, Spin, Typography } from "antd";
 import Link from "next/link";
@@ -196,6 +198,9 @@ export default function PartnersPage() {
 
         <div className="partner-summary-row">
           <div className="partner-summary-card-compact">
+            <div className="partner-summary-icon total">
+              <BankOutlined />
+            </div>
             <div className="partner-summary-content">
               <div className="partner-summary-label-compact">Tổng đối tác</div>
               <div className="partner-summary-value-compact">
@@ -205,6 +210,9 @@ export default function PartnersPage() {
           </div>
 
           <div className="partner-summary-card-compact">
+            <div className="partner-summary-icon province">
+              <EnvironmentOutlined />
+            </div>
             <div className="partner-summary-content">
               <div className="partner-summary-label-compact">
                 Tỉnh/Thành phố
@@ -216,6 +224,9 @@ export default function PartnersPage() {
           </div>
 
           <div className="partner-summary-card-compact">
+            <div className="partner-summary-icon rating">
+              <StarOutlined />
+            </div>
             <div className="partner-summary-content">
               <div className="partner-summary-label-compact">
                 Đánh giá trung bình

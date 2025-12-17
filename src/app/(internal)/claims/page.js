@@ -3,6 +3,7 @@
 import SelectedColumn from "@/components/column-selector";
 import { CustomForm } from "@/components/custom-form";
 import CustomTable from "@/components/custom-table";
+import { formatUtcDate } from "@/libs/datetime";
 import { claimMessage } from "@/libs/message";
 import { useClaims } from "@/services/hooks/claim";
 import { useTableData } from "@/services/hooks/common/use-table-data";
@@ -135,18 +136,7 @@ export default function ClaimsPage() {
     });
   };
 
-  // Helper function to format datetime from ISO string
-  const formatDateTime = (dateString) => {
-    if (!dateString) return "-";
-    const date = new Date(dateString);
-    return date.toLocaleString("vi-VN", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
+  // Use UTC-aware formatter from libs/datetime
 
   const columns = [
     {
@@ -225,7 +215,7 @@ export default function ClaimsPage() {
       dataIndex: "created_at",
       key: "created_at",
       width: 150,
-      render: (date) => formatDateTime(date),
+      render: (date) => formatUtcDate(date, { withTime: true }),
     },
     {
       title: "Thao tác",

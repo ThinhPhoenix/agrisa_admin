@@ -36,7 +36,15 @@
 }
 
 .policy-summary-card-compact {
-  @apply bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex items-center gap-3 hover:shadow-md transition-shadow duration-200;
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  transition: box-shadow 200ms;
 }
 
 .policy-summary-content {
@@ -56,27 +64,33 @@
 }
 
 .policy-summary-icon.total {
-  @apply bg-blue-100 text-blue-600;
+  background-color: var(--color-primary-100);
+  color: var(--color-primary-500);
 }
 
 .policy-summary-icon.active {
-  @apply bg-green-100 text-green-600;
+  background-color: var(--color-primary-200);
+  color: var(--color-primary-700);
 }
 
 .policy-summary-icon.providers {
-  @apply bg-purple-100 text-purple-600;
+  background-color: var(--color-secondary-200);
+  color: var(--color-secondary-700);
 }
 
 .policy-summary-icon.premium {
-  @apply bg-yellow-100 text-yellow-600;
+  background-color: var(--color-secondary-300);
+  color: var(--color-secondary-700);
 }
 
 .policy-summary-icon.pending {
-  @apply bg-orange-100 text-orange-600;
+  background-color: var(--color-secondary-200);
+  color: var(--color-primary-700);
 }
 
 .policy-summary-icon.inactive {
-  @apply bg-red-100 text-red-600;
+  background-color: rgba(255, 230, 230, 0.7);
+  color: #c53030;
 }
 
 /* Table Item Styles */
