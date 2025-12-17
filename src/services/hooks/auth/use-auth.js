@@ -5,7 +5,7 @@ import {
   getSignInError,
   getSignInSuccess,
   getSignInValidation,
-  parseBackendError,
+  mapBackendError,
 } from "@/libs/message/auth-message";
 import signInRequestSchema from "@/schemas/sign-in-request-schema";
 import signUpRequestSchema from "@/schemas/sign-up-request-schema";
@@ -14,8 +14,9 @@ import { useAuthStore } from "@/stores/auth-store";
 import { message } from "antd";
 import { useCallback, useState } from "react";
 
-const handleError = (error, context = "general") => {
-  return parseBackendError(error, context);
+const handleError = (error, context = "signin") => {
+  const result = mapBackendError(error, context);
+  return result.message;
 };
 
 export const useSignIn = () => {
@@ -29,14 +30,13 @@ export const useSignIn = () => {
 
   const signIn = useCallback(
     async (credentials) => {
-      // Validate input
+      // Validate input - frontend validation
       const validation = signInRequestSchema.safeParse(credentials);
       if (!validation.success) {
         const validationError =
           validation.error.issues[0]?.message ||
           getSignInValidation("IDENTIFIER_REQUIRED");
         setError(validationError);
-        // Show Vietnamese validation error to user
         message.error(validationError);
         return { success: false, message: validationError };
       }
@@ -46,9 +46,9 @@ export const useSignIn = () => {
       setError(null);
 
       try {
-        // Step 1: Call login API
         console.log("🚀 Step 1: Calling login API:", endpoints.auth.sign_in);
 
+        // Call login API
         const loginResponse = await axiosInstance.post(
           endpoints.auth.sign_in,
           {
@@ -60,14 +60,15 @@ export const useSignIn = () => {
           }
         );
 
+        // Check if login was successful
         if (!loginResponse.data.success) {
-          console.error("❌ Login failed:", loginResponse.data.message);
+          console.error("❌ Login failed:", loginResponse.data);
           throw new Error(loginResponse.data.message || "Login failed");
         }
 
         const accessToken = loginResponse.data.data.access_token;
 
-        // Temporarily save token to make authenticated request
+        // Temporarily save token for authenticated request
         localStorage.setItem("token", accessToken);
 
         // Step 2: Call /me API to get profile with role validation
@@ -76,9 +77,8 @@ export const useSignIn = () => {
         const meResponse = await axiosInstance.get(endpoints.auth.me);
 
         if (!meResponse.data.success) {
-          // Clear token if /me fails
           localStorage.removeItem("token");
-          console.error("❌ /me failed:", meResponse.data.message);
+          console.error("❌ /me failed:", meResponse.data);
           throw new Error(
             meResponse.data.message || "Failed to get user profile"
           );
@@ -90,7 +90,6 @@ export const useSignIn = () => {
         console.log("🚀 Step 3: Validating role_id:", profile.role_id);
 
         if (profile.role_id !== "system_admin") {
-          // Clear token immediately
           localStorage.removeItem("token");
           localStorage.removeItem("me");
 
@@ -102,7 +101,7 @@ export const useSignIn = () => {
           return { success: false, message: errorMessage };
         }
 
-        // Step 4: All validations passed - build complete user data
+        // Step 4: All validations passed
         const userData = {
           user_id: profile.user_id || loginResponse.data.data.user.id,
           profile_id: profile.profile_id,
@@ -125,7 +124,6 @@ export const useSignIn = () => {
 
         setUser(userData);
 
-        // Show Vietnamese success message to user
         const successMessage = getSignInSuccess("LOGIN_SUCCESS");
         message.success(successMessage);
 
@@ -135,20 +133,18 @@ export const useSignIn = () => {
           data: userData,
         };
       } catch (error) {
-        // Clean up on any error
+        // Clean up on error
         localStorage.removeItem("token");
         localStorage.removeItem("me");
 
-        // Log English error for debugging only
-        console.error("❌ Sign-in error:", error.message);
-        console.error("❌ Error details:", error.response?.data);
+        console.error("❌ Sign-in error:", error);
+        console.error("❌ Error response:", error.response?.data);
 
-        // Parse error to Vietnamese message for user
+        // Parse BE error response to Vietnamese message
         const errorMessage = handleError(error, "signin");
         setError(errorMessage);
         setStoreError(errorMessage);
 
-        // Show Vietnamese error message to user
         message.error(errorMessage);
 
         return { success: false, message: errorMessage };

@@ -17,12 +17,21 @@ export default function InternalLayoutFlexbox({ children }) {
 
   // Subscribe to auth store
   const isManualLogout = useAuthStore((s) => s.isManualLogout);
+  const isLoading = useAuthStore((s) => s.isLoading);
   const setUser = useAuthStore((s) => s.setUser);
 
   useEffect(() => {
     // Prevent redirect loop when already on sign-in page
     if (!pathname || pathname.startsWith("/sign-in")) {
       setIsAuthChecking(false);
+      return;
+    }
+
+    // Don't verify auth if currently loading (e.g., during sign-in attempt)
+    // This prevents redirect from interrupting error message display
+    // setLoading from useSignIn will control when auth verification runs
+    if (isLoading) {
+      console.log("Auth check paused: Sign-in in progress");
       return;
     }
 
@@ -99,7 +108,7 @@ export default function InternalLayoutFlexbox({ children }) {
     };
 
     verifyAuth();
-  }, [pathname, router, isManualLogout, setUser]);
+  }, [pathname, router, isManualLogout, isLoading, setUser]);
 
   // Show loading screen while checking authentication to prevent data leakage
   if (isAuthChecking) {

@@ -29,15 +29,33 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   (error) => {
+    // Check if this is an auth-related request (login, /me, etc.)
+    const isAuthRequest =
+      error.config?.url?.includes("/auth/public/login") ||
+      error.config?.url?.includes("/auth/public/me");
+
+    // Only redirect if: 401/403 AND not an auth request AND not already on sign-in page
     if (error.response?.status === 401 || error.response?.status === 403) {
+      // If it's an auth request (login or /me), don't redirect - let the component handle the error
+      if (isAuthRequest) {
+        console.log(
+          "Auth request failed with 401/403 - letting component handle error"
+        );
+        return Promise.reject(error);
+      }
+
+      // For other 401/403 (e.g., expired token on protected routes)
       console.log(
         `Unauthorized/Forbidden (${error.response?.status})! Clearing user and redirecting to login.`
       );
       const { clearUser } = useAuthStore.getState();
       clearUser();
 
-      // Redirect to sign-in page
-      if (typeof window !== "undefined") {
+      // Only redirect if not already on sign-in page
+      if (
+        typeof window !== "undefined" &&
+        window.location.pathname !== "/sign-in"
+      ) {
         window.location.href = "/sign-in";
       }
     }

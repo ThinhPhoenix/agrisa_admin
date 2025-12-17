@@ -21,6 +21,7 @@ const SigninPage = () => {
   const [isAuthChecking, setIsAuthChecking] = useState(true);
 
   // Redirect to /dashboard if already authenticated
+  // Only check on initial mount, not when user state changes during login error
   useEffect(() => {
     const storedToken =
       typeof window !== "undefined" ? localStorage.getItem("token") : null;
@@ -34,7 +35,8 @@ const SigninPage = () => {
       // Auth check complete, show sign-in form
       setIsAuthChecking(false);
     }
-  }, [user, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount
 
   // Show loading screen while checking authentication to prevent form flashing
   if (isAuthChecking) {
