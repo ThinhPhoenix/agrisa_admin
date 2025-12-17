@@ -1,42 +1,43 @@
 "use client";
 
+import { CustomForm } from "@/components/custom-form";
+import { dashboardMessage } from "@/libs/message";
 import {
-  useDashboardRevenue,
   POLICY_STATUS,
   UNDERWRITING_STATUS,
+  useDashboardRevenue,
 } from "@/services/hooks/dashboard";
-import { dashboardMessage } from "@/libs/message";
-import { CustomForm } from "@/components/custom-form";
 import {
-  Layout,
-  Spin,
-  Typography,
-  Card,
-  Row,
-  Col,
-  Statistic,
-  Button,
-  Collapse,
-  Space,
-  Tag,
-  Tooltip,
-} from "antd";
-import {
-  ArrowUpOutlined,
   ArrowDownOutlined,
-  DollarOutlined,
+  ArrowUpOutlined,
+  ClearOutlined,
   FileTextOutlined,
-  TeamOutlined,
+  FilterOutlined,
   ReloadOutlined,
   RiseOutlined,
-  FilterOutlined,
-  ClearOutlined,
+  TeamOutlined,
+  WalletOutlined,
 } from "@ant-design/icons";
+import {
+  Button,
+  Card,
+  Col,
+  Collapse,
+  DatePicker,
+  Layout,
+  Row,
+  Space,
+  Spin,
+  Statistic,
+  Tag,
+  Tooltip,
+  Typography,
+} from "antd";
 import { Chart as ChartJS, registerables } from "chart.js";
-import { Line, Bar } from "react-chartjs-2";
-import { useState } from "react";
 import dayjs from "dayjs";
 import "dayjs/locale/vi";
+import { useState } from "react";
+import { Bar, Line } from "react-chartjs-2";
 import "./dashboard.css";
 
 const { Title, Text } = Typography;
@@ -88,11 +89,10 @@ export default function DashboardPage() {
       name: "dateRange",
       label: "Khoảng thời gian",
       type: "datepicker",
-      placeholder: ["Từ tháng", "Đến tháng"],
-      gridColumn: "span 2",
+      placeholder: ["Từ ngày", "Đến ngày"],
       isRangePicker: true,
-      picker: "month",
-      format: "MM/YYYY",
+      picker: "date",
+      format: "DD/MM/YYYY",
     },
     {
       name: "status",
@@ -100,7 +100,6 @@ export default function DashboardPage() {
       type: "multiselect",
       placeholder: "Chọn trạng thái",
       options: statusOptions,
-      gridColumn: "span 2",
       showSearch: true,
       maxTagCount: 2,
     },
@@ -110,25 +109,30 @@ export default function DashboardPage() {
       type: "multiselect",
       placeholder: "Chọn trạng thái thẩm định",
       options: underwritingOptions,
-      gridColumn: "span 1",
       showSearch: true,
     },
     {
+      name: "spacer",
+      type: "custom",
+      label: "",
+      render: () => <div />,
+    },
+    {
       name: "apply",
+      label: " ",
       type: "button",
       buttonText: "Áp dụng bộ lọc",
       buttonType: "primary",
-      buttonIcon: <FilterOutlined />,
-      gridColumn: "span 1",
-      onClick: handleApplyFilters,
+      buttonIcon: <FilterOutlined size={14} />,
+      isSubmit: true,
     },
     {
       name: "clear",
+      label: " ",
       type: "button",
       buttonText: "Xóa bộ lọc",
-      buttonType: "default",
-      buttonIcon: <ClearOutlined />,
-      gridColumn: "span 1",
+      buttonType: "dashed",
+      buttonIcon: <ClearOutlined size={14} />,
       onClick: handleClearFilters,
     },
   ];
@@ -184,8 +188,12 @@ export default function DashboardPage() {
   const revenueComparisonData = revenue.data
     ? {
         labels: [
-          `${dashboardMessage.months[revenue.data.previous_month?.month]} ${revenue.data.previous_month?.year}`,
-          `${dashboardMessage.months[revenue.data.current_month?.month]} ${revenue.data.current_month?.year}`,
+          `${dashboardMessage.months[revenue.data.previous_month?.month]} ${
+            revenue.data.previous_month?.year
+          }`,
+          `${dashboardMessage.months[revenue.data.current_month?.month]} ${
+            revenue.data.current_month?.year
+          }`,
         ],
         datasets: [
           {
@@ -263,7 +271,7 @@ export default function DashboardPage() {
           </Button>
         </div>
 
-        {/* Filter Section with CustomForm */}
+        {/* Filter Section with RangePicker */}
         <Card className="dashboard-filter-card" style={{ marginBottom: 24 }}>
           <Collapse
             defaultActiveKey={["1"]}
@@ -288,14 +296,119 @@ export default function DashboardPage() {
                   </Space>
                 ),
                 children: (
-                  <CustomForm
-                    fields={filterFields}
-                    gridColumns="repeat(6, 1fr)"
-                    gap="16px"
-                    initialValues={filterValues}
-                    onSubmit={handleApplyFilters}
-                    onValuesChange={(changed, all) => setFilterValues(all)}
-                  />
+                  <div className="dashboard-filter-form">
+                    <Row gutter={[16, 16]}>
+                      <Col xs={24} sm={12} md={6}>
+                        <Space
+                          direction="vertical"
+                          size="small"
+                          className="w-full"
+                        >
+                          <Text type="secondary" className="text-xs">
+                            Khoảng thời gian
+                          </Text>
+                          <DatePicker.RangePicker
+                            format="DD/MM/YYYY"
+                            placeholder={["Ngày bắt đầu", "Ngày kết thúc"]}
+                            onChange={(dates) => {
+                              setFilterValues({
+                                ...filterValues,
+                                dateRange: dates,
+                              });
+                            }}
+                            style={{ width: "100%" }}
+                          />
+                        </Space>
+                      </Col>
+                      <Col xs={24} sm={12} md={6}>
+                        <Space
+                          direction="vertical"
+                          size="small"
+                          className="w-full"
+                        >
+                          <Text type="secondary" className="text-xs">
+                            Trạng thái đơn bảo hiểm
+                          </Text>
+                          <CustomForm
+                            fields={[
+                              {
+                                name: "status",
+                                type: "multiselect",
+                                placeholder: "Chọn trạng thái",
+                                options: statusOptions,
+                                showSearch: true,
+                                maxTagCount: 1,
+                              },
+                            ]}
+                            gridColumns="1fr"
+                            gap="0"
+                            initialValues={{ status: filterValues.status }}
+                            onValuesChange={(changed, all) =>
+                              setFilterValues({ ...filterValues, ...all })
+                            }
+                          />
+                        </Space>
+                      </Col>
+                      <Col xs={24} sm={12} md={6}>
+                        <Space
+                          direction="vertical"
+                          size="small"
+                          className="w-full"
+                        >
+                          <Text type="secondary" className="text-xs">
+                            Trạng thái thẩm định
+                          </Text>
+                          <CustomForm
+                            fields={[
+                              {
+                                name: "underwriting_status",
+                                type: "multiselect",
+                                placeholder: "Chọn trạng thái",
+                                options: underwritingOptions,
+                                showSearch: true,
+                              },
+                            ]}
+                            gridColumns="1fr"
+                            gap="0"
+                            initialValues={{
+                              underwriting_status:
+                                filterValues.underwriting_status,
+                            }}
+                            onValuesChange={(changed, all) =>
+                              setFilterValues({ ...filterValues, ...all })
+                            }
+                          />
+                        </Space>
+                      </Col>
+                      <Col xs={24} sm={12} md={6}>
+                        <Space
+                          direction="vertical"
+                          size="small"
+                          className="w-full"
+                        >
+                          <Text type="secondary" className="text-xs">
+                            &nbsp;
+                          </Text>
+                          <Space>
+                            <Button
+                              type="primary"
+                              icon={<FilterOutlined size={14} />}
+                              onClick={() => handleApplyFilters(filterValues)}
+                            >
+                              Áp dụng
+                            </Button>
+                            <Button
+                              type="dashed"
+                              icon={<ClearOutlined size={14} />}
+                              onClick={handleClearFilters}
+                            >
+                              Xóa
+                            </Button>
+                          </Space>
+                        </Space>
+                      </Col>
+                    </Row>
+                  </div>
                 ),
               },
             ]}
@@ -307,7 +420,7 @@ export default function DashboardPage() {
           <Tooltip title="Tổng doanh thu của tháng hiện tại">
             <div className="dashboard-summary-card-compact">
               <div className="dashboard-summary-icon total">
-                <DollarOutlined />
+                <WalletOutlined />
               </div>
               <div className="dashboard-summary-content">
                 <div className="dashboard-summary-value-compact">
@@ -403,7 +516,7 @@ export default function DashboardPage() {
             <Card
               title={
                 <Space>
-                  <DollarOutlined style={{ color: "#18573f" }} />
+                  <WalletOutlined style={{ color: "#18573f" }} />
                   {dashboardMessage.revenue.revenueComparison}
                 </Space>
               }
@@ -429,9 +542,9 @@ export default function DashboardPage() {
                         bodyFont: { size: 13 },
                         callbacks: {
                           label: (context) =>
-                            `${dashboardMessage.chart.revenue}: ${revenue.formatCurrency(
-                              context.parsed.y
-                            )}`,
+                            `${
+                              dashboardMessage.chart.revenue
+                            }: ${revenue.formatCurrency(context.parsed.y)}`,
                         },
                       },
                     },

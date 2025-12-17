@@ -206,7 +206,6 @@
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   border: 1px solid #e5e7eb;
-  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
 }
 
 .dashboard-filter-card .ant-collapse-header {
@@ -216,7 +215,6 @@
 
 .dashboard-filter-card .ant-collapse-content-box {
   padding: 20px;
-  background: white;
 }
 
 .dashboard-filter-card .ant-checkbox-wrapper {
@@ -370,4 +368,13 @@
 
 .dashboard-content ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+/* Filter Form Styling */
+.dashboard-filter-card {
+  margin-bottom: 24px;
+}
+
+.dashboard-filter-form {
+  padding: 16px 0;
 }
