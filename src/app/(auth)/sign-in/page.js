@@ -20,7 +20,7 @@ const SigninPage = () => {
   const user = useAuthStore((s) => s.user);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
 
-  // Redirect to /accounts/general if already authenticated
+  // Redirect to /dashboard if already authenticated
   useEffect(() => {
     const storedToken =
       typeof window !== "undefined" ? localStorage.getItem("token") : null;
@@ -29,7 +29,7 @@ const SigninPage = () => {
     const isAuthenticated = hasToken || hasRoles;
 
     if (isAuthenticated) {
-      router.push("/accounts/general");
+      router.push("/dashboard");
     } else {
       // Auth check complete, show sign-in form
       setIsAuthChecking(false);
@@ -53,7 +53,7 @@ const SigninPage = () => {
       // Success message is already shown by the hook
       // Wait a moment for localStorage to be fully written
       setTimeout(() => {
-        router.push("/accounts/general");
+        router.push("/dashboard");
       }, 100);
     }
     // Error messages are already shown by the hook in Vietnamese

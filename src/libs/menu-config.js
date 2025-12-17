@@ -1,6 +1,10 @@
 // Menu configuration used by CustomSidebar and CustomHeader breadcrumb generation
 export const sidebarMenuItems = [
   {
+    key: "dashboard",
+    label: "Bảng điều khiển",
+  },
+  {
     key: "accounts",
     label: "Quản lí tài khoản",
     children: [

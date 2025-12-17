@@ -20,6 +20,9 @@ export const endpoints = {
     register: (role_name) => `/auth/public/register?role_name=${role_name}`,
   },
   policy: {
+    dashboard: {
+      revenue_overview: "/policy/protected/api/v2/dashboard/admin/revenue-overview",
+    },
     data_tier: {
       category: {
         get_all: "/policy/protected/api/v2/data-tier-categories/",

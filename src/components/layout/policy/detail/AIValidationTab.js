@@ -21,7 +21,6 @@ import CustomTable from "../../../custom-table";
 
 const { Text, Title } = Typography;
 
-// Mapping functions theo tài liệu BE
 const getSeverityLabel = (severity) => {
   const map = {
     critical: "Nghiêm trọng",

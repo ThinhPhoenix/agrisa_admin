@@ -27,6 +27,7 @@ export {
   splitSignInMessage,
 } from "./auth-message.js";
 export { claimMessage } from "./claim-message.js";
+export { dashboardMessage } from "./dashboard-message.js";
 export {
   COMMON_MESSAGES,
   getCommonMessage,
