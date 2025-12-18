@@ -143,15 +143,6 @@ export function BasePolicyTab({
               Thông tin gói bảo hiểm
             </Title>
           </div>
-          {document.presigned_url && (
-            <Button
-              type="primary"
-              icon={<DownloadOutlined />}
-              onClick={() => window.open(document.presigned_url, "_blank")}
-            >
-              Tải PDF
-            </Button>
-          )}
         </div>
         <Descriptions column={{ xs: 1, sm: 2, md: 3 }} bordered size="small">
           <Descriptions.Item label="Tên sản phẩm">
@@ -337,6 +328,17 @@ export function BasePolicyTab({
                     "vi-VN"
                   )
                 : "-"}
+            </Descriptions.Item>
+            <Descriptions.Item label="Tải tài liệu PDF gốc">
+              {document.presigned_url && (
+                <Button
+                  type="dashed"
+                  icon={<DownloadOutlined />}
+                  onClick={() => window.open(document.presigned_url, "_blank")}
+                >
+                  Tải PDF
+                </Button>
+              )}
             </Descriptions.Item>
           </Descriptions>
         </Card>

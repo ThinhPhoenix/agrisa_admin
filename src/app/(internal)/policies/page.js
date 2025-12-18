@@ -3,7 +3,6 @@
 import SelectedColumn from "@/components/column-selector";
 import { CustomForm } from "@/components/custom-form";
 import CustomTable from "@/components/custom-table";
-import { policyMessage } from "@/libs/message";
 import { useTableData } from "@/services/hooks/common/use-table-data";
 import { usePolicies } from "@/services/hooks/policy";
 import {
@@ -74,7 +73,7 @@ export default function PoliciesPage() {
     return (
       <Layout.Content className="policy-content">
         <div className="policy-loading">
-          <Spin size="large" tip={policyMessage.loading.list} />
+          <Spin size="large" tip={"Đang tải danh sách..."} />
         </div>
       </Layout.Content>
     );
@@ -91,37 +90,37 @@ export default function PoliciesPage() {
       draft: {
         color: "default",
         icon: <ClockCircleOutlined />,
-        text: policyMessage.status.draft,
+        text: "Nháp",
       },
       pending_review: {
         color: "orange",
         icon: <ClockCircleOutlined />,
-        text: policyMessage.status.pending_review,
+        text: "Chờ xét duyệt",
       },
       pending_payment: {
         color: "cyan",
         icon: <DollarOutlined />,
-        text: policyMessage.status.pending_payment,
+        text: "Chờ thanh toán",
       },
       active: {
         color: "green",
         icon: <CheckCircleOutlined />,
-        text: policyMessage.status.active,
+        text: "Đang hoạt động",
       },
       expired: {
         color: "red",
         icon: <CloseCircleOutlined />,
-        text: policyMessage.status.expired,
+        text: "Hết hạn",
       },
       cancelled: {
         color: "default",
         icon: <CloseCircleOutlined />,
-        text: policyMessage.status.cancelled,
+        text: "Đã hủy",
       },
       rejected: {
         color: "red",
         icon: <CloseCircleOutlined />,
-        text: policyMessage.status.rejected,
+        text: "Từ chối",
       },
     };
     return configs[status] || configs.draft;
@@ -133,17 +132,17 @@ export default function PoliciesPage() {
       pending: {
         color: "orange",
         icon: <ClockCircleOutlined />,
-        text: policyMessage.underwritingStatus.pending,
+        text: "Chờ duyệt",
       },
       approved: {
         color: "green",
         icon: <CheckCircleOutlined />,
-        text: policyMessage.underwritingStatus.approved,
+        text: "Đã phê duyệt",
       },
       rejected: {
         color: "red",
         icon: <CloseCircleOutlined />,
-        text: policyMessage.underwritingStatus.rejected,
+        text: "Từ chối",
       },
     };
     return configs[status] || configs.pending;
@@ -171,42 +170,42 @@ export default function PoliciesPage() {
 
   const columns = [
     {
-      title: policyMessage.table.policyNumber,
+      title: "Số hợp đồng",
       dataIndex: "policy_number",
       key: "policy_number",
       width: 150,
       render: (text) => <strong>{text}</strong>,
     },
+    // {
+    //   title: policyMessage.table.farmerName,
+    //   dataIndex: "farmer_id",
+    //   key: "farmer_id",
+    //   width: 150,
+    //   render: (text) => text || "-",
+    // },
     {
-      title: policyMessage.table.farmerName,
-      dataIndex: "farmer_id",
-      key: "farmer_id",
-      width: 150,
-      render: (text) => text || "-",
-    },
-    {
-      title: policyMessage.table.farmName,
+      title: "Tên trang trại",
       dataIndex: "farm_name",
       key: "farm_name",
       width: 180,
       render: (_, record) => record.farm?.farm_name || "-",
     },
     {
-      title: policyMessage.table.basePolicyName,
+      title: "Sản phẩm cơ bản",
       dataIndex: "base_policy_name",
       key: "base_policy_name",
       width: 200,
       render: (_, record) => record.base_policy?.product_name || "-",
     },
     {
-      title: policyMessage.table.insuranceProvider,
+      title: "Nhà cung cấp",
       dataIndex: "insurance_provider_id",
       key: "insurance_provider_id",
       width: 150,
       render: (text) => text || "-",
     },
     {
-      title: policyMessage.table.coverageAmount,
+      title: "Số tiền bảo hiểm",
       dataIndex: "coverage_amount",
       key: "coverage_amount",
       width: 150,
@@ -214,7 +213,7 @@ export default function PoliciesPage() {
       render: (amount) => formatCurrency(amount),
     },
     {
-      title: policyMessage.table.premium,
+      title: "Phí bảo hiểm",
       dataIndex: "total_farmer_premium",
       key: "total_farmer_premium",
       width: 130,
@@ -222,7 +221,7 @@ export default function PoliciesPage() {
       render: (amount) => formatCurrency(amount),
     },
     {
-      title: policyMessage.table.status,
+      title: "Trạng thái",
       dataIndex: "status",
       key: "status",
       width: 160,
@@ -236,7 +235,7 @@ export default function PoliciesPage() {
       },
     },
     {
-      title: policyMessage.table.underwritingStatus,
+      title: "Trạng thái thẩm định",
       dataIndex: "underwriting_status",
       key: "underwriting_status",
       width: 160,
@@ -250,7 +249,7 @@ export default function PoliciesPage() {
       },
     },
     {
-      title: policyMessage.table.actions,
+      title: "Hành động",
       key: "action",
       fixed: "right",
       width: 120,
@@ -261,7 +260,7 @@ export default function PoliciesPage() {
               type="dashed"
               size="small"
               className="policy-action-btn !bg-blue-100 !border-blue-200 !text-blue-800 hover:!bg-blue-200"
-              title={policyMessage.actions.viewDetail}
+              title={"Xem chi tiết"}
             >
               <EyeOutlined />
             </Button>
@@ -274,33 +273,33 @@ export default function PoliciesPage() {
   const searchFields = [
     {
       name: "search",
-      label: policyMessage.filter.search,
+      label: "Tìm kiếm",
       type: "input",
-      placeholder: policyMessage.filter.policyNumber,
+      placeholder: "Số hợp đồng",
     },
     {
       name: "status",
-      label: policyMessage.filter.status,
+      label: "Trạng thái",
       type: "combobox",
-      placeholder: policyMessage.filter.allStatus,
+      placeholder: "Tất cả trạng thái",
       options: [
-        { label: policyMessage.filter.allStatus, value: "" },
+        { label: "Tất cả trạng thái", value: "" },
         ...filterOptions.statusOptions,
       ],
     },
     {
       name: "underwriting_status",
-      label: policyMessage.filter.underwritingStatus,
+      label: "Trạng thái thẩm định",
       type: "combobox",
-      placeholder: policyMessage.filter.allUnderwriting,
+      placeholder: "Tất cả",
       options: [
-        { label: policyMessage.filter.allUnderwriting, value: "" },
+        { label: "Tất cả", value: "" },
         ...filterOptions.underwritingOptions,
       ],
     },
     {
       name: "insurance_provider_id",
-      label: policyMessage.filter.insuranceProvider,
+      label: "Nhà cung cấp",
       type: "combobox",
       placeholder: "Tất cả nhà cung cấp",
       options: [
@@ -319,7 +318,7 @@ export default function PoliciesPage() {
       label: " ",
       type: "button",
       variant: "primary",
-      buttonText: policyMessage.filter.apply,
+      buttonText: "Áp dụng",
       startContent: <SearchOutlined size={14} />,
       isSubmit: true,
     },
@@ -328,7 +327,7 @@ export default function PoliciesPage() {
       label: " ",
       type: "button",
       variant: "dashed",
-      buttonText: policyMessage.filter.reset,
+      buttonText: "Đặt lại",
       startContent: <FilterOutlined size={14} />,
       onClick: handleClearFilters,
     },
@@ -341,7 +340,7 @@ export default function PoliciesPage() {
           <div>
             <Title level={2} className="policy-title">
               <FileProtectOutlined className="policy-icon" />
-              {policyMessage.title.list}
+              {"Quản lý hợp đồng"}
             </Title>
             <Text className="policy-subtitle">
               Quản lý và giám sát các hợp đồng bảo hiểm nông nghiệp
@@ -359,7 +358,7 @@ export default function PoliciesPage() {
                 {summaryStats.totalPolicies}
               </div>
               <div className="policy-summary-label-compact">
-                {policyMessage.stats.totalPolicies}
+                Tổng số hợp đồng
               </div>
             </div>
           </div>
@@ -409,7 +408,7 @@ export default function PoliciesPage() {
                 label: (
                   <Space>
                     <FilterOutlined />
-                    {policyMessage.filter.title}
+                    {"Bộ lọc"}
                   </Space>
                 ),
                 children: (

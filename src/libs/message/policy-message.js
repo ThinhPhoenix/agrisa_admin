@@ -1,27 +1,12 @@
 export const policyMessage = {
   // Page titles
   title: {
-    list: "Quản lý đơn bảo hiểm",
     detail: "Chi tiết đơn bảo hiểm",
     stats: "Thống kê đơn bảo hiểm",
     monitoring: "Dữ liệu giám sát",
   },
 
-  // Table headers
-  table: {
-    policyNumber: "Số đơn",
-    farmerName: "Nông dân",
-    farmName: "Tên nông trại",
-    basePolicyName: "Gói bảo hiểm",
-    coverageAmount: "Số tiền bảo hiểm",
-    coveragePeriod: "Thời gian bảo hiểm",
-    premium: "Phí bảo hiểm",
-    status: "Trạng thái",
-    underwritingStatus: "Trạng thái thẩm định",
-    insuranceProvider: "Nhà cung cấp",
-    createdAt: "Ngày tạo",
-    actions: "Thao tác",
-  },
+  // Table headers (migrated to list view component)
 
   // Policy status
   status: {
@@ -44,22 +29,7 @@ export const policyMessage = {
     rejected: "Bị từ chối",
   },
 
-  // Filter labels
-  filter: {
-    title: "Bộ lọc",
-    policyNumber: "Số đơn bảo hiểm",
-    farmerId: "Mã nông dân",
-    insuranceProvider: "Nhà cung cấp",
-    status: "Trạng thái đơn",
-    underwritingStatus: "Trạng thái thẩm định",
-    basePolicyId: "Mã gói bảo hiểm",
-    farmId: "Mã nông trại",
-    search: "Tìm kiếm...",
-    apply: "Áp dụng",
-    reset: "Đặt lại",
-    allStatus: "Tất cả trạng thái",
-    allUnderwriting: "Tất cả thẩm định",
-  },
+  // Filter labels (migrated to list view component)
 
   // Detail page sections
   detail: {
@@ -101,7 +71,6 @@ export const policyMessage = {
 
   // Statistics
   stats: {
-    totalPolicies: "Tổng số đơn",
     byStatus: "Theo trạng thái",
     byUnderwriting: "Theo thẩm định",
     totalCoverage: "Tổng số tiền bảo hiểm",
@@ -110,7 +79,7 @@ export const policyMessage = {
 
   // Actions
   actions: {
-    viewDetail: "Xem chi tiết",
+    // viewDetail migrated to list view component
     updateStatus: "Cập nhật trạng thái",
     updateUnderwriting: "Cập nhật thẩm định",
     downloadDocument: "Tải tài liệu",
@@ -165,7 +134,7 @@ export const policyMessage = {
 
   // Loading messages
   loading: {
-    list: "Đang tải danh sách...",
+    // list loading migrated to list view component
     detail: "Đang tải chi tiết...",
     stats: "Đang tải thống kê...",
     updating: "Đang cập nhật...",
