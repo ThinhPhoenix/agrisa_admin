@@ -17,9 +17,9 @@ import {
   EyeOutlined,
   FilterOutlined,
   SearchOutlined,
+  WalletOutlined,
 } from "@ant-design/icons";
 import { Button, Collapse, Layout, Space, Spin, Tag, Typography } from "antd";
-import { WalletCards } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import "./page.css";
@@ -288,7 +288,6 @@ export default function ClaimsPage() {
         <div className="claim-header">
           <div>
             <Title level={2} className="claim-title">
-              <WalletCards className="claim-icon" />
               Quản lý yêu cầu chi trả
             </Title>
             <Text className="claim-subtitle">
@@ -309,7 +308,7 @@ export default function ClaimsPage() {
         <div className="claim-summary-row">
           <div className="claim-summary-card-compact">
             <div className="claim-summary-icon total">
-              <DollarOutlined />
+              <WalletOutlined />
             </div>
             <div className="claim-summary-content">
               <div className="claim-summary-value-compact">
@@ -347,7 +346,7 @@ export default function ClaimsPage() {
 
           <div className="claim-summary-card-compact">
             <div className="claim-summary-icon paid">
-              <DollarOutlined />
+              <WalletOutlined />
             </div>
             <div className="claim-summary-content">
               <div className="claim-summary-value-compact">

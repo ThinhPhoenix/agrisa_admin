@@ -53,19 +53,19 @@
 }
 
 .claim-summary-icon.total {
-  @apply bg-blue-100 text-blue-600;
+  @apply bg-blue-50 text-blue-500;
 }
 
 .claim-summary-icon.pending {
-  @apply bg-orange-100 text-orange-600;
+  @apply bg-orange-50 text-orange-500;
 }
 
 .claim-summary-icon.approved {
-  @apply bg-green-100 text-green-600;
+  @apply bg-green-50 text-green-500;
 }
 
 .claim-summary-icon.paid {
-  @apply bg-purple-100 text-purple-600;
+  @apply bg-purple-50 text-purple-500;
 }
 
 .claim-filter-form {

@@ -339,7 +339,6 @@ export default function PoliciesPage() {
         <div className="policy-header">
           <div>
             <Title level={2} className="policy-title">
-              <FileProtectOutlined className="policy-icon" />
               {"Quản lý hợp đồng"}
             </Title>
             <Text className="policy-subtitle">

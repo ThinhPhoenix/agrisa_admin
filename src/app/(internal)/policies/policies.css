@@ -49,7 +49,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   border: 1px solid #e5e7eb;
   min-width: 0;
 }
@@ -69,23 +69,25 @@
   color: #1d4ed8;
 }
 
+.policy-summary-icon.total {
+  background-color: rgba(219, 234, 254, 0.55); /* pastel blue */
+  color: rgba(29, 78, 216, 0.95);
+  backdrop-filter: blur(4px);
+}
 .policy-summary-icon.active {
-  background-color: #dcfce7;
-  color: #16a34a;
+  background-color: rgba(220, 252, 231, 0.55); /* pastel green */
+  color: rgba(22, 163, 74, 0.95);
+  backdrop-filter: blur(4px);
 }
-
 .policy-summary-icon.pending {
-  background-color: #fef3c7;
-  color: #d97706;
+  background-color: rgba(254, 243, 199, 0.55); /* pastel amber */
+  color: rgba(217, 119, 6, 0.95);
+  backdrop-filter: blur(4px);
 }
-
 .policy-summary-icon.approved {
-  background-color: #f3e8ff;
-  color: #7c3aed;
-}
-
-.policy-summary-content {
-  flex: 1;
+  background-color: rgba(243, 232, 255, 0.55); /* pastel purple */
+  color: rgba(124, 58, 237, 0.95);
+  backdrop-filter: blur(4px);
 }
 
 .policy-summary-value-compact {
