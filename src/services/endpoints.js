@@ -21,7 +21,8 @@ export const endpoints = {
   },
   policy: {
     dashboard: {
-      revenue_overview: "/policy/protected/api/v2/dashboard/admin/revenue-overview",
+      revenue_overview:
+        "/policy/protected/api/v2/dashboard/admin/revenue-overview",
     },
     data_tier: {
       category: {
@@ -96,8 +97,17 @@ export const endpoints = {
       `/profile/protected/api/v1/users/admin/${user_id}`,
   },
   address: {
-    provinces: "https://provinces.open-api.vn/api/p/",
-    wards: (provinceCode) =>
-      `https://provinces.open-api.vn/api/v2/w/?province=${provinceCode}`,
+    // API Provider 1: Open API VN
+    openApi: {
+      provinces: "https://provinces.open-api.vn/api/v2/p/",
+      wards: (provinceCode) =>
+        `https://provinces.open-api.vn/api/v2/w/?province=${provinceCode}`,
+    },
+    // API Provider 2: TinhThanhPho.com
+    tinhThanhPho: {
+      provinces: "https://tinhthanhpho.com/api/v1/new-provinces",
+      wards: (provinceCode) =>
+        `https://tinhthanhpho.com/api/v1/new-provinces/${provinceCode}/wards`,
+    },
   },
 };

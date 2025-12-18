@@ -77,39 +77,148 @@ export function usePartners(partnerId = null) {
     }
   }, []);
 
-  // Fetch provinces
+  // Fetch provinces with random API selection and failover
   const fetchProvinces = useCallback(async () => {
+    // Randomly select API provider to try first
+    const apiProviders = [
+      {
+        name: "Open API VN",
+        url: endpoints.address.openApi.provinces,
+        transform: (data) => data, // Already in correct format
+      },
+      {
+        name: "TinhThanhPho",
+        url: endpoints.address.tinhThanhPho.provinces,
+        transform: (response) => {
+          // TinhThanhPho returns: {success, message, data: [...], metadata}
+          // Extract the data array first
+          const data = response?.data || response;
+          if (!Array.isArray(data)) return [];
+          return data.map((province) => ({
+            code: province.code,
+            name: province.name,
+          }));
+        },
+      },
+    ];
+
+    // Random shuffle to try different API first each time
+    const shuffled = [...apiProviders].sort(() => Math.random() - 0.5);
+    const [firstApi, secondApi] = shuffled;
+
+    // Try first API
     try {
-      const response = await fetch(endpoints.address.provinces);
+      console.log(`🌐 Fetching provinces from ${firstApi.name}...`);
+      const response = await fetch(firstApi.url);
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`HTTP ${response.status}`);
       }
       const data = await response.json();
-      if (Array.isArray(data)) {
-        setProvinces(data);
+      const transformed = firstApi.transform(data);
+      if (Array.isArray(transformed) && transformed.length > 0) {
+        console.log(`✅ Got ${transformed.length} provinces from ${firstApi.name}`);
+        setProvinces(transformed);
+        return;
       }
+      throw new Error("No data returned");
     } catch (err) {
-      console.error("Error fetching provinces:", err);
+      console.warn(`⚠️ ${firstApi.name} failed:`, err.message);
+
+      // Try second API as fallback
+      try {
+        console.log(`🔄 Switching to ${secondApi.name}...`);
+        const response = await fetch(secondApi.url);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        const data = await response.json();
+        const transformed = secondApi.transform(data);
+        if (Array.isArray(transformed) && transformed.length > 0) {
+          console.log(`✅ Got ${transformed.length} provinces from ${secondApi.name}`);
+          setProvinces(transformed);
+          return;
+        }
+        throw new Error("No data returned");
+      } catch (fallbackErr) {
+        console.error(`❌ ${secondApi.name} also failed:`, fallbackErr.message);
+        console.error("❌ Both province APIs failed");
+        message.error("Không thể tải dữ liệu tỉnh/thành phố. Vui lòng thử lại sau.");
+      }
     }
   }, []);
 
-  // Fetch wards by province code
+  // Fetch wards by province code with random API selection and failover
   const fetchWards = useCallback(async (provinceCode) => {
     if (!provinceCode) {
       setWards([]);
       return;
     }
+
+    // Randomly select API provider to try first
+    const apiProviders = [
+      {
+        name: "Open API VN",
+        url: endpoints.address.openApi.wards(provinceCode),
+        transform: (data) => data, // Already in correct format
+      },
+      {
+        name: "TinhThanhPho",
+        url: endpoints.address.tinhThanhPho.wards(provinceCode),
+        transform: (response) => {
+          // TinhThanhPho returns: {success, message, data: [...], metadata}
+          // Extract the data array first
+          const data = response?.data || response;
+          if (!Array.isArray(data)) return [];
+          return data.map((ward) => ({
+            code: ward.code,
+            name: ward.name,
+          }));
+        },
+      },
+    ];
+
+    // Random shuffle to try different API first each time
+    const shuffled = [...apiProviders].sort(() => Math.random() - 0.5);
+    const [firstApi, secondApi] = shuffled;
+
+    // Try first API
     try {
-      const response = await fetch(endpoints.address.wards(provinceCode));
+      console.log(`🌐 Fetching wards for province ${provinceCode} from ${firstApi.name}...`);
+      const response = await fetch(firstApi.url);
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`HTTP ${response.status}`);
       }
       const data = await response.json();
-      if (Array.isArray(data)) {
-        setWards(data);
+      const transformed = firstApi.transform(data);
+      if (Array.isArray(transformed) && transformed.length > 0) {
+        console.log(`✅ Got ${transformed.length} wards from ${firstApi.name}`);
+        setWards(transformed);
+        return;
       }
+      throw new Error("No data returned");
     } catch (err) {
-      console.error("Error fetching wards:", err);
+      console.warn(`⚠️ ${firstApi.name} failed:`, err.message);
+
+      // Try second API as fallback
+      try {
+        console.log(`🔄 Switching to ${secondApi.name}...`);
+        const response = await fetch(secondApi.url);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        const data = await response.json();
+        const transformed = secondApi.transform(data);
+        if (Array.isArray(transformed) && transformed.length > 0) {
+          console.log(`✅ Got ${transformed.length} wards from ${secondApi.name}`);
+          setWards(transformed);
+          return;
+        }
+        throw new Error("No data returned");
+      } catch (fallbackErr) {
+        console.error(`❌ ${secondApi.name} also failed:`, fallbackErr.message);
+        console.error("❌ Both ward APIs failed");
+        message.error("Không thể tải dữ liệu phường/xã. Vui lòng thử lại sau.");
+      }
     }
   }, []);
 
