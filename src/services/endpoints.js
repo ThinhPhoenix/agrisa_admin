@@ -95,6 +95,13 @@ export const endpoints = {
     create: "/profile/protected/api/v1/insurance-partners",
     assign_user: (user_id) =>
       `/profile/protected/api/v1/users/admin/${user_id}`,
+    deletion: {
+      create_request: "/profile/protected/api/v1/insurance-partners/deletion-requests",
+      get_requests: (partner_admin_id) =>
+        `/profile/protected/api/v1/insurance-partners/${partner_admin_id}/deletion-requests`,
+      revoke_request: "/profile/protected/api/v1/insurance-partners/deletion-requests/revoke",
+      admin_process: "/profile/protected/api/v1/insurance-partners/admin/process-request",
+    },
   },
   address: {
     // API Provider 1: Open API VN

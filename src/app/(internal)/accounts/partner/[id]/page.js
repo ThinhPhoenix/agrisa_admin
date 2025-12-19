@@ -21,6 +21,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import "../partner.css";
+import PartnerDeletionRequests from "./PartnerDeletionRequests";
 
 const { Title, Text } = Typography;
 const { Content } = Layout;
@@ -429,6 +430,12 @@ export default function PartnerDetailPage() {
                   </Descriptions.Item>
                 </Descriptions>
               </Card>
+            </Col>
+          </Row>
+
+          <Row gutter={[24, 24]} className="partner-detail-row">
+            <Col xs={24}>
+              <PartnerDeletionRequests partnerDetail={partner} />
             </Col>
           </Row>
         </div>
