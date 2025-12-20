@@ -10,6 +10,10 @@ export const sidebarMenuItems = [
     children: [
       { key: "accounts/general", label: "Quản lí chung" },
       { key: "accounts/partner", label: "Quản lí đối tác" },
+      {
+        key: "accounts/partner/deletion-requests",
+        label: "Yêu cầu hủy đối tác",
+      },
       // { key: "accounts/farmer", label: "Quản lí nông dân" },
     ],
   },

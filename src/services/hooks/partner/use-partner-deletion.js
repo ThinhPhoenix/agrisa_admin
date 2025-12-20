@@ -156,6 +156,47 @@ export function usePartnerDeletion() {
   );
 
   /**
+   * Fetch all deletion requests (for admin)
+   * Returns all deletion requests in the system
+   */
+  const fetchAllDeletionRequests = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await axiosInstance.get(
+        endpoints.partner.deletion.admin_list_all
+      );
+
+      if (response.data?.success && response.data?.data) {
+        const requests = Array.isArray(response.data.data)
+          ? response.data.data
+          : [response.data.data];
+        setDeletionRequests(requests);
+        return { success: true, data: requests };
+      }
+
+      setDeletionRequests([]);
+      return { success: true, data: [] };
+    } catch (err) {
+      console.error("Error fetching all deletion requests:", err);
+
+      // Handle 404 specifically - no requests found is not an error
+      if (err.response?.status === 404) {
+        setDeletionRequests([]);
+        return { success: true, data: [] };
+      }
+
+      const errorMessage = mapErrorToMessage(err, "fetch");
+      setError(errorMessage);
+      setDeletionRequests([]);
+      return { success: false, message: errorMessage };
+    } finally {
+      setLoading(false);
+    }
+  }, [mapErrorToMessage]);
+
+  /**
    * Create a new deletion request (for partner admin)
    * @param {Object} data - Request data
    * @param {string} data.detailed_explanation - Reason for deletion
@@ -356,6 +397,7 @@ export function usePartnerDeletion() {
 
     // Actions
     fetchDeletionRequests,
+    fetchAllDeletionRequests,
     createDeletionRequest,
     revokeDeletionRequest,
     adminProcessRequest,

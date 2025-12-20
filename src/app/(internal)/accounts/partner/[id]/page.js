@@ -3,25 +3,38 @@
 import { CustomForm } from "@/components/custom-form";
 import { useAccounts } from "@/services/hooks/accounts/use-accounts";
 import { usePartners } from "@/services/hooks/partner/use-partner";
-import { ArrowLeftOutlined, UserAddOutlined } from "@ant-design/icons";
+import { usePartnerDeletion } from "@/services/hooks/partner/use-partner-deletion";
 import {
+  ArrowLeftOutlined,
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  CloseCircleOutlined,
+  ExclamationCircleOutlined,
+  StopOutlined,
+  UserAddOutlined,
+} from "@ant-design/icons";
+import {
+  Alert,
   Button,
   Card,
   Col,
   Descriptions,
+  Empty,
   Layout,
   Modal,
   Row,
+  Space,
   Spin,
   Statistic,
+  Steps,
   Tag,
+  Timeline,
   Typography,
 } from "antd";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "../partner.css";
-import PartnerDeletionRequests from "./PartnerDeletionRequests";
 
 const { Title, Text } = Typography;
 const { Content } = Layout;
@@ -39,6 +52,21 @@ export default function PartnerDetailPage() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  // Partner Deletion Request States
+  const {
+    deletionRequests,
+    loading: deletionLoading,
+    fetchDeletionRequests,
+    adminProcessRequest,
+    getStatusLabel,
+    getStatusColor: getDeletionStatusColor,
+    canProcess,
+  } = usePartnerDeletion();
+  const [isProcessModalVisible, setIsProcessModalVisible] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [processingStatus, setProcessingStatus] = useState(null);
+  const [processing, setProcessing] = useState(false);
+
   // Create user options for select
   const userOptions = useMemo(() => {
     if (!users || users.length === 0) return [];
@@ -50,32 +78,78 @@ export default function PartnerDetailPage() {
       }));
   }, [users]);
 
-  if (loading) {
+  // Fetch deletion requests when component mounts or partner changes
+  useEffect(() => {
+    if (partner?.partner_id) {
+      fetchDeletionRequests(partner.partner_id);
+    }
+  }, [partner?.partner_id, fetchDeletionRequests]);
+
+  // Get the most recent pending request
+  const pendingRequest = useMemo(() => {
+    return deletionRequests.find((req) => req.status === "pending");
+  }, [deletionRequests]);
+
+  // Calculate days remaining for revoke period
+  const getDaysRemaining = (cancellableUntil) => {
+    const now = new Date();
+    const deadline = new Date(cancellableUntil);
+    const diffTime = deadline - now;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays > 0 ? diffDays : 0;
+  };
+
+  // Calculate days since request
+  const getDaysSinceRequest = (requestedAt) => {
+    const now = new Date();
+    const requested = new Date(requestedAt);
+    const diffTime = now - requested;
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
+  // Get current step in the deletion process
+  const getCurrentStep = (request) => {
+    if (!request) return 0;
+    if (request.status === "pending") {
+      const daysRemaining = getDaysRemaining(request.cancellable_until);
+      return daysRemaining > 0 ? 0 : 1;
+    }
+    if (request.status === "approved") return 2;
+    if (request.status === "rejected" || request.status === "cancelled")
+      return -1;
+    return 0;
+  };
+
+  // Show loading or error based on data availability
+  if (!partner) {
+    // If we have an error, show error page
+    if (error) {
+      return (
+        <Content className="partner-content">
+          <div className="partner-error">
+            <Title level={3}>Không tìm thấy đối tác</Title>
+            <Text>Đối tác với ID {partnerId} không tồn tại.</Text>
+            <br />
+            <Link href="/accounts/partner">
+              <Button
+                type="dashed"
+                icon={<ArrowLeftOutlined />}
+                style={{ marginTop: 16 }}
+              >
+                Quay lại danh sách
+              </Button>
+            </Link>
+          </div>
+        </Content>
+      );
+    }
+
+    // Otherwise, show loading (including initial state)
     return (
       <Content className="partner-content">
         <div className="partner-loading">
           <Spin size="large" tip="Đang tải thông tin đối tác..." />
-        </div>
-      </Content>
-    );
-  }
-
-  if (error || !partner) {
-    return (
-      <Content className="partner-content">
-        <div className="partner-error">
-          <Title level={3}>Không tìm thấy đối tác</Title>
-          <Text>Đối tác với ID {partnerId} không tồn tại.</Text>
-          <br />
-          <Link href="/accounts/partner">
-            <Button
-              type="primary"
-              icon={<ArrowLeftOutlined />}
-              style={{ marginTop: 16 }}
-            >
-              Quay lại danh sách
-            </Button>
-          </Link>
         </div>
       </Content>
     );
@@ -110,6 +184,43 @@ export default function PartnerDetailPage() {
     }
   };
 
+  // Handle approve/reject button click for deletion request
+  const handleProcessClick = (request, status) => {
+    setSelectedRequest(request);
+    setProcessingStatus(status);
+    setIsProcessModalVisible(true);
+  };
+
+  // Handle form submission for process modal
+  const handleProcessSubmit = async (values) => {
+    if (!selectedRequest) return;
+
+    setProcessing(true);
+    try {
+      const result = await adminProcessRequest(
+        selectedRequest.request_id,
+        processingStatus,
+        values.review_note || ""
+      );
+
+      if (result.success) {
+        setIsProcessModalVisible(false);
+        // Refresh the deletion requests
+        if (partner?.partner_id) {
+          await fetchDeletionRequests(partner.partner_id);
+        }
+      }
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleProcessModalCancel = () => {
+    setIsProcessModalVisible(false);
+    setSelectedRequest(null);
+    setProcessingStatus(null);
+  };
+
   const formFields = [
     {
       name: "user_id",
@@ -125,6 +236,18 @@ export default function PartnerDetailPage() {
       filterOption: (input, option) =>
         option?.label?.toLowerCase().includes(input.toLowerCase()),
       loading: usersLoading,
+    },
+  ];
+
+  // Form fields for process deletion request modal
+  const processFormFields = [
+    {
+      name: "review_note",
+      label: "Ghi chú xử lý",
+      type: "textarea",
+      placeholder: "Nhập ghi chú về quyết định của bạn (tùy chọn)",
+      rows: 4,
+      maxLength: 500,
     },
   ];
 
@@ -435,7 +558,293 @@ export default function PartnerDetailPage() {
 
           <Row gutter={[24, 24]} className="partner-detail-row">
             <Col xs={24}>
-              <PartnerDeletionRequests partnerDetail={partner} />
+              {/* Partner Deletion Requests Section */}
+              {deletionLoading && deletionRequests.length === 0 ? (
+                <Card
+                  title="Yêu cầu hủy đối tác"
+                  className="partner-detail-card"
+                >
+                  <div style={{ textAlign: "center", padding: "40px 0" }}>
+                    <Spin size="large" tip="Đang tải yêu cầu hủy..." />
+                  </div>
+                </Card>
+              ) : deletionRequests.length === 0 ? (
+                <Card
+                  title="Yêu cầu hủy đối tác"
+                  className="partner-detail-card"
+                >
+                  <Empty
+                    description="Không có yêu cầu hủy nào"
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                  />
+                </Card>
+              ) : (
+                <Card
+                  title="Yêu cầu hủy đối tác"
+                  className="partner-detail-card"
+                >
+                  <Space
+                    direction="vertical"
+                    size="large"
+                    style={{ width: "100%" }}
+                  >
+                    {deletionRequests.map((request) => {
+                      const daysRemaining = getDaysRemaining(
+                        request.cancellable_until
+                      );
+                      const daysSinceRequest = getDaysSinceRequest(
+                        request.requested_at
+                      );
+                      const currentStep = getCurrentStep(request);
+                      const canBeProcessed = canProcess(request);
+
+                      return (
+                        <div
+                          key={request.request_id}
+                          style={{
+                            border: "1px solid #f0f0f0",
+                            borderRadius: "8px",
+                            padding: "24px",
+                            background: "#fafafa",
+                          }}
+                        >
+                          <Row gutter={[24, 24]}>
+                            <Col xs={24}>
+                              <Space
+                                style={{
+                                  width: "100%",
+                                  justifyContent: "space-between",
+                                }}
+                              >
+                                <div>
+                                  <Text strong style={{ fontSize: "16px" }}>
+                                    Yêu cầu hủy #
+                                    {request.request_id.slice(0, 8)}...
+                                  </Text>
+                                  <div style={{ marginTop: "8px" }}>
+                                    <Tag
+                                      color={getDeletionStatusColor(
+                                        request.status
+                                      )}
+                                    >
+                                      {getStatusLabel(request.status)}
+                                    </Tag>
+                                  </div>
+                                </div>
+                                {request.status === "pending" && (
+                                  <div>
+                                    {canBeProcessed ? (
+                                      <Space>
+                                        <Button
+                                          type="primary"
+                                          icon={<CheckCircleOutlined />}
+                                          onClick={() =>
+                                            handleProcessClick(
+                                              request,
+                                              "approved"
+                                            )
+                                          }
+                                          style={{ background: "#52c41a" }}
+                                        >
+                                          Phê duyệt
+                                        </Button>
+                                        <Button
+                                          danger
+                                          icon={<CloseCircleOutlined />}
+                                          onClick={() =>
+                                            handleProcessClick(
+                                              request,
+                                              "rejected"
+                                            )
+                                          }
+                                        >
+                                          Từ chối
+                                        </Button>
+                                      </Space>
+                                    ) : (
+                                      <Alert
+                                        message={`Còn ${daysRemaining} ngày để partner có thể thu hồi`}
+                                        type="info"
+                                        icon={<ClockCircleOutlined />}
+                                        showIcon
+                                      />
+                                    )}
+                                  </div>
+                                )}
+                              </Space>
+                            </Col>
+
+                            <Col xs={24} lg={12}>
+                              <Descriptions
+                                column={1}
+                                bordered
+                                size="small"
+                                title="Thông tin yêu cầu"
+                              >
+                                <Descriptions.Item label="Người yêu cầu">
+                                  {request.requested_by_name &&
+                                  request.requested_by_name.trim()
+                                    ? request.requested_by_name
+                                    : request.requested_by}
+                                </Descriptions.Item>
+                                <Descriptions.Item label="Ngày yêu cầu">
+                                  {new Date(
+                                    request.requested_at
+                                  ).toLocaleString("vi-VN")}
+                                </Descriptions.Item>
+                                <Descriptions.Item label="Đã gửi">
+                                  {daysSinceRequest} ngày trước
+                                </Descriptions.Item>
+                                <Descriptions.Item label="Hạn thu hồi">
+                                  {new Date(
+                                    request.cancellable_until
+                                  ).toLocaleString("vi-VN")}
+                                </Descriptions.Item>
+                                {request.detailed_explanation && (
+                                  <Descriptions.Item label="Lý do" span={2}>
+                                    {request.detailed_explanation}
+                                  </Descriptions.Item>
+                                )}
+                              </Descriptions>
+
+                              {request.reviewed_by_id && (
+                                <Descriptions
+                                  column={1}
+                                  bordered
+                                  size="small"
+                                  title="Thông tin xử lý"
+                                  style={{ marginTop: "16px" }}
+                                >
+                                  <Descriptions.Item label="Người xử lý">
+                                    {request.reviewed_by_name &&
+                                    request.reviewed_by_name.trim()
+                                      ? request.reviewed_by_name
+                                      : request.reviewed_by_id}
+                                  </Descriptions.Item>
+                                  <Descriptions.Item label="Ngày xử lý">
+                                    {new Date(
+                                      request.reviewed_at
+                                    ).toLocaleString("vi-VN")}
+                                  </Descriptions.Item>
+                                  {request.review_note && (
+                                    <Descriptions.Item label="Ghi chú" span={2}>
+                                      {request.review_note}
+                                    </Descriptions.Item>
+                                  )}
+                                </Descriptions>
+                              )}
+                            </Col>
+
+                            <Col xs={24} lg={12}>
+                              <div>
+                                <Text strong style={{ marginBottom: "16px" }}>
+                                  Tiến trình xử lý
+                                </Text>
+                                {request.status === "pending" ? (
+                                  <Steps
+                                    current={currentStep}
+                                    direction="vertical"
+                                    style={{ marginTop: "16px" }}
+                                  >
+                                    <Steps.Step
+                                      title="Chờ hết hạn thu hồi (7 ngày)"
+                                      description={
+                                        daysRemaining > 0
+                                          ? `Còn ${daysRemaining} ngày`
+                                          : "Đã hết hạn thu hồi"
+                                      }
+                                      icon={<ClockCircleOutlined />}
+                                    />
+                                    <Steps.Step
+                                      title="Admin xử lý yêu cầu"
+                                      description={
+                                        canBeProcessed
+                                          ? "Có thể xử lý ngay"
+                                          : "Chờ hết hạn thu hồi"
+                                      }
+                                      icon={<ExclamationCircleOutlined />}
+                                    />
+                                    <Steps.Step
+                                      title="Hoàn tất xử lý"
+                                      description="Chờ xử lý"
+                                      icon={<CheckCircleOutlined />}
+                                    />
+                                  </Steps>
+                                ) : (
+                                  <Timeline style={{ marginTop: "16px" }}>
+                                    <Timeline.Item color="blue">
+                                      <Text>
+                                        Yêu cầu được tạo:{" "}
+                                        {new Date(
+                                          request.requested_at
+                                        ).toLocaleString("vi-VN")}
+                                      </Text>
+                                    </Timeline.Item>
+                                    {request.reviewed_at && (
+                                      <Timeline.Item
+                                        color={
+                                          request.status === "approved"
+                                            ? "green"
+                                            : request.status === "rejected"
+                                            ? "red"
+                                            : "gray"
+                                        }
+                                        dot={
+                                          request.status === "approved" ? (
+                                            <CheckCircleOutlined />
+                                          ) : request.status === "rejected" ? (
+                                            <CloseCircleOutlined />
+                                          ) : (
+                                            <StopOutlined />
+                                          )
+                                        }
+                                      >
+                                        <Text>
+                                          {request.status === "approved"
+                                            ? "Đã phê duyệt"
+                                            : request.status === "rejected"
+                                            ? "Đã từ chối"
+                                            : "Đã hủy"}
+                                          :{" "}
+                                          {new Date(
+                                            request.reviewed_at
+                                          ).toLocaleString("vi-VN")}
+                                        </Text>
+                                        {request.reviewed_by_id && (
+                                          <div>
+                                            <Text type="secondary">
+                                              Bởi:{" "}
+                                              {request.reviewed_by_name &&
+                                              request.reviewed_by_name.trim()
+                                                ? request.reviewed_by_name
+                                                : request.reviewed_by_id}
+                                            </Text>
+                                          </div>
+                                        )}
+                                      </Timeline.Item>
+                                    )}
+                                  </Timeline>
+                                )}
+                              </div>
+
+                              {request.status === "approved" && (
+                                <Alert
+                                  message="Đối tác sẽ ngừng hoạt động sau 30 ngày"
+                                  description="Đối tác có trách nhiệm thanh toán toàn bộ các khoản bồi thường trước khi chính thức hủy. Tất cả các hợp đồng đang hoạt động sẽ chuyển sang trạng thái chờ hủy."
+                                  type="warning"
+                                  showIcon
+                                  icon={<ExclamationCircleOutlined />}
+                                  style={{ marginTop: "16px" }}
+                                />
+                              )}
+                            </Col>
+                          </Row>
+                        </div>
+                      );
+                    })}
+                  </Space>
+                </Card>
+              )}
             </Col>
           </Row>
         </div>
@@ -482,6 +891,84 @@ export default function PartnerDetailPage() {
               }}
             >
               Chỉ định tài khoản
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Process Deletion Request Modal */}
+      <Modal
+        title={
+          processingStatus === "approved"
+            ? "Phê duyệt yêu cầu hủy đối tác"
+            : "Từ chối yêu cầu hủy đối tác"
+        }
+        open={isProcessModalVisible}
+        onCancel={handleProcessModalCancel}
+        footer={null}
+        width={600}
+        centered
+        destroyOnClose
+      >
+        <div style={{ paddingTop: "20px" }}>
+          {processingStatus === "approved" ? (
+            <Alert
+              message="Xác nhận phê duyệt"
+              description="Sau khi phê duyệt, đối tác sẽ có 30 ngày notice period để thanh toán các khoản bồi thường và xử lý các hợp đồng đang hoạt động. Sau đó, tài khoản sẽ bị vô hiệu hóa."
+              type="warning"
+              showIcon
+              style={{ marginBottom: "24px" }}
+            />
+          ) : (
+            <Alert
+              message="Xác nhận từ chối"
+              description="Yêu cầu hủy sẽ bị từ chối và đối tác sẽ tiếp tục hoạt động bình thường. Đối tác có thể tạo yêu cầu hủy mới sau này."
+              type="info"
+              showIcon
+              style={{ marginBottom: "24px" }}
+            />
+          )}
+
+          <CustomForm
+            fields={processFormFields}
+            gridColumns="1fr"
+            gap="16px"
+            onSubmit={handleProcessSubmit}
+            initialValues={{
+              review_note: "",
+            }}
+          />
+
+          <div
+            style={{
+              marginTop: 24,
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: "8px",
+            }}
+          >
+            <Button onClick={handleProcessModalCancel} disabled={processing}>
+              Hủy
+            </Button>
+            <Button
+              type="primary"
+              danger={processingStatus === "rejected"}
+              loading={processing}
+              onClick={() => {
+                const formElement = document.querySelector("form");
+                if (formElement) {
+                  formElement.dispatchEvent(
+                    new Event("submit", { cancelable: true, bubbles: true })
+                  );
+                }
+              }}
+              style={
+                processingStatus === "approved"
+                  ? { background: "#52c41a", borderColor: "#52c41a" }
+                  : {}
+              }
+            >
+              {processingStatus === "approved" ? "Phê duyệt" : "Từ chối"}
             </Button>
           </div>
         </div>

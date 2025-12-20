@@ -34,7 +34,6 @@ export default function CreatePartnerPage() {
       const operatingProvinceNames = (formData.operating_provinces || [])
         .map((code) => provinces.find((p) => p.code === code)?.name)
         .filter(Boolean);
-
       const modifiedData = {
         ...formData,
         operating_provinces: operatingProvinceNames,
@@ -275,8 +274,18 @@ export default function CreatePartnerPage() {
       required: false,
       rules: [
         {
-          pattern: /^\+84\d{9,10}$/,
-          message: "Số điện thoại: +84 + 9-10 chữ số",
+          validator: (_, value) => {
+            if (!value) return Promise.resolve();
+            const v = String(value).trim();
+            const ok = /^(\+84\d{9}|\d{10})$/.test(v);
+            return ok
+              ? Promise.resolve()
+              : Promise.reject(
+                  new Error(
+                    "Số điện thoại phải là 10 chữ số (có thể có tiền tố +84)"
+                  )
+                );
+          },
         },
       ],
     },

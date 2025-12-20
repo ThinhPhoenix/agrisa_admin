@@ -101,6 +101,7 @@ export const endpoints = {
         `/profile/protected/api/v1/insurance-partners/${partner_admin_id}/deletion-requests`,
       revoke_request: "/profile/protected/api/v1/insurance-partners/deletion-requests/revoke",
       admin_process: "/profile/protected/api/v1/insurance-partners/admin/process-request",
+      admin_list_all: "/profile/protected/api/v1/insurance-partners/admin/deletion-requests",
     },
   },
   address: {

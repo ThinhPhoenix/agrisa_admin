@@ -116,7 +116,9 @@ export function usePartners(partnerId = null) {
       const data = await response.json();
       const transformed = firstApi.transform(data);
       if (Array.isArray(transformed) && transformed.length > 0) {
-        console.log(`✅ Got ${transformed.length} provinces from ${firstApi.name}`);
+        console.log(
+          `✅ Got ${transformed.length} provinces from ${firstApi.name}`
+        );
         setProvinces(transformed);
         return;
       }
@@ -134,7 +136,9 @@ export function usePartners(partnerId = null) {
         const data = await response.json();
         const transformed = secondApi.transform(data);
         if (Array.isArray(transformed) && transformed.length > 0) {
-          console.log(`✅ Got ${transformed.length} provinces from ${secondApi.name}`);
+          console.log(
+            `✅ Got ${transformed.length} provinces from ${secondApi.name}`
+          );
           setProvinces(transformed);
           return;
         }
@@ -142,7 +146,9 @@ export function usePartners(partnerId = null) {
       } catch (fallbackErr) {
         console.error(`❌ ${secondApi.name} also failed:`, fallbackErr.message);
         console.error("❌ Both province APIs failed");
-        message.error("Không thể tải dữ liệu tỉnh/thành phố. Vui lòng thử lại sau.");
+        message.error(
+          "Không thể tải dữ liệu tỉnh/thành phố. Vui lòng thử lại sau."
+        );
       }
     }
   }, []);
@@ -183,7 +189,9 @@ export function usePartners(partnerId = null) {
 
     // Try first API
     try {
-      console.log(`🌐 Fetching wards for province ${provinceCode} from ${firstApi.name}...`);
+      console.log(
+        `🌐 Fetching wards for province ${provinceCode} from ${firstApi.name}...`
+      );
       const response = await fetch(firstApi.url);
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
@@ -209,7 +217,9 @@ export function usePartners(partnerId = null) {
         const data = await response.json();
         const transformed = secondApi.transform(data);
         if (Array.isArray(transformed) && transformed.length > 0) {
-          console.log(`✅ Got ${transformed.length} wards from ${secondApi.name}`);
+          console.log(
+            `✅ Got ${transformed.length} wards from ${secondApi.name}`
+          );
           setWards(transformed);
           return;
         }
@@ -229,9 +239,12 @@ export function usePartners(partnerId = null) {
       const payload = {
         // Required fields
         legal_company_name: values.legal_company_name,
-        partner_trading_name: values.partner_trading_name || values.legal_company_name,
+        partner_trading_name:
+          values.partner_trading_name || values.legal_company_name,
         tax_identification_number: values.tax_identification_number,
-        business_registration_number: values.business_registration_number || values.tax_identification_number,
+        business_registration_number:
+          values.business_registration_number ||
+          values.tax_identification_number,
         partner_official_email: values.partner_official_email,
         head_office_address: values.head_office_address,
         province_code: String(values.province_code),
@@ -247,7 +260,10 @@ export function usePartners(partnerId = null) {
           : new Date().getFullYear(),
 
         // Important optional fields
-        partner_display_name: values.partner_display_name || values.partner_trading_name || values.legal_company_name,
+        partner_display_name:
+          values.partner_display_name ||
+          values.partner_trading_name ||
+          values.legal_company_name,
         company_type: values.company_type || "domestic",
         partner_phone: values.partner_phone || "",
         license_issue_date: values.license_issue_date
@@ -298,107 +314,144 @@ export function usePartners(partnerId = null) {
         // Mapping từ API documentation (line 358-412)
         const errorMapping = {
           // Thông tin công ty
-          "LegalCompanyName": {
-            "Tên công ty không được để trống": "Vui lòng nhập tên pháp lý công ty",
-            "Tên công ty phải có độ dài từ 1 đến 255 ký tự": "Tên công ty phải từ 1-255 ký tự",
-            "Tên công ty chỉ được chứa chữ cái tiếng Việt và khoảng trắng, không chứa ký tự đặc biệt": "Tên công ty chỉ được chứa chữ cái và khoảng trắng",
-            "Tên công ty phải bắt đầu bằng 'Công ty' theo quy định pháp luật Việt Nam": "Tên công ty phải bắt đầu bằng 'Công ty'"
+          LegalCompanyName: {
+            "Tên công ty không được để trống":
+              "Vui lòng nhập tên pháp lý công ty",
+            "Tên công ty phải có độ dài từ 1 đến 255 ký tự":
+              "Tên công ty phải từ 1-255 ký tự",
+            "Tên công ty chỉ được chứa chữ cái tiếng Việt và khoảng trắng, không chứa ký tự đặc biệt":
+              "Tên công ty chỉ được chứa chữ cái và khoảng trắng",
+            "Tên công ty phải bắt đầu bằng 'Công ty' theo quy định pháp luật Việt Nam":
+              "Tên công ty phải bắt đầu bằng 'Công ty'",
           },
-          "PartnerTradingName": {
-            "Tên giao dịch phải có độ dài từ 1 đến 255 ký tự": "Tên giao dịch phải từ 1-255 ký tự",
-            "Tên giao dịch không được chứa ký tự đặc biệt": "Tên giao dịch không hợp lệ"
+          PartnerTradingName: {
+            "Tên giao dịch phải có độ dài từ 1 đến 255 ký tự":
+              "Tên giao dịch phải từ 1-255 ký tự",
+            "Tên giao dịch không được chứa ký tự đặc biệt":
+              "Tên giao dịch không hợp lệ",
           },
-          "PartnerDisplayName": {
-            "Tên hiển thị không được vượt quá 255 ký tự": "Tên hiển thị quá dài (tối đa 255 ký tự)",
-            "Tên hiển thị không được chứa ký tự đặc biệt": "Tên hiển thị không hợp lệ"
+          PartnerDisplayName: {
+            "Tên hiển thị không được vượt quá 255 ký tự":
+              "Tên hiển thị quá dài (tối đa 255 ký tự)",
+            "Tên hiển thị không được chứa ký tự đặc biệt":
+              "Tên hiển thị không hợp lệ",
           },
-          "CompanyType": {
-            "Company type must be one of: domestic, foreign, joint_venture": "Loại hình công ty không hợp lệ"
+          CompanyType: {
+            "Company type must be one of: domestic, foreign, joint_venture":
+              "Loại hình công ty không hợp lệ",
           },
 
           // Ngày tháng
-          "IncorporationDate": {
-            "Incorporation date cannot be in the future": "Ngày thành lập không được là ngày tương lai",
-            "Incorporation date year must match year_established": "Năm thành lập không khớp với ngày thành lập",
-            "Incorporation date must be before license issue date": "Ngày thành lập phải trước ngày cấp giấy phép"
+          IncorporationDate: {
+            "Incorporation date cannot be in the future":
+              "Ngày thành lập không được là ngày tương lai",
+            "Incorporation date year must match year_established":
+              "Năm thành lập không khớp với ngày thành lập",
+            "Incorporation date must be before license issue date":
+              "Ngày thành lập phải trước ngày cấp giấy phép",
           },
 
           // Mã số
-          "TaxIdentificationNumber": {
+          TaxIdentificationNumber: {
             "Mã số thuế không được để trống": "Vui lòng nhập mã số thuế",
-            "Mã số thuế phải có định dạng 10 chữ số hoặc 10 chữ số theo sau bởi -XXX (13 ký tự)": "Mã số thuế không đúng định dạng (10 chữ số hoặc 10-XXX)"
+            "Mã số thuế phải có định dạng 10 chữ số hoặc 10 chữ số theo sau bởi -XXX (13 ký tự)":
+              "Mã số thuế không đúng định dạng (10 chữ số hoặc 10-XXX)",
           },
-          "BusinessRegistrationNumber": {
-            "Mã số đăng ký kinh doanh không được để trống": "Vui lòng nhập mã số đăng ký kinh doanh",
-            "Mã số đăng ký kinh doanh phải có định dạng 10 chữ số hoặc 10 chữ số theo sau bởi -XXX (13 ký tự)": "Mã số ĐKKD không đúng định dạng (10 chữ số hoặc 10-XXX)"
+          BusinessRegistrationNumber: {
+            "Mã số đăng ký kinh doanh không được để trống":
+              "Vui lòng nhập mã số đăng ký kinh doanh",
+            "Mã số đăng ký kinh doanh phải có định dạng 10 chữ số hoặc 10 chữ số theo sau bởi -XXX (13 ký tự)":
+              "Mã số ĐKKD không đúng định dạng (10 chữ số hoặc 10-XXX)",
           },
 
           // Slogan
-          "PartnerTagline": {
-            "Slogan không được vượt quá 500 ký tự": "Slogan quá dài (tối đa 500 ký tự)"
+          PartnerTagline: {
+            "Slogan không được vượt quá 500 ký tự":
+              "Slogan quá dài (tối đa 500 ký tự)",
           },
 
           // Liên hệ
-          "PartnerPhone": {
-            "Số điện thoại/fax phải có định dạng +84 theo sau bởi 9-10 chữ số (ví dụ: +84865921357)": "Số điện thoại không đúng định dạng (+84 + 9-10 chữ số)"
+          PartnerPhone: {
+            "Số điện thoại/fax phải có định dạng +84 theo sau bởi 9-10 chữ số (ví dụ: +84865921357)":
+              "Số điện thoại phải là 10 chữ số (có thể có tiền tố +84)",
           },
-          "PartnerOfficialEmail": {
+          PartnerOfficialEmail: {
             "Email không được để trống": "Vui lòng nhập email chính thức",
-            "Email không được vượt quá 254 ký tự": "Email quá dài (tối đa 254 ký tự)",
-            "Email phải có ít nhất 5 ký tự": "Email quá ngắn (tối thiểu 5 ký tự)",
-            "Email không đúng định dạng (ví dụ: example@domain.com)": "Email không đúng định dạng",
-            "Email chỉ được chứa một ký tự @": "Email không hợp lệ (chỉ một ký tự @)",
-            "Phần tên email (trước @) không được vượt quá 64 ký tự": "Tên email quá dài (trước @ tối đa 64 ký tự)",
-            "Phần domain (sau @) không được vượt quá 255 ký tự": "Domain email quá dài (sau @ tối đa 255 ký tự)",
-            "Email không được chứa hai dấu chấm liên tiếp": "Email không hợp lệ (không có .. liên tiếp)",
-            "Phần tên email không được bắt đầu hoặc kết thúc bằng dấu chấm": "Email không hợp lệ",
-            "Domain không được bắt đầu hoặc kết thúc bằng dấu gạch ngang": "Email không hợp lệ"
+            "Email không được vượt quá 254 ký tự":
+              "Email quá dài (tối đa 254 ký tự)",
+            "Email phải có ít nhất 5 ký tự":
+              "Email quá ngắn (tối thiểu 5 ký tự)",
+            "Email không đúng định dạng (ví dụ: example@domain.com)":
+              "Email không đúng định dạng",
+            "Email chỉ được chứa một ký tự @":
+              "Email không hợp lệ (chỉ một ký tự @)",
+            "Phần tên email (trước @) không được vượt quá 64 ký tự":
+              "Tên email quá dài (trước @ tối đa 64 ký tự)",
+            "Phần domain (sau @) không được vượt quá 255 ký tự":
+              "Domain email quá dài (sau @ tối đa 255 ký tự)",
+            "Email không được chứa hai dấu chấm liên tiếp":
+              "Email không hợp lệ (không có .. liên tiếp)",
+            "Phần tên email không được bắt đầu hoặc kết thúc bằng dấu chấm":
+              "Email không hợp lệ",
+            "Domain không được bắt đầu hoặc kết thúc bằng dấu gạch ngang":
+              "Email không hợp lệ",
           },
 
           // Địa chỉ
-          "HeadOfficeAddress": {
-            "Địa chỉ trụ sở chính không được để trống": "Vui lòng nhập địa chỉ trụ sở chính",
-            "Địa chỉ trụ sở chính không được vượt quá 255 ký tự": "Địa chỉ quá dài (tối đa 255 ký tự)"
+          HeadOfficeAddress: {
+            "Địa chỉ trụ sở chính không được để trống":
+              "Vui lòng nhập địa chỉ trụ sở chính",
+            "Địa chỉ trụ sở chính không được vượt quá 255 ký tự":
+              "Địa chỉ quá dài (tối đa 255 ký tự)",
           },
-          "ProvinceCode": {
+          ProvinceCode: {
             "Mã tỉnh không được để trống": "Vui lòng chọn tỉnh/thành phố",
             "Mã tỉnh không hợp lệ": "Tỉnh/thành phố không hợp lệ",
-            "Đã có lỗi xảy ra": "Lỗi khi kiểm tra tỉnh/thành phố"
+            "Đã có lỗi xảy ra": "Lỗi khi kiểm tra tỉnh/thành phố",
           },
-          "ProvinceName": {
-            "Tên tỉnh/thành phố không được để trống": "Vui lòng chọn tỉnh/thành phố",
-            "Tên tỉnh/thành phố không khớp với mã tỉnh/thành phố": "Tỉnh/thành phố không khớp",
+          ProvinceName: {
+            "Tên tỉnh/thành phố không được để trống":
+              "Vui lòng chọn tỉnh/thành phố",
+            "Tên tỉnh/thành phố không khớp với mã tỉnh/thành phố":
+              "Tỉnh/thành phố không khớp",
             "Mã tỉnh/thành phố không hợp lệ": "Tỉnh/thành phố không hợp lệ",
-            "Đã có lỗi xảy ra": "Lỗi khi kiểm tra tỉnh/thành phố"
+            "Đã có lỗi xảy ra": "Lỗi khi kiểm tra tỉnh/thành phố",
           },
-          "WardCode": {
+          WardCode: {
             "Mã phường/xã không được để trống": "Vui lòng chọn phường/xã",
             "Mã phường/xã không hợp lệ": "Phường/xã không hợp lệ",
-            "Đã có lỗi xảy ra khi lấy thông tin phường xã": "Lỗi khi kiểm tra phường/xã"
+            "Đã có lỗi xảy ra khi lấy thông tin phường xã":
+              "Lỗi khi kiểm tra phường/xã",
           },
-          "WardName": {
+          WardName: {
             "Tên phường/xã không được để trống": "Vui lòng chọn phường/xã",
             "Tên phường/xã không khớp với mã phường/xã": "Phường/xã không khớp",
-            "Mã phường/xã không hợp lệ": "Phường/xã không hợp lệ"
+            "Mã phường/xã không hợp lệ": "Phường/xã không hợp lệ",
           },
-          "PostalCode": {
-            "Postal code không hợp lệ": "Mã bưu điện không hợp lệ (5-6 chữ số)"
+          PostalCode: {
+            "Postal code không hợp lệ": "Mã bưu điện không hợp lệ (5-6 chữ số)",
           },
 
           // Giấy phép
-          "InsuranceLicenseNumber": {
-            "Số giấy phép bảo hiểm không được để trống": "Vui lòng nhập số giấy phép bảo hiểm",
-            "Số giấy phép bảo hiểm phải có định dạng 10 chữ số hoặc 10 chữ số theo sau bởi -XXX (13 ký tự)": "Số giấy phép không đúng định dạng (10 chữ số hoặc 10-XXX)"
+          InsuranceLicenseNumber: {
+            "Số giấy phép bảo hiểm không được để trống":
+              "Vui lòng nhập số giấy phép bảo hiểm",
+            "Số giấy phép bảo hiểm phải có định dạng 10 chữ số hoặc 10 chữ số theo sau bởi -XXX (13 ký tự)":
+              "Số giấy phép không đúng định dạng (10 chữ số hoặc 10-XXX)",
           },
-          "LicenseIssueDate": {
-            "Ngày cấp giấy phép phải sau ngày thành lập công ty": "Ngày cấp giấy phép phải sau ngày thành lập",
-            "Ngày cấp giấy phép phải trước ngày hết hạn giấy phép": "Ngày cấp phải trước ngày hết hạn",
-            "Ngày cấp giấy phép không được là ngày tương lai": "Ngày cấp giấy phép không được là ngày tương lai"
+          LicenseIssueDate: {
+            "Ngày cấp giấy phép phải sau ngày thành lập công ty":
+              "Ngày cấp giấy phép phải sau ngày thành lập",
+            "Ngày cấp giấy phép phải trước ngày hết hạn giấy phép":
+              "Ngày cấp phải trước ngày hết hạn",
+            "Ngày cấp giấy phép không được là ngày tương lai":
+              "Ngày cấp giấy phép không được là ngày tương lai",
           },
-          "LicenseExpiryDate": {
-            "Ngày hết hạn giấy phép phải sau ngày cấp giấy phép": "Ngày hết hạn phải sau ngày cấp",
-            "Giấy phép đã hết hạn": "Giấy phép đã hết hạn"
-          }
+          LicenseExpiryDate: {
+            "Ngày hết hạn giấy phép phải sau ngày cấp giấy phép":
+              "Ngày hết hạn phải sau ngày cấp",
+            "Giấy phép đã hết hạn": "Giấy phép đã hết hạn",
+          },
         };
 
         // Get first validation error
@@ -409,7 +462,8 @@ export function usePartners(partnerId = null) {
 
           // Try to map to user-friendly Vietnamese message
           const fieldMapping = errorMapping[field];
-          const userMessage = fieldMapping?.[originalMessage] || originalMessage;
+          const userMessage =
+            fieldMapping?.[originalMessage] || originalMessage;
 
           message.error(userMessage);
           throw err;
@@ -425,14 +479,14 @@ export function usePartners(partnerId = null) {
         404: "Không tìm thấy dữ liệu. Vui lòng thử lại!",
         409: "Email hoặc mã số đã tồn tại. Vui lòng kiểm tra lại!",
         500: "Lỗi hệ thống. Vui lòng thử lại sau!",
-        503: "Dịch vụ tạm thời không khả dụng. Vui lòng thử lại sau!"
+        503: "Dịch vụ tạm thời không khả dụng. Vui lòng thử lại sau!",
       };
 
       const errorCodeMessages = {
-        "BAD_REQUEST": "Thông tin gửi lên không hợp lệ",
-        "CONFLICT": "Thông tin đã tồn tại trong hệ thống",
-        "NOT_FOUND": "Không tìm thấy dữ liệu",
-        "INTERNAL_SERVER_ERROR": "Lỗi hệ thống"
+        BAD_REQUEST: "Thông tin gửi lên không hợp lệ",
+        CONFLICT: "Thông tin đã tồn tại trong hệ thống",
+        NOT_FOUND: "Không tìm thấy dữ liệu",
+        INTERNAL_SERVER_ERROR: "Lỗi hệ thống",
       };
 
       // Display user-friendly error message
