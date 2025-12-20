@@ -34,11 +34,11 @@ export function useCreateAccount() {
       setLoading(true);
       setError(null);
 
-      // Call register API with role name
-      const response = await axiosInstance.post(endpoints.auth.register, {
-        ...registerData,
-        role: roleName,
-      });
+      // Call register API with role name as query parameter
+      const response = await axiosInstance.post(
+        endpoints.auth.register(roleName),
+        registerData
+      );
 
       // Extract user data from response
       const userData = response.data.data?.user || response.data.data;

@@ -278,15 +278,17 @@ export default function PartnerDetailPage() {
                 <Tag color="blue">Thành lập: {partner.year_established}</Tag>
               </div>
             </div>
-            <div>
-              <Button
-                type="primary"
-                icon={<UserAddOutlined />}
-                onClick={handleCreateAccount}
-              >
-                Thêm quyền cho đối tác
-              </Button>
-            </div>
+            {partner.status === "active" && (
+              <div>
+                <Button
+                  type="primary"
+                  icon={<UserAddOutlined />}
+                  onClick={handleCreateAccount}
+                >
+                  Thêm tài khoản cho công ty
+                </Button>
+              </div>
+            )}
           </div>
         </div>
 

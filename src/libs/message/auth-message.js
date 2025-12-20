@@ -392,6 +392,49 @@ const LOGIN_ERROR_CODE_MAP = {
 };
 
 /**
+ * Các lỗi validation từ BE trong registration (HTTP 400)
+ * Mapping registration error codes to Vietnamese messages
+ */
+const REGISTER_ERROR_CODE_MAP = {
+  // Validation errors (400)
+  VALIDATION_ERROR: AUTH_MESSAGES.REGISTER.ERROR.VALIDATION_ERROR,
+  INVALID_REQUEST_FORMAT:
+    "Dữ liệu gửi lên không hợp lệ. Vui lòng kiểm tra và thử lại.",
+  BAD_REQUEST: AUTH_MESSAGES.REGISTER.ERROR.VALIDATION_ERROR,
+
+  // National ID validation errors
+  INVALID_NATIONAL_ID: AUTH_MESSAGES.REGISTER.VALIDATION.NATIONAL_ID_INVALID,
+  NATIONAL_ID_INVALID: AUTH_MESSAGES.REGISTER.VALIDATION.NATIONAL_ID_INVALID,
+
+  // Email/Phone validation errors
+  EMAIL_INVALID: AUTH_MESSAGES.REGISTER.VALIDATION.EMAIL_INVALID,
+  PHONE_INVALID: AUTH_MESSAGES.REGISTER.VALIDATION.PHONE_INVALID,
+  EMAIL_ALREADY_EXISTS: AUTH_MESSAGES.REGISTER.ERROR.EMAIL_ALREADY_EXISTS,
+  PHONE_ALREADY_EXISTS: AUTH_MESSAGES.REGISTER.ERROR.PHONE_ALREADY_EXISTS,
+  USER_ALREADY_EXISTS: AUTH_MESSAGES.REGISTER.ERROR.USER_ALREADY_EXISTS,
+
+  // Password validation errors
+  PASSWORD_TOO_SHORT: AUTH_MESSAGES.REGISTER.VALIDATION.PASSWORD_TOO_SHORT,
+  PASSWORD_TOO_WEAK: AUTH_MESSAGES.REGISTER.VALIDATION.PASSWORD_TOO_WEAK,
+
+  // Other validation errors
+  FULL_NAME_INVALID: AUTH_MESSAGES.REGISTER.VALIDATION.FULL_NAME_INVALID,
+  DATE_OF_BIRTH_INVALID:
+    AUTH_MESSAGES.REGISTER.VALIDATION.DATE_OF_BIRTH_INVALID,
+  DATE_OF_BIRTH_TOO_YOUNG:
+    AUTH_MESSAGES.REGISTER.VALIDATION.DATE_OF_BIRTH_TOO_YOUNG,
+  DATE_OF_BIRTH_TOO_OLD:
+    AUTH_MESSAGES.REGISTER.VALIDATION.DATE_OF_BIRTH_TOO_OLD,
+
+  // Conflict errors (409)
+  ALREADY_EXISTS: AUTH_MESSAGES.REGISTER.ERROR.USER_ALREADY_EXISTS,
+
+  // Server errors (500)
+  INTERNAL_ERROR: AUTH_MESSAGES.REGISTER.ERROR.SERVER_ERROR,
+  SERVER_ERROR: AUTH_MESSAGES.REGISTER.ERROR.SERVER_ERROR,
+};
+
+/**
  * Map error message patterns từ BE response
  * Được dùng khi BE trả về message string thay vì error code
  */
@@ -458,6 +501,7 @@ const ERROR_MESSAGE_PATTERNS = [
  */
 export const parseBackendError = (error, context = "signin") => {
   console.log("🔍 parseBackendError:", {
+    context,
     status: error?.response?.status,
     errorCode: error?.response?.data?.error?.code,
     errorMessage: error?.response?.data?.error?.message,
@@ -478,9 +522,13 @@ export const parseBackendError = (error, context = "signin") => {
   const errorCode = data?.error?.code;
   const errorMessage = data?.error?.message || data?.message;
 
+  // === Select appropriate error code map based on context ===
+  const ERROR_CODE_MAP =
+    context === "register" ? REGISTER_ERROR_CODE_MAP : LOGIN_ERROR_CODE_MAP;
+
   // === Priority 1: Use error.code if available ===
-  if (errorCode && LOGIN_ERROR_CODE_MAP[errorCode]) {
-    return LOGIN_ERROR_CODE_MAP[errorCode];
+  if (errorCode && ERROR_CODE_MAP[errorCode]) {
+    return ERROR_CODE_MAP[errorCode];
   }
 
   // === Priority 2: Pattern match error message ===
@@ -498,7 +546,9 @@ export const parseBackendError = (error, context = "signin") => {
   // === Priority 3: Fallback to HTTP status code ===
   switch (status) {
     case 400:
-      return AUTH_MESSAGES.SIGNIN.ERROR.BAD_REQUEST;
+      return context === "register"
+        ? AUTH_MESSAGES.REGISTER.ERROR.VALIDATION_ERROR
+        : AUTH_MESSAGES.SIGNIN.ERROR.BAD_REQUEST;
     case 401:
       return AUTH_MESSAGES.SIGNIN.ERROR.INVALID_CREDENTIALS;
     case 403:
@@ -506,9 +556,13 @@ export const parseBackendError = (error, context = "signin") => {
     case 404:
       return AUTH_MESSAGES.SIGNIN.ERROR.NOT_FOUND;
     case 409:
-      return AUTH_MESSAGES.SIGNIN.ERROR.USER_ALREADY_EXISTS;
+      return context === "register"
+        ? AUTH_MESSAGES.REGISTER.ERROR.USER_ALREADY_EXISTS
+        : AUTH_MESSAGES.SIGNIN.ERROR.USER_ALREADY_EXISTS;
     case 500:
-      return AUTH_MESSAGES.SIGNIN.ERROR.SERVER_ERROR;
+      return context === "register"
+        ? AUTH_MESSAGES.REGISTER.ERROR.SERVER_ERROR
+        : AUTH_MESSAGES.SIGNIN.ERROR.SERVER_ERROR;
     case 503:
       return "Hệ thống đang bảo trì. Vui lòng quay lại sau!";
     default:

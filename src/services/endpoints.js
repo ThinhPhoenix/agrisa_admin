@@ -5,7 +5,7 @@ export const endpoints = {
     sign_in: `/auth/public/login`,
     sign_out: `${prefix}/auth/sign-out`,
     sign_up: `${prefix}/auth/sign-up`,
-    register: `/auth/public/register`,
+    register: (role_name) => `/auth/public/register?role_name=${role_name}`,
     me: `/profile/protected/api/v1/me`,
     roles: `/auth/protected/api/v2/role`,
   },
@@ -96,12 +96,16 @@ export const endpoints = {
     assign_user: (user_id) =>
       `/profile/protected/api/v1/users/admin/${user_id}`,
     deletion: {
-      create_request: "/profile/protected/api/v1/insurance-partners/deletion-requests",
+      create_request:
+        "/profile/protected/api/v1/insurance-partners/deletion-requests",
       get_requests: (partner_admin_id) =>
         `/profile/protected/api/v1/insurance-partners/${partner_admin_id}/deletion-requests`,
-      revoke_request: "/profile/protected/api/v1/insurance-partners/deletion-requests/revoke",
-      admin_process: "/profile/protected/api/v1/insurance-partners/admin/process-request",
-      admin_list_all: "/profile/protected/api/v1/insurance-partners/admin/deletion-requests",
+      revoke_request:
+        "/profile/protected/api/v1/insurance-partners/deletion-requests/revoke",
+      admin_process:
+        "/profile/protected/api/v1/insurance-partners/admin/process-request",
+      admin_list_all:
+        "/profile/protected/api/v1/insurance-partners/admin/deletion-requests",
     },
   },
   address: {
