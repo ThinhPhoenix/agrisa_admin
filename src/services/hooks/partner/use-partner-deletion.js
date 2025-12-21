@@ -3,6 +3,7 @@ import { PARTNER_MESSAGES } from "@/libs/message";
 import { endpoints } from "@/services/endpoints";
 import { message } from "antd";
 import { useCallback, useState } from "react";
+import { useAuthStore } from "@/stores/auth-store";
 
 /**
  * Hook for managing partner deletion requests
@@ -111,19 +112,40 @@ export function usePartnerDeletion() {
    * @param {string} partnerAdminId - User ID of partner admin
    */
   const fetchDeletionRequests = useCallback(
-    async (partnerAdminId) => {
-      if (!partnerAdminId) {
-        console.warn("Partner admin ID is required to fetch deletion requests");
-        return { success: false, data: [] };
-      }
-
+    async (partnerAdminId, status) => {
+      // allow caller to omit partnerAdminId — try to derive from auth/profile
       setLoading(true);
       setError(null);
 
       try {
-        const response = await axiosInstance.get(
-          endpoints.partner.deletion.get_requests(partnerAdminId)
-        );
+        let partnerId = partnerAdminId;
+
+        if (!partnerId) {
+          const auth = useAuthStore();
+          const fromStore = auth?.user;
+          const fromUser = fromStore?.user || {};
+          const fromProfile = fromStore?.profile || {};
+
+          partnerId =
+            fromUser.partner_id || fromProfile.partner_id ||
+            (typeof window !== "undefined" && localStorage.getItem("me")
+              ? JSON.parse(localStorage.getItem("me") || "{}")?.partner_id
+              : null);
+        }
+
+        if (!partnerId) {
+          console.warn(
+            "Partner ID not available in args or profile; cannot fetch deletion requests"
+          );
+          setDeletionRequests([]);
+          return { success: false, data: [] };
+        }
+
+        // Use the admin partners deletion-requests endpoint and optionally include status
+        const basePath = `https://agrisa-api.phrimp.io.vn/profile/protected/api/v1/insurance-partners/admin/partners/${partnerId}/deletion-requests`;
+        const url = status ? `${basePath}?status=${encodeURIComponent(status)}` : basePath;
+
+        const response = await axiosInstance.get(url);
 
         if (response.data?.success && response.data?.data) {
           const requests = Array.isArray(response.data.data)

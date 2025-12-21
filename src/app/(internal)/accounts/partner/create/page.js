@@ -51,7 +51,6 @@ export default function CreatePartnerPage() {
       console.log("🚀 Sending to API:", modifiedData);
 
       await createPartner(modifiedData);
-      message.success("Tạo đối tác thành công!");
       router.push("/accounts/partner");
     } catch (err) {
       console.error("❌ Submit error:", err);

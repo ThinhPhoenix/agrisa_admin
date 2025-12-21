@@ -620,8 +620,7 @@ export default function PartnerDetailPage() {
                               >
                                 <div>
                                   <Text strong style={{ fontSize: "16px" }}>
-                                    Yêu cầu hủy #
-                                    {request.request_id.slice(0, 8)}...
+                                    Yêu cầu hủy #{request.request_id}
                                   </Text>
                                   <div style={{ marginTop: "8px" }}>
                                     <Tag
@@ -646,7 +645,6 @@ export default function PartnerDetailPage() {
                                               "approved"
                                             )
                                           }
-                                          style={{ background: "#52c41a" }}
                                         >
                                           Phê duyệt
                                         </Button>
