@@ -1,9 +1,9 @@
 import axiosInstance from "@/libs/axios-instance";
 import { PARTNER_MESSAGES } from "@/libs/message";
 import { endpoints } from "@/services/endpoints";
+import { useAuthStore } from "@/stores/auth-store";
 import { message } from "antd";
 import { useCallback, useState } from "react";
-import { useAuthStore } from "@/stores/auth-store";
 
 /**
  * Hook for managing partner deletion requests
@@ -127,7 +127,8 @@ export function usePartnerDeletion() {
           const fromProfile = fromStore?.profile || {};
 
           partnerId =
-            fromUser.partner_id || fromProfile.partner_id ||
+            fromUser.partner_id ||
+            fromProfile.partner_id ||
             (typeof window !== "undefined" && localStorage.getItem("me")
               ? JSON.parse(localStorage.getItem("me") || "{}")?.partner_id
               : null);
@@ -143,7 +144,9 @@ export function usePartnerDeletion() {
 
         // Use the admin partners deletion-requests endpoint and optionally include status
         const basePath = `https://agrisa-api.phrimp.io.vn/profile/protected/api/v1/insurance-partners/admin/partners/${partnerId}/deletion-requests`;
-        const url = status ? `${basePath}?status=${encodeURIComponent(status)}` : basePath;
+        const url = status
+          ? `${basePath}?status=${encodeURIComponent(status)}`
+          : basePath;
 
         const response = await axiosInstance.get(url);
 
