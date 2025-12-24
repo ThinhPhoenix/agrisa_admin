@@ -1,8 +1,8 @@
-import { Badge, Button, Dropdown, Empty, Tooltip, Typography } from "antd";
-import { Bell, LogOut } from "lucide-react";
+import { useSignOut } from "@/services/hooks/auth/use-auth";
+import { Button, Tooltip, Typography } from "antd";
+import { LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useSignOut } from "@/services/hooks/auth/use-auth";
 import notificationData from "../notification-mock-data.json";
 
 const { Text } = Typography;
@@ -69,79 +69,99 @@ export default function AvatarSection({ isMobile }) {
     }
   };
 
-  const notificationItems = notifications.length === 0 ? [] : [
-    {
-      key: "header",
-      type: "group",
-      label: (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            padding: "8px 0",
-          }}
-        >
-          <Text strong>Thông báo</Text>
-          {unreadCount > 0 && (
-            <Text
-              style={{
-                fontSize: 12,
-                color: "#1677ff",
-                cursor: "pointer",
-              }}
-              onClick={handleMarkAllAsRead}
-            >
-              Đánh dấu tất cả đã đọc
-            </Text>
-          )}
-        </div>
-      ),
-    },
-    {
-      type: "divider",
-    },
-    ...notifications.map((item) => ({
-      key: item.id,
-      label: (
-        <div
-          onClick={() => handleMarkAsRead(item.id)}
-          style={{
-            padding: "8px",
-            cursor: "pointer",
-            backgroundColor: item.read ? "transparent" : getTypeColor(item.type),
-            borderLeft: item.read ? "none" : `3px solid ${getTypeBorderColor(item.type)}`,
-            borderRadius: "4px",
-            marginBottom: "4px",
-            transition: "all 0.2s",
-          }}
-        >
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-            <Text strong style={{ fontSize: 13 }}>
-              {item.title}
-            </Text>
-            {!item.read && (
+  const notificationItems =
+    notifications.length === 0
+      ? []
+      : [
+          {
+            key: "header",
+            type: "group",
+            label: (
               <div
                 style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: "50%",
-                  backgroundColor: "#1677ff",
-                  marginTop: 4,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "8px 0",
                 }}
-              />
-            )}
-          </div>
-          <Text style={{ fontSize: 12, color: "#8c8c8c", display: "block", marginBottom: 4 }}>
-            {item.description}
-          </Text>
-          <Text style={{ fontSize: 11, color: "#bfbfbf" }}>
-            {formatTimestamp(item.timestamp)}
-          </Text>
-        </div>
-      ),
-    })),
-  ];
+              >
+                <Text strong>Thông báo</Text>
+                {unreadCount > 0 && (
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      color: "#1677ff",
+                      cursor: "pointer",
+                    }}
+                    onClick={handleMarkAllAsRead}
+                  >
+                    Đánh dấu tất cả đã đọc
+                  </Text>
+                )}
+              </div>
+            ),
+          },
+          {
+            type: "divider",
+          },
+          ...notifications.map((item) => ({
+            key: item.id,
+            label: (
+              <div
+                onClick={() => handleMarkAsRead(item.id)}
+                style={{
+                  padding: "8px",
+                  cursor: "pointer",
+                  backgroundColor: item.read
+                    ? "transparent"
+                    : getTypeColor(item.type),
+                  borderLeft: item.read
+                    ? "none"
+                    : `3px solid ${getTypeBorderColor(item.type)}`,
+                  borderRadius: "4px",
+                  marginBottom: "4px",
+                  transition: "all 0.2s",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    marginBottom: 4,
+                  }}
+                >
+                  <Text strong style={{ fontSize: 13 }}>
+                    {item.title}
+                  </Text>
+                  {!item.read && (
+                    <div
+                      style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: "50%",
+                        backgroundColor: "#1677ff",
+                        marginTop: 4,
+                      }}
+                    />
+                  )}
+                </div>
+                <Text
+                  style={{
+                    fontSize: 12,
+                    color: "#8c8c8c",
+                    display: "block",
+                    marginBottom: 4,
+                  }}
+                >
+                  {item.description}
+                </Text>
+                <Text style={{ fontSize: 11, color: "#bfbfbf" }}>
+                  {formatTimestamp(item.timestamp)}
+                </Text>
+              </div>
+            ),
+          })),
+        ];
 
   const handleLogout = async () => {
     await signOut();
@@ -150,7 +170,7 @@ export default function AvatarSection({ isMobile }) {
 
   return (
     <div className="flex items-center gap-2">
-      <Tooltip title="Thông báo" placement="bottom">
+      {/* <Tooltip title="Thông báo" placement="bottom">
         <div className="cursor-pointer">
           <Dropdown
             menu={{
@@ -188,7 +208,7 @@ export default function AvatarSection({ isMobile }) {
             </Badge>
           </Dropdown>
         </div>
-      </Tooltip>
+      </Tooltip> */}
       <Tooltip title="Đăng xuất" placement="bottom">
         <Button
           type="dashed"
