@@ -14,10 +14,12 @@ import {
   Row,
   Statistic,
   Tag,
+  Tooltip,
   Typography,
 } from "antd";
 import { useMemo } from "react";
 import CustomTable from "../../../custom-table";
+import { getFieldLabel } from "../policyFieldMappings";
 
 const { Text, Title } = Typography;
 
@@ -376,8 +378,24 @@ export default function AIValidationTab({
                 title: "Trường dữ liệu",
                 dataIndex: "field",
                 key: "field",
-                width: 180,
+                width: 200,
                 fixed: "left",
+                render: (field) => (
+                  <Tooltip title={`Field: ${field}`} placement="topLeft">
+                    <div>
+                      <Text strong style={{ fontSize: "13px" }}>
+                        {getFieldLabel(field)}
+                      </Text>
+                      <br />
+                      <Text
+                        type="secondary"
+                        style={{ fontSize: "11px", fontStyle: "italic" }}
+                      >
+                        {field}
+                      </Text>
+                    </div>
+                  </Tooltip>
+                ),
               },
               {
                 title: "Mức độ",
@@ -432,6 +450,22 @@ export default function AIValidationTab({
                 key: "field",
                 width: 200,
                 fixed: "left",
+                render: (field) => (
+                  <Tooltip title={`Field: ${field}`} placement="topLeft">
+                    <div>
+                      <Text strong style={{ fontSize: "13px" }}>
+                        {getFieldLabel(field)}
+                      </Text>
+                      <br />
+                      <Text
+                        type="secondary"
+                        style={{ fontSize: "11px", fontStyle: "italic" }}
+                      >
+                        {field}
+                      </Text>
+                    </div>
+                  </Tooltip>
+                ),
               },
               {
                 title: "Khuyến nghị",

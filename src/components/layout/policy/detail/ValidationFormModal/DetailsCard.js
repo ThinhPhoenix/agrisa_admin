@@ -18,6 +18,7 @@ import {
   Spin,
   Tooltip,
 } from "antd";
+import { getFieldOptions, getFieldLabel } from "../../policyFieldMappings";
 
 export default function DetailsCard({
   form,
@@ -88,8 +89,50 @@ export default function DetailsCard({
                               name={[name, "field"]}
                               style={{ marginBottom: 0 }}
                             >
-                              <Input placeholder="Tên trường" />
+                              <Select
+                                showSearch
+                                placeholder="Chọn trường dữ liệu"
+                                optionFilterProp="label"
+                                filterOption={(input, option) =>
+                                  (option?.label ?? "")
+                                    .toLowerCase()
+                                    .includes(input.toLowerCase()) ||
+                                  (option?.value ?? "")
+                                    .toLowerCase()
+                                    .includes(input.toLowerCase())
+                                }
+                                options={getFieldOptions()}
+                                size="small"
+                                optionRender={(option) => (
+                                  <div>
+                                    <div style={{ fontWeight: 500 }}>
+                                      {option.label}
+                                    </div>
+                                    <div
+                                      style={{
+                                        fontSize: "11px",
+                                        color: "#999",
+                                        fontStyle: "italic",
+                                      }}
+                                    >
+                                      {option.value}
+                                    </div>
+                                  </div>
+                                )}
+                              />
                             </Form.Item>
+                            {form.getFieldValue(["mismatches", name, "field"]) && (
+                              <div
+                                style={{
+                                  fontSize: "10px",
+                                  color: "#999",
+                                  marginTop: "-8px",
+                                  fontStyle: "italic",
+                                }}
+                              >
+                                {form.getFieldValue(["mismatches", name, "field"])}
+                              </div>
+                            )}
                           </Col>
                           <Col span={5}>
                             <Form.Item
@@ -119,13 +162,14 @@ export default function DetailsCard({
                               style={{ marginBottom: 0 }}
                             >
                               <Select placeholder="Mức độ" size="small">
-                                <Select.Option value="low">Thấp</Select.Option>
-                                <Select.Option value="medium">
-                                  Trung bình
-                                </Select.Option>
-                                <Select.Option value="high">Cao</Select.Option>
                                 <Select.Option value="critical">
                                   Nghiêm trọng
+                                </Select.Option>
+                                <Select.Option value="important">
+                                  Quan trọng
+                                </Select.Option>
+                                <Select.Option value="metadata">
+                                  Thông tin (metadata)
                                 </Select.Option>
                               </Select>
                             </Form.Item>
@@ -212,8 +256,50 @@ export default function DetailsCard({
                               name={[name, "field"]}
                               style={{ marginBottom: 0 }}
                             >
-                              <Input placeholder="Tên trường" />
+                              <Select
+                                showSearch
+                                placeholder="Chọn trường dữ liệu"
+                                optionFilterProp="label"
+                                filterOption={(input, option) =>
+                                  (option?.label ?? "")
+                                    .toLowerCase()
+                                    .includes(input.toLowerCase()) ||
+                                  (option?.value ?? "")
+                                    .toLowerCase()
+                                    .includes(input.toLowerCase())
+                                }
+                                options={getFieldOptions()}
+                                size="small"
+                                optionRender={(option) => (
+                                  <div>
+                                    <div style={{ fontWeight: 500 }}>
+                                      {option.label}
+                                    </div>
+                                    <div
+                                      style={{
+                                        fontSize: "11px",
+                                        color: "#999",
+                                        fontStyle: "italic",
+                                      }}
+                                    >
+                                      {option.value}
+                                    </div>
+                                  </div>
+                                )}
+                              />
                             </Form.Item>
+                            {form.getFieldValue(["warnings", name, "field"]) && (
+                              <div
+                                style={{
+                                  fontSize: "10px",
+                                  color: "#999",
+                                  marginTop: "-8px",
+                                  fontStyle: "italic",
+                                }}
+                              >
+                                {form.getFieldValue(["warnings", name, "field"])}
+                              </div>
+                            )}
                           </Col>
                           <Col span={9}>
                             <Form.Item
@@ -437,11 +523,62 @@ export default function DetailsCard({
                             rules={[{ required: true, message: "Bắt buộc" }]}
                             style={{ marginBottom: 0 }}
                           >
-                            <Input
-                              placeholder="Tên trường"
+                            <Select
+                              showSearch
+                              placeholder="Chọn trường"
+                              optionFilterProp="label"
                               disabled={useAIData}
+                              filterOption={(input, option) =>
+                                (option?.label ?? "")
+                                  .toLowerCase()
+                                  .includes(input.toLowerCase()) ||
+                                (option?.value ?? "")
+                                  .toLowerCase()
+                                  .includes(input.toLowerCase())
+                              }
+                              options={getFieldOptions()}
+                              size="small"
+                              optionRender={(option) => (
+                                <div>
+                                  <div style={{ fontWeight: 500 }}>
+                                    {option.label}
+                                  </div>
+                                  <div
+                                    style={{
+                                      fontSize: "11px",
+                                      color: "#999",
+                                      fontStyle: "italic",
+                                    }}
+                                  >
+                                    {option.value}
+                                  </div>
+                                </div>
+                              )}
                             />
                           </Form.Item>
+                          {form?.getFieldValue(["mismatches", name, "field"]) && (
+                            <Tooltip
+                              title={form.getFieldValue([
+                                "mismatches",
+                                name,
+                                "field",
+                              ])}
+                            >
+                              <div
+                                style={{
+                                  fontSize: "10px",
+                                  color: "#999",
+                                  marginTop: "-8px",
+                                  fontStyle: "italic",
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                {form.getFieldValue(["mismatches", name, "field"])}
+                              </div>
+                            </Tooltip>
+                          )}
                         </Col>
                         <Col span={4}>
                           <Tooltip
@@ -510,23 +647,11 @@ export default function DetailsCard({
                             style={{ marginBottom: 0 }}
                           >
                             <Select placeholder="Mức độ" disabled={useAIData}>
-                              <Select.Option value="low">
-                                <Badge status="success" text="Thấp" />
-                              </Select.Option>
-                              <Select.Option value="medium">
-                                <Badge status="warning" text="Trung bình" />
-                              </Select.Option>
-                              <Select.Option value="high">
-                                <Badge status="error" text="Cao" />
-                              </Select.Option>
-                              <Select.Option value="important">
-                                <Badge status="error" text="Quan trọng" />
-                              </Select.Option>
                               <Select.Option value="critical">
                                 <Badge status="error" text="Nghiêm trọng" />
                               </Select.Option>
-                              <Select.Option value="metadata">
-                                <Badge status="default" text="Metadata" />
+                              <Select.Option value="important">
+                                <Badge status="error" text="Quan trọng" />
                               </Select.Option>
                             </Select>
                           </Form.Item>
@@ -623,11 +748,62 @@ export default function DetailsCard({
                               rules={[{ required: true, message: "Bắt buộc" }]}
                               style={{ marginBottom: 0 }}
                             >
-                              <Input
-                                placeholder="Tên trường"
+                              <Select
+                                showSearch
+                                placeholder="Chọn trường"
+                                optionFilterProp="label"
                                 disabled={useAIData}
+                                filterOption={(input, option) =>
+                                  (option?.label ?? "")
+                                    .toLowerCase()
+                                    .includes(input.toLowerCase()) ||
+                                  (option?.value ?? "")
+                                    .toLowerCase()
+                                    .includes(input.toLowerCase())
+                                }
+                                options={getFieldOptions()}
+                                size="small"
+                                optionRender={(option) => (
+                                  <div>
+                                    <div style={{ fontWeight: 500 }}>
+                                      {option.label}
+                                    </div>
+                                    <div
+                                      style={{
+                                        fontSize: "11px",
+                                        color: "#999",
+                                        fontStyle: "italic",
+                                      }}
+                                    >
+                                      {option.value}
+                                    </div>
+                                  </div>
+                                )}
                               />
                             </Form.Item>
+                            {form?.getFieldValue(["warnings", name, "field"]) && (
+                              <Tooltip
+                                title={form.getFieldValue([
+                                  "warnings",
+                                  name,
+                                  "field",
+                                ])}
+                              >
+                                <div
+                                  style={{
+                                    fontSize: "10px",
+                                    color: "#999",
+                                    marginTop: "-8px",
+                                    fontStyle: "italic",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                    whiteSpace: "nowrap",
+                                  }}
+                                >
+                                  {form.getFieldValue(["warnings", name, "field"])}
+                                </div>
+                              </Tooltip>
+                            )}
                           </Col>
                           <Col span={8}>
                             <Tooltip
