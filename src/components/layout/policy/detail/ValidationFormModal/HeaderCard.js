@@ -1,10 +1,11 @@
-import { Card, Switch, Tag, Typography } from "antd";
+import { Card, Spin, Switch, Tag, Typography } from "antd";
 const { Text } = Typography;
 
 export default function HeaderCard({
   latestValidation,
   useAIData,
-  setUseAIData,
+  applyAIData,
+  applyingAI,
 }) {
   return (
     <Card
@@ -44,11 +45,13 @@ export default function HeaderCard({
               </Text>
               <Switch
                 checked={useAIData}
-                onChange={setUseAIData}
+                onChange={(checked) => applyAIData && applyAIData(checked)}
                 checkedChildren="Bật"
                 unCheckedChildren="Tắt"
                 size="small"
+                disabled={applyingAI}
               />
+              {applyingAI && <Spin size="small" style={{ marginLeft: 8 }} />}
             </div>
             <Text
               type="secondary"

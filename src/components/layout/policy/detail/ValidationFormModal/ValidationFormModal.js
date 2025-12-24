@@ -29,7 +29,8 @@ export default function ValidationFormModal(props) {
     handleSubmit,
     handleCancel,
     useAIData,
-    setUseAIData,
+    applyAIData,
+    applyingAI,
     formValues,
     handleValuesChange,
     fields,
@@ -98,7 +99,7 @@ export default function ValidationFormModal(props) {
       okText="Gửi xác thực"
       cancelText="Hủy"
       confirmLoading={submitting}
-      width={1000}
+      width={1200}
       destroyOnClose
       style={{ top: 20 }}
       bodyStyle={{ maxHeight: "calc(100vh - 200px)", overflowY: "auto" }}
@@ -106,7 +107,8 @@ export default function ValidationFormModal(props) {
       <HeaderCard
         latestValidation={latestValidation}
         useAIData={useAIData}
-        setUseAIData={setUseAIData}
+        applyAIData={applyAIData}
+        applyingAI={applyingAI}
       />
       {/* <InfoAlert /> */}
       <BasicFormCard
@@ -116,12 +118,14 @@ export default function ValidationFormModal(props) {
         formValues={formValues}
         successPercent={successPercent}
         useAIData={useAIData}
+        applyingAI={applyingAI}
         handleCompositionStart={handleCompositionStart}
         handleCompositionEnd={handleCompositionEnd}
       />
       <DetailsCard
         form={form}
         useAIData={useAIData}
+        applyingAI={applyingAI}
         formValues={formValues}
         recalculateCountsFromItems={recalculateCountsFromItems}
       />
