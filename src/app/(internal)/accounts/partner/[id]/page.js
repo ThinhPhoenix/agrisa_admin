@@ -2,6 +2,7 @@
 
 import { CustomForm } from "@/components/custom-form";
 import { useAccounts } from "@/services/hooks/accounts/use-accounts";
+import { usePublicUserProfiles } from "@/services/hooks/common";
 import { usePartners } from "@/services/hooks/partner/use-partner";
 import { usePartnerDeletion } from "@/services/hooks/partner/use-partner-deletion";
 import {
@@ -62,6 +63,7 @@ export default function PartnerDetailPage() {
     getStatusColor: getDeletionStatusColor,
     canProcess,
   } = usePartnerDeletion();
+  const { publicUsers, fetchPublicUsers } = usePublicUserProfiles();
   const [isProcessModalVisible, setIsProcessModalVisible] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [processingStatus, setProcessingStatus] = useState(null);
@@ -89,6 +91,14 @@ export default function PartnerDetailPage() {
   const pendingRequest = useMemo(() => {
     return deletionRequests.find((req) => req.status === "pending");
   }, [deletionRequests]);
+
+  // Fetch public user info for all unique requested_by ids in deletion requests
+  useEffect(() => {
+    if (!deletionRequests || deletionRequests.length === 0) return;
+
+    const userIds = deletionRequests.map((req) => req.requested_by);
+    fetchPublicUsers(userIds);
+  }, [deletionRequests, fetchPublicUsers]);
 
   // Calculate days remaining for revoke period
   const getDaysRemaining = (cancellableUntil) => {
@@ -682,10 +692,44 @@ export default function PartnerDetailPage() {
                                 title="Thông tin yêu cầu"
                               >
                                 <Descriptions.Item label="Người yêu cầu">
-                                  {request.requested_by_name &&
-                                  request.requested_by_name.trim()
-                                    ? request.requested_by_name
-                                    : request.requested_by}
+                                  {(() => {
+                                    const userId = request.requested_by;
+                                    const publicUser =
+                                      userId && publicUsers[userId];
+
+                                    if (publicUser?.loading) {
+                                      return (
+                                        <Spin
+                                          size="small"
+                                          style={{
+                                            marginLeft: 4,
+                                          }}
+                                        />
+                                      );
+                                    }
+
+                                    if (publicUser?.data) {
+                                      const user = publicUser.data;
+                                      const displayName =
+                                        user.full_name ||
+                                        user.display_name ||
+                                        user.email ||
+                                        user.username ||
+                                        userId;
+
+                                      return displayName;
+                                    }
+
+                                    // Fallback: use existing name or id
+                                    if (
+                                      request.requested_by_name &&
+                                      request.requested_by_name.trim()
+                                    ) {
+                                      return request.requested_by_name;
+                                    }
+
+                                    return userId || "-";
+                                  })()}
                                 </Descriptions.Item>
                                 <Descriptions.Item label="Ngày yêu cầu">
                                   {new Date(

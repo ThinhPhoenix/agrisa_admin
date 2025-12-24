@@ -17,6 +17,8 @@ export const endpoints = {
     delete: (id) => `${prefix}/users/${id}`,
     list: "/auth/public/api/v2/users?limit=100&",
     profile: (id) => `/profile/public/api/v1/users/${id}`,
+    get_public_user_by_id: (user_id) =>
+      `/profile/public/api/v1/users/own/${user_id}`,
     register: (role_name) => `/auth/public/register?role_name=${role_name}`,
   },
   policy: {
