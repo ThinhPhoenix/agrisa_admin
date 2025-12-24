@@ -1,0 +1,10 @@
+/* Policy List Page Styles */
+
+/* Filters */
+.policy-filters {
+    @apply mb-6;
+}
+
+.policy-filter-form {
+    @apply p-4 rounded-lg;
+}
