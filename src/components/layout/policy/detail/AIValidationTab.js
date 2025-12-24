@@ -242,7 +242,23 @@ export default function AIValidationTab({
               Giá trị hệ thống (JSON)
             </Text>
             <div>
-              <Text code>{JSON.stringify(record.json_value)}</Text>
+              <div
+                style={{
+                  maxHeight: 96,
+                  overflow: "auto",
+                  padding: "4px 8px",
+                  background: "#f5f5f5",
+                  borderRadius: 4,
+                  fontFamily: "monospace",
+                  fontSize: 12,
+                  whiteSpace: "pre-wrap",
+                  wordBreak: "break-word",
+                }}
+              >
+                {typeof record.json_value === "string"
+                  ? record.json_value
+                  : JSON.stringify(record.json_value, null, 2)}
+              </div>
             </div>
           </Col>
           <Col span={6}>
@@ -250,7 +266,23 @@ export default function AIValidationTab({
               Giá trị hợp đồng (PDF)
             </Text>
             <div>
-              <Text code>{JSON.stringify(record.pdf_value)}</Text>
+              <div
+                style={{
+                  maxHeight: 96,
+                  overflow: "auto",
+                  padding: "4px 8px",
+                  background: "#f5f5f5",
+                  borderRadius: 4,
+                  fontFamily: "monospace",
+                  fontSize: 12,
+                  whiteSpace: "pre-wrap",
+                  wordBreak: "break-word",
+                }}
+              >
+                {typeof record.pdf_value === "string"
+                  ? record.pdf_value
+                  : JSON.stringify(record.pdf_value, null, 2)}
+              </div>
             </div>
           </Col>
           <Col span={6}>

@@ -183,7 +183,7 @@ export function BasePolicyTab({
         <div className="flex items-center gap-2 mb-4">
           <BarChartOutlined className="text-lg text-green-500" />
           <Title level={5} className="mb-0">
-            Thông tin phí & bồi thường
+            Thông tin phí & chi trả
           </Title>
         </div>
         <Descriptions column={{ xs: 1, sm: 2, md: 3 }} bordered size="small">
@@ -198,12 +198,12 @@ export function BasePolicyTab({
           <Descriptions.Item label="Tỷ lệ phí cơ bản">
             {policyData.premium_base_rate}
           </Descriptions.Item>
-          <Descriptions.Item label="Số tiền bồi thường cố định">
+          <Descriptions.Item label="Số tiền chi trả cố định">
             <strong className="text-blue-600">
               {formatCurrency(policyData.fix_payout_amount)}
             </strong>
           </Descriptions.Item>
-          <Descriptions.Item label="Bồi thường theo hecta">
+          <Descriptions.Item label="Chi trả theo hecta">
             <Tag color={policyData.is_payout_per_hectare ? "green" : "default"}>
               {policyData.is_payout_per_hectare ? "Có" : "Không"}
             </Tag>
@@ -211,10 +211,10 @@ export function BasePolicyTab({
           <Descriptions.Item label="Hệ số vượt ngưỡng">
             {policyData.over_threshold_multiplier}
           </Descriptions.Item>
-          <Descriptions.Item label="Tỷ lệ bồi thường cơ bản">
+          <Descriptions.Item label="Tỷ lệ chi trả cơ bản">
             {policyData.payout_base_rate}
           </Descriptions.Item>
-          <Descriptions.Item label="Giới hạn bồi thường">
+          <Descriptions.Item label="Giới hạn chi trả">
             <strong className="text-red-600">
               {formatCurrency(policyData.payout_cap)}
             </strong>
@@ -356,7 +356,7 @@ export function BasePolicyTab({
           <div className="flex items-center gap-2 mb-4">
             <ThunderboltOutlined className="text-lg text-yellow-600" />
             <Title level={5} className="mb-0">
-              Điều kiện kích hoạt bồi thường
+              Điều kiện kích hoạt chi trả
             </Title>
             <Tag color="blue">{triggers.length} trigger(s)</Tag>
           </div>

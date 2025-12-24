@@ -160,19 +160,19 @@ export default function BasicInfoTab({
             />
             <InfoItem
               icon={DollarOutlined}
-              label="Bồi thường cố định"
+              label="Chi trả cố định"
               value={formatCurrency(basePolicy.fix_payout_amount)}
               largeCol={true}
             />
             <InfoItem
               icon={PercentageOutlined}
-              label="Tỷ lệ bồi thường"
+              label="Tỷ lệ chi trả"
               value={`${(basePolicy.payout_base_rate * 100).toFixed(2)}%`}
               largeCol={true}
             />
             <InfoItem
               icon={DollarOutlined}
-              label="Giới hạn bồi thường tối đa"
+              label="Giới hạn chi trả tối đa"
               value={formatCurrency(basePolicy.payout_cap)}
               fullWidth={true}
             />

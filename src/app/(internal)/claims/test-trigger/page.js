@@ -558,7 +558,7 @@ export default function TestTriggerPage() {
             </Title>
             <Text className="test-trigger-subtitle">
               Tạo dữ liệu giả lập để kiểm tra điều kiện kích hoạt và tự động tạo
-              yêu cầu bồi thường
+              yêu cầu chi trả
             </Text>
           </div>
           <Link href="/claims">
@@ -590,7 +590,7 @@ export default function TestTriggerPage() {
             </div>
             <div className="test-trigger-help-item">
               5. Nhấp "Giả Lập Điều Kiện" để submit test - hệ thống sẽ kiểm tra
-              và tự động tạo yêu cầu bồi thường nếu điều kiện thỏa mãn
+              và tự động tạo yêu cầu chi trả nếu điều kiện thỏa mãn
             </div>
           </div>
           <div className="test-trigger-help-note">
@@ -611,7 +611,7 @@ export default function TestTriggerPage() {
             </div>
             <div className="test-trigger-result-body">
               <Alert
-                message="Dữ liệu test được gửi thành công. Yêu cầu bồi thường đã được tạo nếu điều kiện được thỏa mãn."
+                message="Dữ liệu test được gửi thành công. Yêu cầu chi trả đã được tạo nếu điều kiện được thỏa mãn."
                 type="success"
                 showIcon
                 style={{ marginBottom: "20px" }}
@@ -670,7 +670,7 @@ export default function TestTriggerPage() {
               <div className="test-trigger-result-actions">
                 <Link href="/claims">
                   <Button type="primary" icon={<EyeOutlined />} size="large">
-                    Xem Yêu Cầu Bồi Thường
+                    Xem Yêu Cầu Chi Trả
                   </Button>
                 </Link>
                 <Button
