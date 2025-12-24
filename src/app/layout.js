@@ -1,4 +1,5 @@
 import AntdConfigProvider from "@/providers/andtd-config-provider";
+import AuthRefreshProvider from "@/providers/auth-refresh-provider";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
@@ -13,7 +14,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={inter.className}>
-        <AntdConfigProvider>{children}</AntdConfigProvider>
+        <AntdConfigProvider>
+          <AuthRefreshProvider>{children}</AuthRefreshProvider>
+        </AntdConfigProvider>
       </body>
     </html>
   );
