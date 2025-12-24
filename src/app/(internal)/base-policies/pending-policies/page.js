@@ -236,7 +236,7 @@ export default function PendingPoliciesPage() {
         const basePolicy = record.base_policy || {};
         return (
           <div className="policy-actions-cell">
-            <Link href={`/pending-policies/${basePolicy.id}`}>
+            <Link href={`/base-policies/pending-policies/${basePolicy.id}`}>
               <Button
                 type="dashed"
                 size="small"

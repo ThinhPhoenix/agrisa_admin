@@ -153,7 +153,7 @@ export default function PolicyDetailPage() {
     try {
       await submitValidation(validationData);
       setValidationModalOpen(false);
-      router.push("/pending-policies");
+      router.push("/base-policies/pending-policies");
     } catch (err) {
       console.error("Error submitting validation:", err);
       // Error is already handled in hook
@@ -226,7 +226,9 @@ export default function PolicyDetailPage() {
             >
               {statusConfig.text}
             </Tag>
-            <Button onClick={() => router.push("/pending-policies")}>
+            <Button
+              onClick={() => router.push("/base-policies/pending-policies")}
+            >
               Quay lại
             </Button>
           </div>
