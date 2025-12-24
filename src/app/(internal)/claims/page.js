@@ -140,7 +140,7 @@ export default function ClaimsPage() {
 
   const columns = [
     {
-      title: "Mã bồi thường",
+      title: "Mã chi trả",
       dataIndex: "claim_number",
       key: "claim_number",
       width: 150,
@@ -161,7 +161,7 @@ export default function ClaimsPage() {
       render: (text) => text || "-",
     },
     {
-      title: "Số tiền bồi thường",
+      title: "Số tiền chi trả",
       dataIndex: "claim_amount",
       key: "claim_amount",
       width: 150,
@@ -244,7 +244,7 @@ export default function ClaimsPage() {
       name: "search",
       label: "Tìm kiếm...",
       type: "input",
-      placeholder: "Mã bồi thường",
+      placeholder: "Mã chi trả",
     },
     {
       name: "status",
@@ -291,7 +291,7 @@ export default function ClaimsPage() {
               Quản lý yêu cầu chi trả
             </Title>
             <Text className="claim-subtitle">
-              Quản lý và theo dõi các yêu cầu bồi thường bảo hiểm nông nghiệp
+              Quản lý và theo dõi các yêu cầu chi trả bảo hiểm nông nghiệp
             </Text>
           </div>
           <Link href="/claims/test-trigger">
@@ -314,9 +314,7 @@ export default function ClaimsPage() {
               <div className="claim-summary-value-compact">
                 {summaryStats.totalClaims}
               </div>
-              <div className="claim-summary-label-compact">
-                Tổng số bồi thường
-              </div>
+              <div className="claim-summary-label-compact">Tổng số chi trả</div>
             </div>
           </div>
 

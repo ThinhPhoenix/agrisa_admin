@@ -119,6 +119,14 @@ export default function DetailsCard({
                                     </div>
                                   </div>
                                 )}
+                                labelRender={(props) => {
+                                  const { value } = props;
+                                  return (
+                                    <span style={{ fontSize: "13px" }}>
+                                      {getFieldLabel(value)}
+                                    </span>
+                                  );
+                                }}
                               />
                             </Form.Item>
                             {form.getFieldValue(["mismatches", name, "field"]) && (
@@ -286,6 +294,14 @@ export default function DetailsCard({
                                     </div>
                                   </div>
                                 )}
+                                labelRender={(props) => {
+                                  const { value } = props;
+                                  return (
+                                    <span style={{ fontSize: "13px" }}>
+                                      {getFieldLabel(value)}
+                                    </span>
+                                  );
+                                }}
                               />
                             </Form.Item>
                             {form.getFieldValue(["warnings", name, "field"]) && (
@@ -554,6 +570,14 @@ export default function DetailsCard({
                                   </div>
                                 </div>
                               )}
+                              labelRender={(props) => {
+                                const { value } = props;
+                                return (
+                                  <span style={{ fontSize: "13px" }}>
+                                    {getFieldLabel(value)}
+                                  </span>
+                                );
+                              }}
                             />
                           </Form.Item>
                           {form?.getFieldValue(["mismatches", name, "field"]) && (

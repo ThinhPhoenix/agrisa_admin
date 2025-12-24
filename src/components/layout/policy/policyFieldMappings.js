@@ -26,12 +26,12 @@ export const FIELD_LABELS = {
   "base_policy.fix_premium_amount": "Phí bảo hiểm cố định",
   premium_base_rate: "Tỷ lệ phí cơ sở",
   "base_policy.premium_base_rate": "Tỷ lệ phí cơ sở",
-  fix_payout_amount: "Bồi thường cố định",
-  "base_policy.fix_payout_amount": "Bồi thường cố định",
-  payout_base_rate: "Tỷ lệ bồi thường",
-  "base_policy.payout_base_rate": "Tỷ lệ bồi thường",
-  payout_cap: "Giới hạn bồi thường tối đa",
-  "base_policy.payout_cap": "Giới hạn bồi thường tối đa",
+  fix_payout_amount: "Chi trả cố định",
+  "base_policy.fix_payout_amount": "chi trả cố định",
+  payout_base_rate: "Tỷ lệ chi trả",
+  "base_policy.payout_base_rate": "Tỷ lệ chi trả",
+  payout_cap: "Giới hạn chi trả tối đa",
+  "base_policy.payout_cap": "Giới hạn chi trả tối đa",
 
   // Thời gian
   coverage_duration_days: "Thời hạn bảo hiểm (ngày)",
@@ -134,11 +134,8 @@ export const FIELD_CATEGORIES = {
     "failed_checks",
     "warning_count",
   ],
-  "Tài liệu & Template": [
-    "template_document_url",
-    "template_name",
-  ],
-  "Metadata": [
+  "Tài liệu & Template": ["template_document_url", "template_name"],
+  Metadata: [
     "created_at",
     "updated_at",
     "created_by",
@@ -218,8 +215,8 @@ export const getFieldOptions = (excludeFields = []) => {
 
   Object.entries(FIELD_CATEGORIES).forEach(([category, fields]) => {
     const categoryOptions = fields
-      .filter(field => !excludeFields.includes(field))
-      .map(field => ({
+      .filter((field) => !excludeFields.includes(field))
+      .map((field) => ({
         label: FIELD_LABELS[field] || field,
         value: field,
         category: category,
@@ -276,7 +273,7 @@ export const FieldLabel = ({ fieldName, showOriginal = false }) => {
   return (
     <span title={fieldName}>
       {label}
-      <span style={{ fontSize: '11px', color: '#999', marginLeft: '4px' }}>
+      <span style={{ fontSize: "11px", color: "#999", marginLeft: "4px" }}>
         ({fieldName})
       </span>
     </span>

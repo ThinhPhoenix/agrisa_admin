@@ -286,7 +286,7 @@ export default function PendingPoliciesPage() {
         <div className="policy-header">
           <div>
             <Title level={2} className="policy-title">
-              Quản lý hợp đồng mẫu chờ duyệt
+              Quản lý gói bảo hiểm chờ duyệt
             </Title>
           </div>
         </div>

@@ -27,7 +27,7 @@ export const sidebarMenuItems = [
   // },
   {
     key: "pending-policies",
-    label: "Hợp đồng mẫu chờ duyệt",
+    label: "Gói bảo hiểm chờ duyệt",
   },
   {
     key: "policies",

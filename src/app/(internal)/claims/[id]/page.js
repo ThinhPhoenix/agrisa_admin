@@ -210,7 +210,7 @@ export default function ClaimDetailPage() {
           }}
         >
           <Title level={2} className="claim-title" style={{ margin: 0 }}>
-            Chi tiết yêu cầu bồi thường
+            Chi tiết yêu cầu chi trả
           </Title>
           <Link href="/claims">
             <Button icon={<ArrowLeftOutlined />}>Quay lại</Button>
@@ -224,7 +224,7 @@ export default function ClaimDetailPage() {
               onClick={handleDeleteClaim}
               loading={deleteLoading}
             >
-              Xóa bồi thường
+              Xóa chi trả
             </Button>
           </div> */}
         </div>
@@ -245,7 +245,7 @@ export default function ClaimDetailPage() {
             </Title>
           </div>
           <Descriptions column={{ xs: 1, sm: 2, md: 3 }} bordered size="small">
-            <Descriptions.Item label="Số bồi thường">
+            <Descriptions.Item label="Số chi trả">
               <strong>{claim.claim_number}</strong>
             </Descriptions.Item>
             <Descriptions.Item label="Trạng thái">
@@ -282,19 +282,19 @@ export default function ClaimDetailPage() {
           <div className="flex items-center gap-2 mb-4">
             <WalletOutlined className="text-lg text-green-500" />
             <Title level={5} className="mb-0">
-              Tính toán bồi thường
+              Tính toán chi trả
             </Title>
           </div>
           <Descriptions column={{ xs: 1, sm: 2, md: 3 }} bordered size="small">
-            <Descriptions.Item label="Tổng số tiền bồi thường">
+            <Descriptions.Item label="Tổng số tiền chi trả">
               <strong className="text-xl text-blue-600">
                 {formatCurrency(claim.claim_amount)}
               </strong>
             </Descriptions.Item>
-            <Descriptions.Item label="Bồi thường cố định">
+            <Descriptions.Item label="chi trả cố định">
               {formatCurrency(claim.calculated_fix_payout)}
             </Descriptions.Item>
-            <Descriptions.Item label="Bồi thường theo ngưỡng">
+            <Descriptions.Item label="chi trả theo ngưỡng">
               {formatCurrency(claim.calculated_threshold_payout)}
             </Descriptions.Item>
             <Descriptions.Item label="Giá trị vượt ngưỡng" span={3}>

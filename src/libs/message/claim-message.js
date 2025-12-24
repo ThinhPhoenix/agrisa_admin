@@ -1,21 +1,21 @@
 export const claimMessage = {
   // Success messages
   success: {
-    fetchList: "Tải danh sách bồi thường thành công",
-    fetchDetail: "Tải chi tiết bồi thường thành công",
-    deleteClaim: "Xóa bồi thường thành công",
+    fetchList: "Tải danh sách chi trả thành công",
+    fetchDetail: "Tải chi tiết chi trả thành công",
+    deleteClaim: "Xóa chi trả thành công",
   },
 
   // Error messages
   error: {
-    fetchList: "Không thể tải danh sách bồi thường",
-    fetchDetail: "Không thể tải chi tiết bồi thường",
-    invalidClaimId: "Mã bồi thường không hợp lệ",
-    notFound: "Không tìm thấy yêu cầu bồi thường",
+    fetchList: "Không thể tải danh sách chi trả",
+    fetchDetail: "Không thể tải chi tiết chi trả",
+    invalidClaimId: "Mã chi trả không hợp lệ",
+    notFound: "Không tìm thấy yêu cầu chi trả",
     unauthorized: "Bạn không có quyền thực hiện thao tác này",
     serverError: "Lỗi máy chủ, vui lòng thử lại sau",
-    deleteClaim: "Không thể xóa bồi thường",
-    deleteClaimFailed: "Xóa bồi thường thất bại. Vui lòng thử lại",
+    deleteClaim: "Không thể xóa chi trả",
+    deleteClaimFailed: "Xóa chi trả thất bại. Vui lòng thử lại",
   },
 
   // Loading messages
@@ -28,7 +28,7 @@ export const claimMessage = {
   testTrigger: {
     // Success messages
     testSuccess:
-      "Dữ liệu test được gửi thành công. Yêu cầu bồi thường đã được tạo nếu điều kiện thỏa mãn.",
+      "Dữ liệu test được gửi thành công. Yêu cầu chi trả đã được tạo nếu điều kiện thỏa mãn.",
 
     // Data quality options (matching BE enum)
     dataQuality: {

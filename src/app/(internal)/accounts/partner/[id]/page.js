@@ -510,7 +510,7 @@ export default function PartnerDetailPage() {
           <Row gutter={[24, 24]} className="partner-detail-row">
             <Col xs={24}>
               <Card
-                title="Thông tin thanh toán bồi thường"
+                title="Thông tin thanh toán chi trả"
                 className="partner-detail-card"
               >
                 <Row gutter={16}>
@@ -830,7 +830,7 @@ export default function PartnerDetailPage() {
                               {request.status === "approved" && (
                                 <Alert
                                   message="Đối tác sẽ ngừng hoạt động sau 30 ngày"
-                                  description="Đối tác có trách nhiệm thanh toán toàn bộ các khoản bồi thường trước khi chính thức hủy. Tất cả các hợp đồng đang hoạt động sẽ chuyển sang trạng thái chờ hủy."
+                                  description="Đối tác có trách nhiệm thanh toán toàn bộ các khoản chi trả trước khi chính thức hủy. Tất cả các hợp đồng đang hoạt động sẽ chuyển sang trạng thái chờ hủy."
                                   type="warning"
                                   showIcon
                                   icon={<ExclamationCircleOutlined />}
@@ -914,7 +914,7 @@ export default function PartnerDetailPage() {
           {processingStatus === "approved" ? (
             <Alert
               message="Xác nhận phê duyệt"
-              description="Sau khi phê duyệt, đối tác sẽ có 30 ngày notice period để thanh toán các khoản bồi thường và xử lý các hợp đồng đang hoạt động. Sau đó, tài khoản sẽ bị vô hiệu hóa."
+              description="Sau khi phê duyệt, đối tác sẽ có 30 ngày notice period để thanh toán các khoản chi trả và xử lý các hợp đồng đang hoạt động. Sau đó, tài khoản sẽ bị vô hiệu hóa."
               type="warning"
               showIcon
               style={{ marginBottom: "24px" }}
