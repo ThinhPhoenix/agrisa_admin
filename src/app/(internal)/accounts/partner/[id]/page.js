@@ -1,6 +1,7 @@
 "use client";
 
 import { CustomForm } from "@/components/custom-form";
+import CustomTable from "@/components/custom-table";
 import { useAccounts } from "@/services/hooks/accounts/use-accounts";
 import { usePublicUserProfiles } from "@/services/hooks/common";
 import { usePartners } from "@/services/hooks/partner/use-partner";
@@ -69,6 +70,8 @@ export default function PartnerDetailPage() {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [processingStatus, setProcessingStatus] = useState(null);
   const [processing, setProcessing] = useState(false);
+  const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
+  const [viewingRequest, setViewingRequest] = useState(null);
 
   // Create user options for select
   const userOptions = useMemo(() => {
@@ -88,9 +91,21 @@ export default function PartnerDetailPage() {
     }
   }, [partner?.partner_id, fetchDeletionRequests]);
 
-  // Get the most recent pending request
-  const pendingRequest = useMemo(() => {
-    return deletionRequests.find((req) => req.status === "pending");
+  // Get the most recent request and older requests
+  const { mostRecentRequest, olderRequests } = useMemo(() => {
+    if (!deletionRequests || deletionRequests.length === 0) {
+      return { mostRecentRequest: null, olderRequests: [] };
+    }
+
+    // Sort by requested_at descending (most recent first)
+    const sorted = [...deletionRequests].sort(
+      (a, b) => new Date(b.requested_at) - new Date(a.requested_at)
+    );
+
+    return {
+      mostRecentRequest: sorted[0],
+      olderRequests: sorted.slice(1),
+    };
   }, [deletionRequests]);
 
   // Fetch public user info for all unique requested_by ids in deletion requests
@@ -231,6 +246,351 @@ export default function PartnerDetailPage() {
     setSelectedRequest(null);
     setProcessingStatus(null);
   };
+
+  // Handle view detail button click for older requests
+  const handleViewDetail = (request) => {
+    setViewingRequest(request);
+    setIsDetailModalVisible(true);
+  };
+
+  const handleDetailModalCancel = () => {
+    setIsDetailModalVisible(false);
+    setViewingRequest(null);
+  };
+
+  // Helper function to render deletion request details
+  const renderRequestDetails = (request, showActions = false) => {
+    const daysRemaining = getDaysRemaining(request.cancellable_until);
+    const daysSinceRequest = getDaysSinceRequest(request.requested_at);
+    const currentStep = getCurrentStep(request);
+    const canBeProcessed = canProcess(request);
+
+    return (
+      <div
+        style={{
+          border: "1px solid #f0f0f0",
+          borderRadius: "8px",
+          padding: "24px",
+          background: "#fafafa",
+        }}
+      >
+        <Row gutter={[24, 24]}>
+          <Col xs={24}>
+            <Space
+              style={{
+                width: "100%",
+                justifyContent: "space-between",
+              }}
+            >
+              <div>
+                <Text strong style={{ fontSize: "16px" }}>
+                  Yêu cầu hủy #{request.request_id}
+                </Text>
+                <div style={{ marginTop: "8px" }}>
+                  <Tag color={getDeletionStatusColor(request.status)}>
+                    {getStatusLabel(request.status)}
+                  </Tag>
+                </div>
+              </div>
+              {showActions && request.status === "pending" && (
+                <div>
+                  {canBeProcessed ? (
+                    <Space>
+                      <Button
+                        type="primary"
+                        icon={<CheckCircleOutlined />}
+                        onClick={() =>
+                          handleProcessClick(request, "approved")
+                        }
+                      >
+                        Phê duyệt
+                      </Button>
+                      <Button
+                        danger
+                        icon={<CloseCircleOutlined />}
+                        onClick={() =>
+                          handleProcessClick(request, "rejected")
+                        }
+                      >
+                        Từ chối
+                      </Button>
+                    </Space>
+                  ) : (
+                    <Alert
+                      message={`Còn ${daysRemaining} ngày để partner có thể thu hồi`}
+                      type="info"
+                      icon={<ClockCircleOutlined />}
+                      showIcon
+                    />
+                  )}
+                </div>
+              )}
+            </Space>
+          </Col>
+
+          <Col xs={24} lg={12}>
+            <Descriptions
+              column={1}
+              bordered
+              size="small"
+              title="Thông tin yêu cầu"
+            >
+              <Descriptions.Item label="Người yêu cầu">
+                {(() => {
+                  const userId = request.requested_by;
+                  const publicUser = userId && publicUsers[userId];
+
+                  if (publicUser?.loading) {
+                    return (
+                      <Spin
+                        size="small"
+                        style={{
+                          marginLeft: 4,
+                        }}
+                      />
+                    );
+                  }
+
+                  if (publicUser?.data) {
+                    const user = publicUser.data;
+                    const displayName =
+                      user.full_name ||
+                      user.display_name ||
+                      user.email ||
+                      user.username ||
+                      userId;
+
+                    return displayName;
+                  }
+
+                  // Fallback: use existing name or id
+                  if (
+                    request.requested_by_name &&
+                    request.requested_by_name.trim()
+                  ) {
+                    return request.requested_by_name;
+                  }
+
+                  return userId || "-";
+                })()}
+              </Descriptions.Item>
+              <Descriptions.Item label="Ngày yêu cầu">
+                {Utils.formatStringVietnameseDateTime(request.requested_at)}
+              </Descriptions.Item>
+              <Descriptions.Item label="Đã gửi">
+                {daysSinceRequest > 0
+                  ? `${daysSinceRequest} ngày trước`
+                  : "Hôm nay"}
+              </Descriptions.Item>
+
+              {request.detailed_explanation && (
+                <Descriptions.Item label="Lý do" span={2}>
+                  {request.detailed_explanation}
+                </Descriptions.Item>
+              )}
+            </Descriptions>
+
+            {request.reviewed_by_id && (
+              <Descriptions
+                column={1}
+                bordered
+                size="small"
+                title="Thông tin xử lý"
+                style={{ marginTop: "16px" }}
+              >
+                <Descriptions.Item label="Người xử lý">
+                  {request.reviewed_by_name && request.reviewed_by_name.trim()
+                    ? request.reviewed_by_name
+                    : request.reviewed_by_id}
+                </Descriptions.Item>
+                <Descriptions.Item label="Ngày xử lý">
+                  {new Date(request.reviewed_at).toLocaleString("vi-VN")}
+                </Descriptions.Item>
+                {request.review_note && (
+                  <Descriptions.Item label="Ghi chú" span={2}>
+                    {request.review_note}
+                  </Descriptions.Item>
+                )}
+              </Descriptions>
+            )}
+          </Col>
+
+          <Col xs={24} lg={12}>
+            <div>
+              <Text strong style={{ marginBottom: "16px" }}>
+                Tiến trình xử lý
+              </Text>
+              {request.status === "pending" ? (
+                <Steps
+                  current={currentStep}
+                  direction="vertical"
+                  style={{ marginTop: "16px" }}
+                >
+                  <Steps.Step
+                    title="Admin xử lý yêu cầu"
+                    description={
+                      canBeProcessed ? "Có thể xử lý ngay" : "Chờ hết hạn thu hồi"
+                    }
+                    icon={<ExclamationCircleOutlined />}
+                  />
+                  <Steps.Step
+                    title="Hoàn tất xử lý"
+                    description="Chờ xử lý"
+                    icon={<CheckCircleOutlined />}
+                  />
+                </Steps>
+              ) : (
+                <Timeline style={{ marginTop: "16px" }}>
+                  <Timeline.Item color="blue">
+                    <Text>
+                      Yêu cầu được tạo:{" "}
+                      {new Date(request.requested_at).toLocaleString("vi-VN")}
+                    </Text>
+                  </Timeline.Item>
+                  {request.reviewed_at && (
+                    <Timeline.Item
+                      color={
+                        request.status === "approved"
+                          ? "green"
+                          : request.status === "rejected"
+                          ? "red"
+                          : "gray"
+                      }
+                      dot={
+                        request.status === "approved" ? (
+                          <CheckCircleOutlined />
+                        ) : request.status === "rejected" ? (
+                          <CloseCircleOutlined />
+                        ) : (
+                          <StopOutlined />
+                        )
+                      }
+                    >
+                      <Text>
+                        {request.status === "approved"
+                          ? "Đã phê duyệt"
+                          : request.status === "rejected"
+                          ? "Đã từ chối"
+                          : "Đã hủy"}
+                        :{" "}
+                        {new Date(request.reviewed_at).toLocaleString("vi-VN")}
+                      </Text>
+                      {request.reviewed_by_id && (
+                        <div>
+                          <Text type="secondary">
+                            Bởi:{" "}
+                            {request.reviewed_by_name &&
+                            request.reviewed_by_name.trim()
+                              ? request.reviewed_by_name
+                              : request.reviewed_by_id}
+                          </Text>
+                        </div>
+                      )}
+                    </Timeline.Item>
+                  )}
+                </Timeline>
+              )}
+            </div>
+
+            {request.status === "approved" && (
+              <Alert
+                message="Đối tác sẽ ngừng hoạt động sau 30 ngày"
+                description="Đối tác có trách nhiệm thanh toán toàn bộ các khoản chi trả trước khi chính thức hủy. Tất cả các hợp đồng đang hoạt động sẽ chuyển sang trạng thái chờ hủy."
+                type="warning"
+                showIcon
+                icon={<ExclamationCircleOutlined />}
+                style={{ marginTop: "16px" }}
+              />
+            )}
+          </Col>
+        </Row>
+      </div>
+    );
+  };
+
+  // Table columns for older deletion requests
+  const olderRequestsColumns = [
+    {
+      title: "ID Yêu cầu",
+      dataIndex: "request_id",
+      key: "request_id",
+      width: 120,
+      render: (id) => `#${id}`,
+    },
+    {
+      title: "Người yêu cầu",
+      dataIndex: "requested_by",
+      key: "requested_by",
+      width: 200,
+      render: (userId, record) => {
+        const publicUser = userId && publicUsers[userId];
+
+        if (publicUser?.loading) {
+          return <Spin size="small" />;
+        }
+
+        if (publicUser?.data) {
+          const user = publicUser.data;
+          return (
+            user.full_name ||
+            user.display_name ||
+            user.email ||
+            user.username ||
+            userId
+          );
+        }
+
+        if (record.requested_by_name && record.requested_by_name.trim()) {
+          return record.requested_by_name;
+        }
+
+        return userId || "-";
+      },
+    },
+    {
+      title: "Ngày yêu cầu",
+      dataIndex: "requested_at",
+      key: "requested_at",
+      width: 180,
+      render: (date) => Utils.formatStringVietnameseDateTime(date),
+    },
+    {
+      title: "Trạng thái",
+      dataIndex: "status",
+      key: "status",
+      width: 150,
+      render: (status) => (
+        <Tag color={getDeletionStatusColor(status)}>
+          {getStatusLabel(status)}
+        </Tag>
+      ),
+    },
+    {
+      title: "Người xử lý",
+      dataIndex: "reviewed_by_name",
+      key: "reviewed_by_name",
+      width: 200,
+      render: (name, record) => {
+        if (!record.reviewed_by_id) return "-";
+        return name && name.trim() ? name : record.reviewed_by_id;
+      },
+    },
+    {
+      title: "Hành động",
+      key: "action",
+      width: 120,
+      fixed: "right",
+      render: (_, record) => (
+        <Button
+          type="link"
+          onClick={() => handleViewDetail(record)}
+          style={{ padding: 0 }}
+        >
+          Xem chi tiết
+        </Button>
+      ),
+    },
+  ];
 
   const formFields = [
     {
@@ -592,291 +952,40 @@ export default function PartnerDetailPage() {
                   />
                 </Card>
               ) : (
-                <Card
-                  title="Yêu cầu hủy đối tác"
-                  className="partner-detail-card"
+                <Space
+                  direction="vertical"
+                  size="large"
+                  style={{ width: "100%" }}
                 >
-                  <Space
-                    direction="vertical"
-                    size="large"
-                    style={{ width: "100%" }}
-                  >
-                    {deletionRequests.map((request) => {
-                      const daysRemaining = getDaysRemaining(
-                        request.cancellable_until
-                      );
-                      const daysSinceRequest = getDaysSinceRequest(
-                        request.requested_at
-                      );
-                      const currentStep = getCurrentStep(request);
-                      const canBeProcessed = canProcess(request);
+                  {/* Most Recent Request - Full Details */}
+                  {mostRecentRequest && (
+                    <Card
+                      title="Yêu cầu hủy mới nhất"
+                      className="partner-detail-card"
+                    >
+                      {renderRequestDetails(mostRecentRequest, true)}
+                    </Card>
+                  )}
 
-                      return (
-                        <div
-                          key={request.request_id}
-                          style={{
-                            border: "1px solid #f0f0f0",
-                            borderRadius: "8px",
-                            padding: "24px",
-                            background: "#fafafa",
-                          }}
-                        >
-                          <Row gutter={[24, 24]}>
-                            <Col xs={24}>
-                              <Space
-                                style={{
-                                  width: "100%",
-                                  justifyContent: "space-between",
-                                }}
-                              >
-                                <div>
-                                  <Text strong style={{ fontSize: "16px" }}>
-                                    Yêu cầu hủy #{request.request_id}
-                                  </Text>
-                                  <div style={{ marginTop: "8px" }}>
-                                    <Tag
-                                      color={getDeletionStatusColor(
-                                        request.status
-                                      )}
-                                    >
-                                      {getStatusLabel(request.status)}
-                                    </Tag>
-                                  </div>
-                                </div>
-                                {request.status === "pending" && (
-                                  <div>
-                                    {canBeProcessed ? (
-                                      <Space>
-                                        <Button
-                                          type="primary"
-                                          icon={<CheckCircleOutlined />}
-                                          onClick={() =>
-                                            handleProcessClick(
-                                              request,
-                                              "approved"
-                                            )
-                                          }
-                                        >
-                                          Phê duyệt
-                                        </Button>
-                                        <Button
-                                          danger
-                                          icon={<CloseCircleOutlined />}
-                                          onClick={() =>
-                                            handleProcessClick(
-                                              request,
-                                              "rejected"
-                                            )
-                                          }
-                                        >
-                                          Từ chối
-                                        </Button>
-                                      </Space>
-                                    ) : (
-                                      <Alert
-                                        message={`Còn ${daysRemaining} ngày để partner có thể thu hồi`}
-                                        type="info"
-                                        icon={<ClockCircleOutlined />}
-                                        showIcon
-                                      />
-                                    )}
-                                  </div>
-                                )}
-                              </Space>
-                            </Col>
-
-                            <Col xs={24} lg={12}>
-                              <Descriptions
-                                column={1}
-                                bordered
-                                size="small"
-                                title="Thông tin yêu cầu"
-                              >
-                                <Descriptions.Item label="Người yêu cầu">
-                                  {(() => {
-                                    const userId = request.requested_by;
-                                    const publicUser =
-                                      userId && publicUsers[userId];
-
-                                    if (publicUser?.loading) {
-                                      return (
-                                        <Spin
-                                          size="small"
-                                          style={{
-                                            marginLeft: 4,
-                                          }}
-                                        />
-                                      );
-                                    }
-
-                                    if (publicUser?.data) {
-                                      const user = publicUser.data;
-                                      const displayName =
-                                        user.full_name ||
-                                        user.display_name ||
-                                        user.email ||
-                                        user.username ||
-                                        userId;
-
-                                      return displayName;
-                                    }
-
-                                    // Fallback: use existing name or id
-                                    if (
-                                      request.requested_by_name &&
-                                      request.requested_by_name.trim()
-                                    ) {
-                                      return request.requested_by_name;
-                                    }
-
-                                    return userId || "-";
-                                  })()}
-                                </Descriptions.Item>
-                                <Descriptions.Item label="Ngày yêu cầu">
-                                  {
-                                    Utils.formatStringVietnameseDateTime(request.requested_at)
-                                  }
-                                </Descriptions.Item>
-                                <Descriptions.Item label="Đã gửi">
-                                  {daysSinceRequest > 0 ? `${daysSinceRequest} ngày trước` : "Hôm nay"}
-                                </Descriptions.Item>
-                                
-                                {request.detailed_explanation && (
-                                  <Descriptions.Item label="Lý do" span={2}>
-                                    {request.detailed_explanation}
-                                  </Descriptions.Item>
-                                )}
-                              </Descriptions>
-
-                              {request.reviewed_by_id && (
-                                <Descriptions
-                                  column={1}
-                                  bordered
-                                  size="small"
-                                  title="Thông tin xử lý"
-                                  style={{ marginTop: "16px" }}
-                                >
-                                  <Descriptions.Item label="Người xử lý">
-                                    {request.reviewed_by_name &&
-                                    request.reviewed_by_name.trim()
-                                      ? request.reviewed_by_name
-                                      : request.reviewed_by_id}
-                                  </Descriptions.Item>
-                                  <Descriptions.Item label="Ngày xử lý">
-                                    {new Date(
-                                      request.reviewed_at
-                                    ).toLocaleString("vi-VN")}
-                                  </Descriptions.Item>
-                                  {request.review_note && (
-                                    <Descriptions.Item label="Ghi chú" span={2}>
-                                      {request.review_note}
-                                    </Descriptions.Item>
-                                  )}
-                                </Descriptions>
-                              )}
-                            </Col>
-
-                            <Col xs={24} lg={12}>
-                              <div>
-                                <Text strong style={{ marginBottom: "16px" }}>
-                                  Tiến trình xử lý
-                                </Text>
-                                {request.status === "pending" ? (
-                                  <Steps
-                                    current={currentStep}
-                                    direction="vertical"
-                                    style={{ marginTop: "16px" }}
-                                  >
-                                    
-                                    <Steps.Step
-                                      title="Admin xử lý yêu cầu"
-                                      description={
-                                        canBeProcessed
-                                          ? "Có thể xử lý ngay"
-                                          : "Chờ hết hạn thu hồi"
-                                      }
-                                      icon={<ExclamationCircleOutlined />}
-                                    />
-                                    <Steps.Step
-                                      title="Hoàn tất xử lý"
-                                      description="Chờ xử lý"
-                                      icon={<CheckCircleOutlined />}
-                                    />
-                                  </Steps>
-                                ) : (
-                                  <Timeline style={{ marginTop: "16px" }}>
-                                    <Timeline.Item color="blue">
-                                      <Text>
-                                        Yêu cầu được tạo:{" "}
-                                        {new Date(
-                                          request.requested_at
-                                        ).toLocaleString("vi-VN")}
-                                      </Text>
-                                    </Timeline.Item>
-                                    {request.reviewed_at && (
-                                      <Timeline.Item
-                                        color={
-                                          request.status === "approved"
-                                            ? "green"
-                                            : request.status === "rejected"
-                                            ? "red"
-                                            : "gray"
-                                        }
-                                        dot={
-                                          request.status === "approved" ? (
-                                            <CheckCircleOutlined />
-                                          ) : request.status === "rejected" ? (
-                                            <CloseCircleOutlined />
-                                          ) : (
-                                            <StopOutlined />
-                                          )
-                                        }
-                                      >
-                                        <Text>
-                                          {request.status === "approved"
-                                            ? "Đã phê duyệt"
-                                            : request.status === "rejected"
-                                            ? "Đã từ chối"
-                                            : "Đã hủy"}
-                                          :{" "}
-                                          {new Date(
-                                            request.reviewed_at
-                                          ).toLocaleString("vi-VN")}
-                                        </Text>
-                                        {request.reviewed_by_id && (
-                                          <div>
-                                            <Text type="secondary">
-                                              Bởi:{" "}
-                                              {request.reviewed_by_name &&
-                                              request.reviewed_by_name.trim()
-                                                ? request.reviewed_by_name
-                                                : request.reviewed_by_id}
-                                            </Text>
-                                          </div>
-                                        )}
-                                      </Timeline.Item>
-                                    )}
-                                  </Timeline>
-                                )}
-                              </div>
-
-                              {request.status === "approved" && (
-                                <Alert
-                                  message="Đối tác sẽ ngừng hoạt động sau 30 ngày"
-                                  description="Đối tác có trách nhiệm thanh toán toàn bộ các khoản chi trả trước khi chính thức hủy. Tất cả các hợp đồng đang hoạt động sẽ chuyển sang trạng thái chờ hủy."
-                                  type="warning"
-                                  showIcon
-                                  icon={<ExclamationCircleOutlined />}
-                                  style={{ marginTop: "16px" }}
-                                />
-                              )}
-                            </Col>
-                          </Row>
-                        </div>
-                      );
-                    })}
-                  </Space>
-                </Card>
+                  {/* Older Requests - Table View */}
+                  {olderRequests.length > 0 && (
+                    <Card
+                      title={`Lịch sử yêu cầu hủy (${olderRequests.length})`}
+                      className="partner-detail-card"
+                    >
+                      <CustomTable
+                        dataSource={olderRequests}
+                        columns={olderRequestsColumns}
+                        rowKey="request_id"
+                        pagination={{
+                          pageSize: 5,
+                          showSizeChanger: true,
+                          pageSizeOptions: ["5", "10", "20"],
+                        }}
+                      />
+                    </Card>
+                  )}
+                </Space>
               )}
             </Col>
           </Row>
@@ -1005,6 +1114,19 @@ export default function PartnerDetailPage() {
             </Button>
           </div>
         </div>
+      </Modal>
+
+      {/* View Detail Modal for Older Requests */}
+      <Modal
+        title="Chi tiết yêu cầu hủy đối tác"
+        open={isDetailModalVisible}
+        onCancel={handleDetailModalCancel}
+        footer={null}
+        width={1200}
+        centered
+        destroyOnClose
+      >
+        {viewingRequest && renderRequestDetails(viewingRequest, false)}
       </Modal>
     </Content>
   );
