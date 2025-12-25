@@ -36,6 +36,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import "../partner.css";
+import { Utils } from "@/libs/utils";
 
 const { Title, Text } = Typography;
 const { Content } = Layout;
@@ -732,18 +733,14 @@ export default function PartnerDetailPage() {
                                   })()}
                                 </Descriptions.Item>
                                 <Descriptions.Item label="Ngày yêu cầu">
-                                  {new Date(
-                                    request.requested_at
-                                  ).toLocaleString("vi-VN")}
+                                  {
+                                    Utils.formatStringVietnameseDateTime(request.requested_at)
+                                  }
                                 </Descriptions.Item>
                                 <Descriptions.Item label="Đã gửi">
-                                  {daysSinceRequest} ngày trước
+                                  {daysSinceRequest > 0 ? `${daysSinceRequest} ngày trước` : "Hôm nay"}
                                 </Descriptions.Item>
-                                <Descriptions.Item label="Hạn thu hồi">
-                                  {new Date(
-                                    request.cancellable_until
-                                  ).toLocaleString("vi-VN")}
-                                </Descriptions.Item>
+                                
                                 {request.detailed_explanation && (
                                   <Descriptions.Item label="Lý do" span={2}>
                                     {request.detailed_explanation}
@@ -790,15 +787,7 @@ export default function PartnerDetailPage() {
                                     direction="vertical"
                                     style={{ marginTop: "16px" }}
                                   >
-                                    <Steps.Step
-                                      title="Chờ hết hạn thu hồi (7 ngày)"
-                                      description={
-                                        daysRemaining > 0
-                                          ? `Còn ${daysRemaining} ngày`
-                                          : "Đã hết hạn thu hồi"
-                                      }
-                                      icon={<ClockCircleOutlined />}
-                                    />
+                                    
                                     <Steps.Step
                                       title="Admin xử lý yêu cầu"
                                       description={
