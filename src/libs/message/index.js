@@ -1,63 +1,64 @@
 // Import and re-export các message modules
 export {
-  AUTH_MESSAGES,
-  getAuthMessageIcon,
-  getAuthMessageType,
-  getRegisterError,
-  getRegisterInfo,
-  getRegisterMessage,
-  getRegisterSuccess,
-  getRegisterValidation,
-  getRegisterWarning,
-  getSignInError,
-  getSignInInfo,
-  getSignInMessage,
-  getSignInMessageIcon,
-  getSignInMessageType,
-  getSignInSuccess,
-  getSignInValidation,
-  getSignInWarning,
-  mapBackendError,
-  // Backend error mapping functions
-  mapBackendErrorCode,
-  mapBackendErrorMessage,
-  mapBackendSuccessMessage,
-  parseBackendError,
-  splitAuthMessage,
-  splitSignInMessage,
+    AUTH_MESSAGES,
+    getAuthMessageIcon,
+    getAuthMessageType,
+    getRegisterError,
+    getRegisterInfo,
+    getRegisterMessage,
+    getRegisterSuccess,
+    getRegisterValidation,
+    getRegisterWarning,
+    getSignInError,
+    getSignInInfo,
+    getSignInMessage,
+    getSignInMessageIcon,
+    getSignInMessageType,
+    getSignInSuccess,
+    getSignInValidation,
+    getSignInWarning,
+    mapBackendError,
+    // Backend error mapping functions
+    mapBackendErrorCode,
+    mapBackendErrorMessage,
+    mapBackendSuccessMessage,
+    parseBackendError,
+    splitAuthMessage,
+    splitSignInMessage,
 } from "./auth-message.js";
 export { claimMessage } from "./claim-message.js";
+export {
+    COMMON_MESSAGES,
+    getCommonMessage,
+    getErrorMessage,
+    getInfoMessage,
+    getMessageIcon,
+    getMessageType,
+    getSuccessMessage,
+    getValidationMessage,
+    getWarningMessage,
+    splitMessage,
+} from "./common-message.js";
 export { dashboardMessage } from "./dashboard-message.js";
 export {
-  COMMON_MESSAGES,
-  getCommonMessage,
-  getErrorMessage,
-  getInfoMessage,
-  getMessageIcon,
-  getMessageType,
-  getSuccessMessage,
-  getValidationMessage,
-  getWarningMessage,
-  splitMessage,
-} from "./common-message.js";
-export {
-  DATA_SOURCE_MESSAGES,
-  getDataSourceError,
-  getDataSourceInfo,
-  getDataSourceMessage,
-  getDataSourceSuccess,
-  getDataSourceValidation,
-  getTierCategoryError,
-  getTierCategoryInfo,
-  getTierCategorySuccess,
-  getTierCategoryValidation,
-  getTierError,
-  getTierInfo,
-  getTierSuccess,
-  getTierValidation,
-  parseDataSourceError,
+    DATA_SOURCE_MESSAGES,
+    getDataSourceError,
+    getDataSourceInfo,
+    getDataSourceMessage,
+    getDataSourceSuccess,
+    getDataSourceValidation,
+    getTierCategoryError,
+    getTierCategoryInfo,
+    getTierCategorySuccess,
+    getTierCategoryValidation,
+    getTierError,
+    getTierInfo,
+    getTierSuccess,
+    getTierValidation,
+    parseDataSourceError,
 } from "./data-source-message.js";
 export { PARTNER_MESSAGES } from "./partner-message.js";
+export { paymentMessage } from "./payment-message.js";
 export { policyMessage } from "./policy-message.js";
 
 // Re-export with clearer names for easier usage
@@ -66,43 +67,45 @@ export { COMMON_MESSAGES as GeneralMessages } from "./common-message.js";
 
 // Helper functions để dễ sử dụng hơn
 export const Messages = {
-  // General messages
-  general: {
-    success: (key, params) => getSuccessMessage(key, params),
-    error: (key, params) => getErrorMessage(key, params),
-    warning: (key, params) => getWarningMessage(key, params),
-    info: (key, params) => getInfoMessage(key, params),
-    validation: (key, params) => getValidationMessage(key, params),
-  },
+    // General messages
+    general: {
+        success: (key, params) => getSuccessMessage(key, params),
+        error: (key, params) => getErrorMessage(key, params),
+        warning: (key, params) => getWarningMessage(key, params),
+        info: (key, params) => getInfoMessage(key, params),
+        validation: (key, params) => getValidationMessage(key, params),
+    },
 
-  // Register specific messages
-  register: {
-    success: (key, params) => getRegisterSuccess(key, params),
-    error: (key, params) => getRegisterError(key, params),
-    validation: (key, params) => getRegisterValidation(key, params),
-    info: (key, params) => getRegisterInfo(key, params),
-    warning: (key, params) => getRegisterWarning(key, params),
-  },
+    // Register specific messages
+    register: {
+        success: (key, params) => getRegisterSuccess(key, params),
+        error: (key, params) => getRegisterError(key, params),
+        validation: (key, params) => getRegisterValidation(key, params),
+        info: (key, params) => getRegisterInfo(key, params),
+        warning: (key, params) => getRegisterWarning(key, params),
+    },
 
-  // SignIn specific messages
-  signin: {
-    success: (key, params) => getSignInSuccess(key, params),
-    error: (key, params) => getSignInError(key, params),
-    validation: (key, params) => getSignInValidation(key, params),
-    info: (key, params) => getSignInInfo(key, params),
-    warning: (key, params) => getSignInWarning(key, params),
-  },
+    // SignIn specific messages
+    signin: {
+        success: (key, params) => getSignInSuccess(key, params),
+        error: (key, params) => getSignInError(key, params),
+        validation: (key, params) => getSignInValidation(key, params),
+        info: (key, params) => getSignInInfo(key, params),
+        warning: (key, params) => getSignInWarning(key, params),
+    },
 
-  // Utility functions
-  utils: {
-    getIcon: (type, key) => getMessageIcon(type, key),
-    getType: (type, key) => getMessageType(type, key),
-    split: (type, key) => splitMessage(type, key),
-    getAuthIcon: (section, type, key) => getAuthMessageIcon(section, type, key),
-    getAuthType: (section, type, key) => getAuthMessageType(section, type, key),
-    splitAuth: (section, type, key) => splitAuthMessage(section, type, key),
-    getSignInIcon: (type, key) => getSignInMessageIcon(type, key),
-    getSignInType: (type, key) => getSignInMessageType(type, key),
-    splitSignIn: (type, key) => splitSignInMessage(type, key),
-  },
+    // Utility functions
+    utils: {
+        getIcon: (type, key) => getMessageIcon(type, key),
+        getType: (type, key) => getMessageType(type, key),
+        split: (type, key) => splitMessage(type, key),
+        getAuthIcon: (section, type, key) =>
+            getAuthMessageIcon(section, type, key),
+        getAuthType: (section, type, key) =>
+            getAuthMessageType(section, type, key),
+        splitAuth: (section, type, key) => splitAuthMessage(section, type, key),
+        getSignInIcon: (type, key) => getSignInMessageIcon(type, key),
+        getSignInType: (type, key) => getSignInMessageType(type, key),
+        splitSignIn: (type, key) => splitSignInMessage(type, key),
+    },
 };

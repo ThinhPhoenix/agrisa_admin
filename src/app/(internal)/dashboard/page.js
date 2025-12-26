@@ -7,6 +7,7 @@ import {
   UNDERWRITING_STATUS,
   useDashboardRevenue,
 } from "@/services/hooks/dashboard";
+import { useGetTotal } from "@/services/hooks/payment/use-get-total";
 import {
   ArrowDownOutlined,
   ArrowUpOutlined,
@@ -82,6 +83,7 @@ export default function DashboardPage() {
 
   // Fetch revenue data
   const revenue = useDashboardRevenue();
+  const { total: totalRevenue, loading: totalRevenueLoading, error: totalRevenueError } = useGetTotal("data_bill_payment");
 
   // Filter fields for CustomForm
   const filterFields = [
@@ -171,7 +173,7 @@ export default function DashboardPage() {
     });
   }
 
-  if (revenue.loading) {
+  if (revenue.loading || totalRevenueLoading) {
     return (
       <Layout.Content className="dashboard-content">
         <div className="dashboard-loading">
@@ -424,9 +426,7 @@ export default function DashboardPage() {
               </div>
               <div className="dashboard-summary-content">
                 <div className="dashboard-summary-value-compact">
-                  {revenue.formatCurrency(
-                    revenue.data?.current_month?.total_revenue || 0
-                  )}
+                  {revenue.formatCurrency(totalRevenue || 0)}
                 </div>
                 <div className="dashboard-summary-label-compact">
                   {dashboardMessage.revenue.currentMonthRevenue}
