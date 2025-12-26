@@ -85,9 +85,11 @@ export const PARTNER_MESSAGES = {
   // Partner Deletion Request Messages
   DELETION: {
     // Success messages
-    REQUEST_CREATED: "Yêu cầu hủy đối tác đã được gửi thành công. Bạn có thể hủy yêu cầu này trong vòng 7 ngày.",
+    REQUEST_CREATED:
+      "Yêu cầu hủy đối tác đã được gửi thành công. Bạn có thể hủy yêu cầu này trong vòng 7 ngày.",
     REQUEST_REVOKED: "Yêu cầu hủy đối tác đã được thu hồi thành công!",
-    REQUEST_APPROVED: "Yêu cầu hủy đối tác đã được phê duyệt. Đối tác sẽ ngừng hoạt động sau 30 ngày.",
+    REQUEST_APPROVED:
+      "Yêu cầu hủy đối tác đã được phê duyệt. Đối tác sẽ ngừng hoạt động sau 30 ngày.",
     REQUEST_REJECTED: "Yêu cầu hủy đối tác đã bị từ chối!",
     REQUEST_PROCESSED: "Yêu cầu đã được xử lý thành công!",
 
@@ -97,16 +99,25 @@ export const PARTNER_MESSAGES = {
     REQUEST_NOT_FOUND: "Không tìm thấy yêu cầu hủy!",
     EXPLANATION_TOO_LONG: "Lý do phải có độ dài từ 1 đến 1000 ký tự!",
     REVIEW_NOTE_TOO_LONG: "Ghi chú phải có độ dài từ 1 đến 500 ký tự!",
-    INVALID_STATUS: "Trạng thái không hợp lệ. Chỉ chấp nhận 'approved' hoặc 'rejected'!",
+    INVALID_STATUS:
+      "Trạng thái không hợp lệ. Chỉ chấp nhận 'approved' hoặc 'rejected'!",
 
     // Business logic errors
-    PENDING_REQUEST_EXISTS: "Đã có yêu cầu hủy đang chờ xử lý. Vui lòng hủy yêu cầu cũ trước khi tạo yêu cầu mới!",
+    PENDING_REQUEST_EXISTS:
+      "Đã có yêu cầu hủy đang chờ xử lý. Vui lòng hủy yêu cầu cũ trước khi tạo yêu cầu mới!",
     NOT_PARTNER_ADMIN: "Bạn không phải là quản trị viên của đối tác bảo hiểm!",
     NO_PERMISSION_TO_REVOKE: "Bạn không có quyền hủy yêu cầu này!",
-    ONLY_PENDING_CAN_REVOKE: "Chỉ các yêu cầu đang chờ xử lý mới có thể bị hủy!",
-    ONLY_PENDING_CAN_PROCESS: "Chỉ các yêu cầu đang chờ xử lý mới có thể được xử lý!",
-    CANNOT_REVOKE_AFTER_DEADLINE: "Không thể hủy yêu cầu sau thời gian có thể hủy (7 ngày)!",
-    CANNOT_PROCESS_BEFORE_DEADLINE: "Không thể xử lý yêu cầu trước khi hết thời gian có thể hủy (7 ngày)!",
+    ONLY_PENDING_CAN_REVOKE:
+      "Chỉ các yêu cầu đang chờ xử lý mới có thể bị hủy!",
+    ONLY_PENDING_CAN_PROCESS:
+      "Chỉ các yêu cầu đang chờ xử lý mới có thể được xử lý!",
+    CANNOT_REVOKE_AFTER_DEADLINE:
+      "Không thể hủy yêu cầu sau thời gian có thể hủy (7 ngày)!",
+    CANNOT_PROCESS_BEFORE_DEADLINE:
+      "Không thể xử lý yêu cầu trước khi hết thời gian có thể hủy (7 ngày)!",
+    // Specific business case: active contracts prevent approval
+    ACTIVE_CONTRACTS_EXIST:
+      "Không thể phê duyệt yêu cầu vì vẫn còn hợp đồng bảo hiểm đang hoạt động!",
     NO_DELETION_REQUESTS_FOUND: "Không tìm thấy yêu cầu hủy nào!",
 
     // Status labels

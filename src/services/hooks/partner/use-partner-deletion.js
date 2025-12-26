@@ -20,7 +20,79 @@ export function usePartnerDeletion() {
   const mapErrorToMessage = useCallback((error, operation = "fetch") => {
     const status = error.response?.status;
     const errorCode = error.response?.data?.error?.code;
-    const serverMessage = error.response?.data?.message;
+    // Support multiple response shapes: message may be at data.message or data.error.message
+    const serverMessage =
+      error.response?.data?.message || error.response?.data?.error?.message;
+    // Normalize serverMessage to lower-case for easier matching
+    const msg = typeof serverMessage === "string" ? serverMessage : "";
+    const msgLower = msg.toLowerCase();
+
+    // Specific Vietnamese server messages mapping (exact & contains checks)
+    if (msg) {
+      if (
+        msg.includes("RequestID là bắt buộc") ||
+        msgLower.includes("requestid")
+      ) {
+        return PARTNER_MESSAGES.DELETION.REQUEST_ID_REQUIRED;
+      }
+
+      if (
+        msgLower.includes("deletion request not found") ||
+        msgLower.includes("not_found: deletion request not found") ||
+        msgLower.includes("không tìm thấy yêu cầu hủy")
+      ) {
+        return PARTNER_MESSAGES.DELETION.REQUEST_NOT_FOUND;
+      }
+
+      if (
+        msgLower.includes(
+          "chỉ các yêu cầu đang chờ xử lý mới có thể được xử lý"
+        ) ||
+        msgLower.includes("only pending")
+      ) {
+        return PARTNER_MESSAGES.DELETION.ONLY_PENDING_CAN_PROCESS;
+      }
+
+      if (
+        msgLower.includes("không thể phê duyệt") &&
+        msgLower.includes("hợp đồng")
+      ) {
+        return PARTNER_MESSAGES.DELETION.ACTIVE_CONTRACTS_EXIST;
+      }
+
+      if (
+        msgLower.includes("contracts failed to load") ||
+        msgLower.includes("active contracts not found") ||
+        msgLower.includes("error creating request:") ||
+        msgLower.includes("error making request:") ||
+        msgLower.includes("error reading response:") ||
+        msgLower.includes("unexpected status code") ||
+        msgLower.includes("error parsing json:")
+      ) {
+        return PARTNER_MESSAGES.NETWORK.GENERIC_ERROR;
+      }
+
+      if (
+        msgLower.includes("invalid request payload") ||
+        msgLower.startsWith("invalid:")
+      ) {
+        // Try more specific invalid messages
+        if (msgLower.includes("requestid"))
+          return PARTNER_MESSAGES.DELETION.REQUEST_ID_REQUIRED;
+        if (msgLower.includes("chỉ các yêu cầu"))
+          return PARTNER_MESSAGES.DELETION.ONLY_PENDING_CAN_PROCESS;
+        return PARTNER_MESSAGES.NETWORK.GENERIC_ERROR;
+      }
+
+      // SQL / backend debug messages -> server error
+      if (
+        msgLower.includes("failed to execute query") ||
+        msgLower.includes("failed to check rows affected") ||
+        msgLower.includes("no rows affected")
+      ) {
+        return PARTNER_MESSAGES.NETWORK.SERVER_ERROR;
+      }
+    }
 
     // Map specific error codes to messages
     const errorMap = {
@@ -39,9 +111,10 @@ export function usePartnerDeletion() {
           ? PARTNER_MESSAGES.DELETION.ONLY_PENDING_CAN_REVOKE
           : PARTNER_MESSAGES.DELETION.ONLY_PENDING_CAN_PROCESS,
       BAD_REQUEST:
-        serverMessage === "RequestID là bắt buộc"
+        msg === "RequestID là bắt buộc" || msgLower.includes("requestid")
           ? PARTNER_MESSAGES.DELETION.REQUEST_ID_REQUIRED
-          : serverMessage === "Invalid status value"
+          : msg === "Invalid status value" ||
+            msgLower.includes("invalid status")
           ? PARTNER_MESSAGES.DELETION.INVALID_STATUS
           : PARTNER_MESSAGES.NETWORK.GENERIC_ERROR,
       UNPROCESSABLE_ENTITY:
@@ -50,28 +123,24 @@ export function usePartnerDeletion() {
           : PARTNER_MESSAGES.DELETION.CANNOT_PROCESS_BEFORE_DEADLINE,
     };
 
-    // Check Vietnamese messages from server
-    if (serverMessage) {
-      if (serverMessage.includes("không có quyền hủy yêu cầu này")) {
+    // Check Vietnamese messages from server (legacy checks)
+    if (msg) {
+      if (msg.includes("không có quyền hủy yêu cầu này")) {
         return PARTNER_MESSAGES.DELETION.NO_PERMISSION_TO_REVOKE;
       }
-      if (serverMessage.includes("đang chờ xử lý mới có thể bị hủy")) {
+      if (msg.includes("đang chờ xử lý mới có thể bị hủy")) {
         return PARTNER_MESSAGES.DELETION.ONLY_PENDING_CAN_REVOKE;
       }
-      if (serverMessage.includes("đang chờ xử lý mới có thể được xử lý")) {
+      if (msg.includes("đang chờ xử lý mới có thể được xử lý")) {
         return PARTNER_MESSAGES.DELETION.ONLY_PENDING_CAN_PROCESS;
       }
-      if (serverMessage.includes("sau thời gian có thể hủy")) {
+      if (msg.includes("sau thời gian có thể hủy")) {
         return PARTNER_MESSAGES.DELETION.CANNOT_REVOKE_AFTER_DEADLINE;
       }
-      if (serverMessage.includes("trước thời gian có thể hủy")) {
+      if (msg.includes("trước thời gian có thể hủy")) {
         return PARTNER_MESSAGES.DELETION.CANNOT_PROCESS_BEFORE_DEADLINE;
       }
-      if (
-        serverMessage.includes(
-          "không phải là quản trị viên của đối tác bảo hiểm"
-        )
-      ) {
+      if (msg.includes("không phải là quản trị viên của đối tác bảo hiểm")) {
         return PARTNER_MESSAGES.DELETION.NOT_PARTNER_ADMIN;
       }
     }
