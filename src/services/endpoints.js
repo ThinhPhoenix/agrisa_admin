@@ -17,8 +17,8 @@ export const endpoints = {
         delete: (id) => `${prefix}/users/${id}`,
         list: "/auth/public/api/v2/users?limit=100&",
         profile: (id) => `/profile/public/api/v1/users/${id}`,
-    get_public_user_by_id: (user_id) =>
-      `/profile/public/api/v1/users/own/${user_id}`,
+        get_public_user_by_id: (user_id) =>
+            `/profile/public/api/v1/users/own/${user_id}`,
         register: (role_name) => `/auth/public/register?role_name=${role_name}`,
     },
     policy: {
@@ -62,7 +62,8 @@ export const endpoints = {
             validate: "/policy/protected/api/v2/base-policies/validate",
             detail: "/policy/protected/api/v2/base-policies/detail",
             list: "/policy/protected/api/v2/base-policies/all",
-            mark_payment: (id) => `/policy/protected/api/v2/data-bill/mark-payment/${id}`,
+            mark_payment: (id) =>
+                `/policy/protected/api/v2/data-bill/mark-payment/${id}`,
         },
         farm: {
             detail: (farm_id) => `/policy/protected/api/v2/farms/${farm_id}`,
@@ -129,6 +130,15 @@ export const endpoints = {
             provinces: "https://tinhthanhpho.com/api/v1/new-provinces",
             wards: (provinceCode) =>
                 `https://tinhthanhpho.com/api/v1/new-provinces/${provinceCode}/wards`,
+        },
+    },
+    payment: {
+        order: {
+            list: "/payment/protected/orders/admin/all",
+            detail: (id) => `/payment/protected/order/admin/${id}`,
+        },
+        dashboard: {
+            total: (type, from, to) => `/payment/protected/total/admin?type=${type}&from=${from}&to=${to}`,
         },
     },
 };
